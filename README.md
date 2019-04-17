@@ -23,3 +23,8 @@ TODO
 
 1. `curl -s https://get.fenicsproject.org | bash`
 2. Run with `fenicsproject run`
+
+### Tips/Bugs
+
+- Matplotbib fails when having wrong backend on macOS
+  - Fix: Add `backend: TkAgg` to `~/.matplotlib/matplotlibrc` file
