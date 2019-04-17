@@ -76,7 +76,7 @@
 #
 # First, the :py:mod:`dolfin` module is imported: ::
 
-from dolfin import * # pylint: disable=W0611
+from dolfin import * # pylint: disable=W0614
 
 # We begin by defining a mesh of the domain and a finite element
 # function space :math:`V` relative to this mesh. As the unit square is
