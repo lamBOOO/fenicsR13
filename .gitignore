@@ -1,0 +1,6 @@
+# Ignore FEnicCS output
+*.pvd
+*.vtu
+
+# Ignore macOS helper files
+*.DS_STORE
