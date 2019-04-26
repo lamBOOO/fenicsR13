@@ -4,3 +4,6 @@
 
 # Ignore macOS helper files
 *.DS_STORE
+
+# ignore VSCode's helper files
+*.ropeproject
