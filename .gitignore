@@ -6,4 +6,4 @@
 *.DS_STORE
 
 # ignore VSCode's helper files
-*.ropeproject
+*.vscode
