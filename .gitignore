@@ -6,4 +6,9 @@
 *.DS_STORE
 
 # ignore VSCode's helper files
+<<<<<<< HEAD
 *.vscode
+=======
+*.vscode
+*.ipynb_checkpoints
+>>>>>>> 319115d... Start with heat system case
