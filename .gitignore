@@ -8,3 +8,7 @@
 # ignore VSCode's helper files
 *.vscode
 *.ipynb_checkpoints
+
+# ignore mesh data
+*.xml
+*.msh
