@@ -12,6 +12,7 @@ Repository for Master thesis project regarding FEM simulations for non-equilibri
    2. Optional (for linting): `conda install pylint`
    3. Install mshr with `conda install -c conda-forge mshr`
    4. Fix macOS bug in matplotbib: `mkdir -p ~/.matplotlib; echo "backend: TkAgg" > ~/.matplotlib/matplotlibrc`
+   5. XCode and command line developer tools msut be installed!
 
 ## Docker Usage
 
