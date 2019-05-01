@@ -1,100 +1,109 @@
 """
 Program to solve the heat system
+Analytical solution for Paraview approx:
+(-20*(-0.40855)*ln(sqrt(coordsX^2+coordsY^2))+(5*(coordsX^2+coordsY^2)^2)/4
+-2*(coordsX^2+coordsY^2)*(24*(1.0)^2+5))/(75*1.0) + 2.44715
 """
 __author__ = "L. Theisen"
 __copyright__ = "2019 %s" % __author__
 
 # %%
-# from mshr import Circle, generate_mesh
-from dolfin import plot, set_log_level, FiniteElement, VectorElement, \
-    FunctionSpace, Mesh, MeshFunction, TrialFunctions, TestFunctions, Expression, \
-    dx, dot, grad, dev, div, ds, FacetNormal, inner, DirichletBC, Constant, sqrt, solve, Function
-import dolfin
 import matplotlib.pyplot as plt
+import dolfin as d
+d.set_log_level(1)  # all logs
 
-# Settings
-set_log_level(1)  # all logs
-
-# %%
-# Load gmsh mesh
-MESH = Mesh("ring.xml")
-SUBDOMAINS = MeshFunction('size_t', MESH, "ring_physical_region.xml")
-BOUNDARIES = MeshFunction('size_t', MESH, "ring_facet_region.xml")
+# %% Load mesh and setup spaces
+MESH = d.Mesh("ring.xml")
+SUBDOMAINS = d.MeshFunction('size_t', MESH, "ring_physical_region.xml")
+BOUNDARIES = d.MeshFunction('size_t', MESH, "ring_facet_region.xml")
 
 plt.figure()
-plot(MESH, title="GMSH Mesh")
-plt.show()
+d.plot(MESH, title="GMSH Mesh")
+plt.draw()
 
 # Setup function spaces and shape functions
-P2 = VectorElement("Lagrange", MESH.ufl_cell(), 2)
-P1 = FiniteElement("Lagrange", MESH.ufl_cell(), 1)
+P2 = d.VectorElement("Lagrange", MESH.ufl_cell(), 2)
+P1 = d.FiniteElement("Lagrange", MESH.ufl_cell(), 1)
 ME = P2 * P1  # mixed element space
-W = FunctionSpace(MESH, ME)
+W = d.FunctionSpace(MESH, ME)
 
-# Boundary conditions # TODO: Insert the right BC
-INNER_THETA = 1.0
-OUTER_THETA = 0.5
+# Boundary conditions
+# FIXME: Insert the right BC
+INNER_THETA = d.Constant(1.0)
+OUTER_THETA = d.Constant(0.5)
+INNER_S = d.Constant((0.0, 0.0))
+OUTER_S = d.Constant((0.0, 0.0))
+
 # Inner=3000
-BC_INNER_THETA = DirichletBC(W.sub(1), Constant(INNER_THETA), BOUNDARIES, 3000)
-BC_INNER_S = DirichletBC(W.sub(0), Constant((0.0, 0.0)), BOUNDARIES, 3000)
+BC_INNER_THETA = d.DirichletBC(W.sub(1), INNER_THETA, BOUNDARIES, 3000)
+BC_INNER_S = d.DirichletBC(W.sub(0), OUTER_S, BOUNDARIES, 3000)
 
 # Outer=3100
-BC_OUTER_THETA = DirichletBC(W.sub(1), Constant(OUTER_THETA), BOUNDARIES, 3100)
-BC_OUTER_S = DirichletBC(W.sub(0), Constant((0.0, 0.0)), BOUNDARIES, 3100)
+BC_OUTER_THETA = d.DirichletBC(W.sub(1), OUTER_THETA, BOUNDARIES, 3100)
+BC_OUTER_S = d.DirichletBC(W.sub(0), OUTER_S, BOUNDARIES, 3100)
 
 BCS = [BC_INNER_THETA, BC_INNER_S, BC_OUTER_THETA, BC_OUTER_S]
 
-# %%
-# Parameters
-TAU = 0.1
-XI_TILDE = 0.5  # TODO: What's the value for this?, check against normal xi
-THETA_W = 0.5  # TODO: Implement BC
+# %% Setup problem definition
+TAU = d.Constant(0.1)
+XI_TILDE = d.Constant(0.1) # FIXME: Lookup right values
+# THETA_W = d.Constant(0.5) # FIXME: Implement BC
+DELTA_1 = d.Constant(0.1)
 
 # Define trial and testfunction
-(S, THETA) = TrialFunctions(W)
-(R, KAPPA) = TestFunctions(W)
+(S, THETA) = d.TrialFunctions(W)
+(R, KAPPA) = d.TestFunctions(W)
 
 # Define source function
-F = Expression("2 - pow(x[0],2) - pow(x[1],2)", degree=2)  # f=2-x^2-y^2
+F = d.Expression("2 - pow(x[0],2) - pow(x[1],2)", degree=2)
+# F = d.Expression("0", degree=0)
 
 print("Setup variational formulation")
 
-# TODO: These maybe have to be "Functions" to allow for nonlinear bilinear form
-N = FacetNormal(MESH)
-S_N = dot(S, N)
-R_N = dot(R, N)
-S_T = sqrt(dot(S, S) - S_N)
-R_T = sqrt(dot(R, R) - R_N)
+N = d.FacetNormal(MESH)
+S_N = d.dot(S, N)
+R_N = d.dot(R, N)
+S_T = d.sqrt(d.dot(S, S) - S_N)
+R_T = d.sqrt(d.dot(R, R) - R_N)
 
-A = (inner(dev(grad(S)), grad(R)) + 2/3 * 1/TAU * dot(S, R) - 5/2 * THETA * div(R) -
-     div(S)*KAPPA) * dx
-    # TODO: Think about how to treat boudary integrals
-    #  div(S)*KAPPA) * dx + (5/(4*XI_TILDE) * S_N * R_N + (11*XI_TILDE)/10 * S_T * R_T)*ds
+A1 = (
+    + 12/5 * TAU * d.inner(d.dev(d.grad(S)), d.grad(R))
+    + 2/3 * 1/TAU * d.dot(S, R)
+    - 5/2 * THETA * d.div(R)
+    ) * d.dx
+A2 = - (d.div(S) * KAPPA) * d.dx
+STAB = - (DELTA_1 * d.jump(d.grad(THETA), N) * d.jump(d.grad(KAPPA), N)) * d.dS
+L1 = 0
+L2 = - (F * KAPPA) * d.dx
 
-# A += # TODO: Include jump term, see MS thesis from sweden: "jump"
+A = A1 + A2 + STAB
+L = L1 + L2
 
-L = (5/2 * THETA_W) * R_N * ds - (F * KAPPA) * dx
-
-
+# FIXME: Think about how to treat boudary integrals:
+#   div(S)*KAPPA) * dx + (5/(4*XI_TILDE) * S_N * R_N
+#   + (11*XI_TILDE)/10 * S_T * R_T)*ds
+# FIXME: Include jump term, see MS thesis from sweden: "jump"
+# FIXME: L += (5/2 * THETA_W) * R_N * ds
 
 # %%
 print("Solving system...")
-SOL = Function(W)
-solve(A == L, SOL, BCS)
+SOL = d.Function(W)
+d.solve(A == L, SOL, BCS)
 (S, THETA) = SOL.split()
+
+print("Writing output files...")
+S.rename('s', 's')
+S_FILE_PVD = d.File("s.pvd")
+S_FILE_PVD << S
+THETA.rename('theta', 'theta')
+THETA_FILE_PVD = d.File("theta.pvd")
+THETA_FILE_PVD << THETA
 
 print("Plotting solution...")
 plt.figure()
-plot(S, title="s")
+d.plot(S, title="s")
 plt.figure()
-plot(THETA, title="Theta")
+d.plot(THETA, title="Theta")
 plt.show()
 
-print("Writing output files...")
-S_FILE_PVD = dolfin.File("s.pvd")
-S_FILE_PVD << S
-THETA_FILE_PVD = dolfin.File("theta.pvd")
-THETA_FILE_PVD << THETA
-
-
-#%%
+# TODO: Plot and implement analytical solution
