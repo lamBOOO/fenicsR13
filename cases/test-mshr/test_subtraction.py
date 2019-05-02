@@ -1,20 +1,32 @@
-"""Simple mesh test: Obtains same mesh as in westerkamp2019"""
+"""Simple mesh test: Obtains same mesh as in Westerkamp2019"""
 
-from mshr import Circle, generate_mesh
-from dolfin import Point, FunctionSpace, plot
-import matplotlib.pyplot as plt
+def main():
+    """Generates the mesh"""
 
-# Parameters
-# 1) Radii
-R1 = 0.5
-R2 = 2.0
-# 2) Mesh resolution
-RES = 10
+    import mshr as m
+    import dolfin as d
+    import matplotlib.pyplot as plt
 
-DOMAIN = Circle(Point(0.0, 0.0), R2) - Circle(Point(0.0, 0.0), R1)
-MESH = generate_mesh(DOMAIN, RES)
-V = FunctionSpace(MESH, "Lagrange", 1)
+    r_1 = 0.5 # inner radius
+    r_2 = 2.0 # outer radisu
+    res = 100 # resolution
 
-plt.figure()
-plot(MESH, title="Mesh")
-plt.show()
+    circle_inner = m.Circle(d.Point(0.0, 0.0), r_1)
+    circle_outer = m.Circle(d.Point(0.0, 0.0), r_2)
+
+    domain = circle_outer - circle_inner
+
+    domain.set_subdomain(1, circle_inner)
+    domain.set_subdomain(2, circle_outer)
+
+    mesh = m.generate_mesh(domain, res)
+
+    mesh_file_pvd = d.File("mesh.pvd")
+    mesh_file_pvd.write(mesh)
+
+    plt.figure()
+    d.plot(mesh, title="Mesh")
+    plt.show()
+
+if __name__ == "__main__":
+    main()
