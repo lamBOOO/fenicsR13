@@ -16,6 +16,7 @@ Repository for Master thesis project regarding FEM simulations for non-equilibri
    5. XCode and command line developer tools msut be installed!
    6. Optional: Install Jupyter: `conda install -c anaconda jupyter`
    7. Optional: Install documentation system: `conda install -c anaconda sphinx`
+   8. Optional: `conda install -c anaconda sympy`
 
 ## Docker Usage
 
