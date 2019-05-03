@@ -15,6 +15,7 @@ Repository for Master thesis project regarding FEM simulations for non-equilibri
    4. Fix macOS bug in matplotbib: `mkdir -p ~/.matplotlib; echo "backend: TkAgg" > ~/.matplotlib/matplotlibrc`
    5. XCode and command line developer tools msut be installed!
    6. Optional: Install Jupyter: `conda install -c anaconda jupyter`
+   7. Optional: Install documentation system: `conda install -c anaconda sphinx`
 
 ## Docker Usage
 
