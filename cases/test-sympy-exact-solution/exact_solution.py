@@ -5,10 +5,11 @@
 """
 Calculates analytical solution of heat system
 TODO: Add generalization with Christoffel symbols
+TODO: Add generalization with contraviriant deriv? see matlab file
 """
 
 from sympy import (Symbol, Function, cos, sin, diff, Matrix,
-                   init_printing, eye, simplify, Rational, Array)
+                   init_printing, eye, simplify, Rational, Array, sqrt)
 from sympy.physics.vector import ReferenceFrame, gradient
 from sympy.vector import CoordSys3D
 from sympy.printing import print_ccode, print_latex
@@ -40,9 +41,11 @@ from IPython.display import display
 # - Mathematical Methods for Physicists, Seventh Edition:
 #   A Comprehensive Guide (7th) page 224
 # - TODO: Compare Itzkov CM notes
+# - http://mathworld.wolfram.com/CylindricalCoordinates.html
+# -  CRC Standard Mathematical Tables page 388
 
 
-R = Symbol("R")
+R = Symbol("R", positive=True)
 phi = Symbol("phi")
 z = Symbol("z")
 xx = [R, phi, z] # coordinates
@@ -53,7 +56,12 @@ J = P.jacobian(xx)
 J_inv = simplify(J.inv())
 g = simplify(J.transpose() * J)
 g_inv = simplify(g.inv())
-Gamma = Array([[[Rational(1,2) * sum([g_inv[n, k] * ( diff(g[i,k], xx[j])+diff(g[j,k], xx[i])-diff(g[i,j], xx[k]) ) for k in range(dim)]) for n in range(dim)] for i in range(dim)] for j in range(dim)]) # FIXME
+Gamma = Array([
+    [[
+        Rational(1, 2) * sum([g_inv[n, k] * (diff(g[i, k], xx[j])+diff(g[j, k], xx[i])-diff(g[i, j], xx[k])) for k in range(dim)])
+        for j in range(dim)
+    ] for i in range(dim)] for n in range(dim)
+    ]) # Gamma[(n,i,j)] means looking into n-th Christoffel matrix
 display(P)
 display(J)
 display(J_inv)
@@ -84,14 +92,13 @@ def grad0(rank0_):
 
 def grad1(rank1_):
     "Calculates gradient of rank-0 tensor = scalar"
-    return Array([[diff(rank1_[0], R), diff(rank1_[0], phi)],
-                  [diff(rank1_[1], R), diff(rank1_[1], phi)]])
+    return Array([1/sqrt(g[k, k]) * diff(rank1_[i], xx[k]) for k in range(dim)] for i in range(dim))
 
 def tracefreeSym2(rank2_):
     "Calculates deviatoric (tracefree symmateric) parts of rank-2 tensor"
     rank2_ = rank2_.tomatrix()
     return (Rational(1, 2) * (rank2_ + rank2_.transpose())
-            - Rational(1, 3) * rank2_.trace() * eye(2))
+            - Rational(1, 3) * rank2_.trace() * eye(dim))
 
 def div2(rank2_):
     "Calculates divergence of rank-2 tensor"
@@ -100,7 +107,7 @@ def div2(rank2_):
 display(grad0(theta))
 
 print("s:")
-s = Array([alpha_0 + cos(phi)*alpha, beta_0 + cos(phi)*beta])
+s = Array([alpha_0 + cos(phi)*alpha, beta_0 + cos(phi)*beta, 0])
 display(diff(s, R))
 display(grad1(s))
 display(tracefreeSym2(grad1(s)))
