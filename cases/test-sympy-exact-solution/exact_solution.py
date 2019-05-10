@@ -38,11 +38,12 @@ Literature
 from sympy import (Symbol, Function, cos, sin, diff, Matrix,
                    init_printing, eye, simplify, Rational, Array, sqrt, dsolve,
                    Derivative, Eq, solve, log, ln, collect, expand,
-                   classify_ode, symbols)
+                   classify_ode, symbols, N)
 from sympy.physics.vector import ReferenceFrame, gradient
 from sympy.vector import CoordSys3D
 from sympy.solvers.ode import classify_sysode
 from sympy.printing import print_ccode, print_latex, cxxcode
+from sympy.plotting import plot
 from IPython.display import display
 # ------------------------------------------------------------------------------
 
@@ -112,7 +113,6 @@ def div2():
 # ------------------------------------------------------------------------------
 # DEFINE ANSATZ AND EQUATION
 # ------------------------------------------------------------------------------
-tau = Symbol("tau")
 s_R = Symbol("s_R")
 s_phi = Symbol("s_phi")
 
@@ -131,11 +131,17 @@ s = Array([alpha_0 + cos(phi)*alpha, beta_0 + cos(phi)*beta, 0])
 # ------------------------------------------------------------------------------
 # SETUP ODES AND SOLVE THEM
 # ------------------------------------------------------------------------------
+# tau = Rational(1, 10)
+tau = Symbol("tau")
 A_0 = Symbol("A0")
 A_1 = Symbol("A1")
 A_2 = Symbol("A2")
-F = A_0 + A_2*R**2 + A_1 * cos(phi)
-eqn1 = laplace0(theta) - Rational(2, 3)*laplace0(F) - F
+F = A_0 + A_1 * cos(phi) + A_2*R**2
+
+eqn1 = expand(
+    Rational(5, 2) * laplace0(theta)
+    - Rational(8, 5) * tau * laplace0(F) + Rational(2, 3) * 1/tau * F
+    )
 odes = eqn1.coeff(cos(phi), 1), eqn1.coeff(cos(phi), 0)
 
 C_11 = Symbol("C_11")
@@ -156,6 +162,7 @@ else:
 # ------------------------------------------------------------------------------
 # CALCUALTE INTEGRATION CONSTANT FROM BOUNDARY CONDITIONS
 # Assume theta is fixed, in theorz: theta_wall = const + cos(phi)
+# FIXME: Could be wrong to enforce Dirichlet BCs for theta, see Mathematica
 # ------------------------------------------------------------------------------
 theta_0 = Symbol('theta_0')
 theta_1 = Symbol('theta_1')
@@ -181,6 +188,16 @@ theta = simplify(theta.subs([
 # ------------------------------------------------------------------------------
 # FINAL SOLUTION FOR THETA WITH ACTUAL VALUES
 # ------------------------------------------------------------------------------
+
+def print_paraview(expr):
+    "Returns string of sympy object for Paraview calculator"
+    return str(expr).replace("**", "^").replace("log", "ln")
+
+def make_cartesian(expr):
+    "Replaces a symbol R with coordsX and coordsY"
+    return expr.subs(R, sqrt(Symbol("coordsX")**2+Symbol("coordsY")**2))
+
+tau_v = Rational(1, 10)
 theta_0_v = Rational(1)
 theta_1_v = Rational(1, 2)
 R_0_v = Rational(1, 2)
@@ -188,7 +205,8 @@ R_1_v = Rational(2)
 A_0_v = Rational(2)
 A_1_v = Rational(0)
 A_2_v = Rational(-1)
-theta_final = simplify(theta.subs([
+theta_final = expand(theta.subs([
+    (tau, tau_v),
     (theta_0, theta_0_v),
     (theta_1, theta_1_v),
     (R_0, R_0_v),
@@ -200,4 +218,23 @@ theta_final = simplify(theta.subs([
 display(theta_final)
 print(cxxcode(theta_final)) # with namespaces
 print_ccode(theta_final)
+print_paraview(make_cartesian(theta_final))
+
+
+C_1 = Symbol("C_1")
+C_2 = Symbol("C_2")
+tau = Symbol("tau")
+theta_armin = (-20*C_1 * log(R) + (5*R**4)/4 - 2*R**2 * (24*tau**2+5))/(75*tau) + C_2
+theta_armin_01 = theta_armin.subs([
+    (tau, 0.1),
+    (C_1, -0.40855716127979214),
+    (C_2, 2.4471587630476663)
+    ])
+
+print(cxxcode(theta_armin)) # with namespaces
+print_ccode(theta_armin)
+print_paraview(make_cartesian(theta_armin_01))
+
+
+
 # ------------------------------------------------------------------------------
