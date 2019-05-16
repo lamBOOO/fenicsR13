@@ -1,7 +1,7 @@
 """Simple mesh test: Obtains same mesh as in Westerkamp2019"""
 
 def main():
-    """Generates the mesh"""
+    "Generates the mesh"
 
     import mshr as m
     import dolfin as d

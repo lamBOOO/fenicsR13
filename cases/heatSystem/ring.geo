@@ -1,5 +1,11 @@
+// Command line Parameters
+If(!Exists(p))
+  p = 0;
+EndIf
+
 // Settings
-res = 0.5;
+res = 100;
+Mesh.CharacteristicLengthMax = 1.0 * 2^(-p);
 Mesh.MshFileVersion = 2.0;
 
 // Parameters

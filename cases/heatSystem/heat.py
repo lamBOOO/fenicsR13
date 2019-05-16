@@ -5,7 +5,17 @@
 # ------------------------------------------------------------------------------
 # PYLINT SETTINGS
 # ------------------------------------------------------------------------------
-# none
+# pylint: disable=unsubscriptable-object
+# pylint: disable=unused-import
+# ------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------
+# TODOs
+# ------------------------------------------------------------------------------
+# - Export series of meshes
+# - Fix the value for xi_tilde
+# - Add edge scaling to CIP term
 # ------------------------------------------------------------------------------
 
 
@@ -17,180 +27,358 @@ Program to solve the decoupled (removed coupling term) heat system of the linear
 # ------------------------------------------------------------------------------
 # IMPORTS
 # ------------------------------------------------------------------------------
+import os
 import matplotlib.pyplot as plt
 import dolfin as d
-d.set_log_level(1)  # all logs
+import mshr as m
+import numpy as np
+d.set_log_level(1000)  # 1: all logs
 # ------------------------------------------------------------------------------
-
 
 
 # ------------------------------------------------------------------------------
 # SETTINGS
 # ------------------------------------------------------------------------------
 
+# Problem parameters
+tau = d.Constant(0.1)
+
+# FEM parameters
+p_s = 1
+p_theta = 1
+
 # Continous Interior Penalty (CIP) Stabilization with parameter delta_1:
 stab_cip = True
-delta_1 = d.Constant(1.0)
+delta_1 = d.Constant(1)
+
+# Meshing parameters
+use_gmsh = True
 
 # ------------------------------------------------------------------------------
 
 
 # ------------------------------------------------------------------------------
-# SETUP COMPUTATIONAL DOMAIN
+# SETUP COMPUTATIONAL DOMAIN BY GENERATING MESH
 # ------------------------------------------------------------------------------
-mesh = d.Mesh("ring.xml") # TODO: Include internal mesher
-mesh_regions = d.MeshFunction('size_t', mesh, "ring_physical_region.xml")
-mesh_bounds = d.MeshFunction('size_t', mesh, "ring_facet_region.xml")
+def create_mesh(p, plot_mesh_=False, overwrite_=False):
+    """
+    3000 = inner circle, 3100 = outer circle
+    """
 
-plt.figure()
-d.plot(mesh, title="Mesh")
-plt.draw()
-print("Max edge length:", mesh.hmax())
+    if use_gmsh:
+        gmsh_path = "/Applications/gmsh/Gmsh.app/Contents/MacOS/gmsh"
+        geo_name = "ring"
+        mesh_name = "{}{}".format(geo_name, p)
+
+        mesh_avail = os.path.isfile(mesh_name + ".xml") and os.path.isfile(
+            mesh_name + "_facet_region.xml") and os.path.isfile(mesh_name + "_physical_region.xml")
+
+        if not mesh_avail or overwrite_:
+            os.system(
+                "{} -setnumber p {} -2 -o {}.msh {}.geo".format(gmsh_path, p, mesh_name, geo_name))
+            os.system("dolfin-convert {0}.msh {0}.xml".format(mesh_name))
+
+        # comm = d.MPI.comm_world
+        # rank = d.MPI.rank(comm)
+        # gmsh_path = "/Applications/gmsh/Gmsh.app/Contents/MacOS/gmsh"
+        # mesh_name = "ring"
+        # if rank==0:
+        # print("genmesh ************************ ")
+        # os.system("{} -setnumber p {} -2 {}.geo".format(gmsh_path, p,
+        #                                                 mesh_name))
+        # os.system("dolfin-convert {0}.msh {0}.xml".format(mesh_name))
+        # else:
+        #     print("wait ************************")
+
+        mesh_ = d.Mesh("{}.xml".format(mesh_name))
+        domain_markers_ = d.MeshFunction(
+            'size_t', mesh_, "{}_physical_region.xml".format(mesh_name))
+        boundary_markers_ = d.MeshFunction(
+            'size_t', mesh_, "{}_facet_region.xml".format(mesh_name))
+    else:
+        raise Exception("FIXME: BCs are not working automatically here")
+        # r_1 = 0.5 # inner
+        # r_2 = 2.0 # outer
+        # res = 10 # resolution
+
+        # circle_inner = m.Circle(d.Point(0.0, 0.0), r_1)
+        # circle_outer = m.Circle(d.Point(0.0, 0.0), r_2)
+
+        # domain = circle_outer - circle_inner
+
+        # domain.set_subdomain(3000, circle_inner)
+        # domain.set_subdomain(3100, circle_outer)
+
+        # mesh = m.generate_mesh(domain, res)
+
+        # domain_markers = d.MeshFunction('size_t', mesh, 2, mesh.domains())
+        # boundary_markers = d.MeshFunction('size_t', mesh, 1)
+
+        # print("max edge length:", mesh.hmax())
+
+        # mesh_file_pvd = d.File("mesh.pvd")
+        # mesh_file_pvd.write(mesh)
+
+        # return (mesh, domain_markers, boundary_markers)
+
+    if plot_mesh_:
+        plt.figure()
+        d.plot(mesh_, title="Mesh")
+        plt.draw()
+
+    print("Max edge length:", mesh_.hmax())
+
+    return (mesh_, domain_markers_, boundary_markers_)
 # ------------------------------------------------------------------------------
 
 
 # ------------------------------------------------------------------------------
 # Setup function spaces and shape functions
 # ------------------------------------------------------------------------------
-el_p2 = d.VectorElement("Lagrange", mesh.ufl_cell(), 2)
-el_p1 = d.FiniteElement("Lagrange", mesh.ufl_cell(), 1)
-el_mxd = d.MixedElement([el_p2, el_p1])
-v_p2 = d.FunctionSpace(mesh, el_p2)
-v_p1 = d.FunctionSpace(mesh, el_p1)
-w = d.FunctionSpace(mesh, el_mxd)
+def setup_function_spaces_heat(mesh_, order_s=1, order_theta=1):
+    "TODO"
+    el_s_ = d.VectorElement("Lagrange", mesh_.ufl_cell(), order_s)
+    el_theta_ = d.FiniteElement("Lagrange", mesh_.ufl_cell(), order_theta)
+    el_mxd_ = d.MixedElement([el_s_, el_theta_])
+    v_s_ = d.FunctionSpace(mesh_, el_s_)
+    v_theta_ = d.FunctionSpace(mesh_, el_theta_)
+    w_ = d.FunctionSpace(mesh_, el_mxd_)
+    return (w_, v_s_, v_theta_)
 # ------------------------------------------------------------------------------
 
 
 # ------------------------------------------------------------------------------
-# Boundary conditions
+# Setup problem
 # ------------------------------------------------------------------------------
-# FIXME: Insert the right BC
-theta_inner = d.Constant(1.0)
-theta_outer = d.Constant(0.5)
+def setup_variational_formulation(w_, mesh_, mesh_bounds_):
+    "TODO"
+    xi_tilde = d.Constant(1.0)
+    # xi_tilde = d.Constant(d.sqrt(2/d.pi))
+    theta_w_inner = d.Constant(1.0)
+    theta_w_outer = d.Constant(0.5)
 
-# TODO: Check removing s BCs
-s_inner = d.Constant((0.0, 0.0))
-s_outer = d.Constant((0.0, 0.0))
+    # Define trial and testfunction
+    (s_, theta_) = d.TrialFunctions(w_)
+    (r_, kappa_) = d.TestFunctions(w_)
 
-# Inner=3000
-bc_theta_inner = d.DirichletBC(w.sub(1), theta_inner, mesh_bounds, 3000)
-bc_s_inner = d.DirichletBC(w.sub(0), s_inner, mesh_bounds, 3000)
+    # Define custom measeasure for boundaries
+    dsBc = d.Measure('ds', domain=mesh_, subdomain_data=mesh_bounds_)
 
-# Outer=3100
-bc_theta_outer = d.DirichletBC(w.sub(1), theta_outer, mesh_bounds, 3100)
-bc_s_outer = d.DirichletBC(w.sub(0), s_outer, mesh_bounds, 3100)
+    # Normal and tangential components
+    # => angential (tx,ty) = (-ny,nx) only for 2D
+    n = d.FacetNormal(mesh_)
+    s_n = s_[0] * n[0] + s_[1] * n[1]
+    r_n = r_[0] * n[0] + r_[1] * n[1]
+    s_t = - s_[0] * n[1] + s_[1] * n[0]
+    r_t = - r_[0] * n[1] + r_[1] * n[0]
 
-bcs_theta = [bc_theta_inner, bc_theta_outer]
-bcs_s = [bc_s_inner, bc_s_outer]
-# bcs_full = bcs_theta + bcs_s
-# bcs = bcs_theta
-bcs = []
-# ------------------------------------------------------------------------------
+    # Define source function
+    f = d.Expression("2 - pow(x[0],2) - pow(x[1],2)", degree=2)
 
-
-# ------------------------------------------------------------------------------
-# Setup problem definition
-# ------------------------------------------------------------------------------
-tau = d.Constant(0.1)
-xi_tilde = d.Constant(1.0) # FIXME: Lookup right value
-theta_w_inner = d.Constant(1.0)
-theta_w_outer = d.Constant(0.5)
-
-# Define trial and testfunction
-(s, theta) = d.TrialFunctions(w)
-(r, kappa) = d.TestFunctions(w)
-
-# Define source function
-f = d.Expression("2 - pow(x[0],2) - pow(x[1],2)", degree=2)
-
-print("Setup variational formulation")
-
-# Normal and tangential components
-# tangential (tx,ty) = (-ny,nx) only for 2D
-
-# Define custom measeasure for boundaries
-ds = d.Measure('ds', domain=mesh, subdomain_data=mesh_bounds)
-
-n = d.FacetNormal(mesh)
-s_n = s[0] * n[0] + s[1] * n[1]
-r_n = r[0] * n[0] + r[1] * n[1]
-s_t = - s[0] * n[1] + s[1] * n[0]
-r_t = - r[0] * n[1] + r[1] * n[0]
-
-a1 = (
-    + 12/5 * tau * d.inner(d.dev(d.grad(s)), d.grad(r))
-    + 2/3 * 1/tau * d.dot(s, r)
-    - 5/2 * theta * d.div(r)
+    a1 = (
+        + 12/5 * tau * d.inner(d.dev(d.grad(s_)), d.grad(r_))
+        + 2/3 * 1/tau * d.dot(s_, r_)
+        - 5/2 * theta_ * d.div(r_)
     ) * d.dx + (
         + 5/(4*xi_tilde) * s_n * r_n
         + 11/10 * xi_tilde * s_t * r_t
     ) * d.ds
-a2 = - (d.div(s) * kappa) * d.dx
-l1 = - 5/2 * r_n * theta_w_inner * ds(3000) - 5/2 * r_n * theta_w_outer * ds(3100)
-l2 = - (f * kappa) * d.dx
+    a2 = - (d.div(s_) * kappa_) * d.dx
+    l1 = - 5/2 * r_n * theta_w_inner * \
+        dsBc(3000) - 5/2 * r_n * theta_w_outer * dsBc(3100)
+    l2 = - (f * kappa_) * d.dx
 
-if stab_cip:
-    stab = - (delta_1 * d.jump(d.grad(theta), n)
-              * d.jump(d.grad(kappa), n)) * d.dS
-else:
-    stab = 0
+    if stab_cip:
+        # 1)
+        h_avg = mesh_.hmax()
 
-a = a1 + a2 + stab
-l = l1 + l2
+        # 2)
+        # h = d.CellDiameter(mesh_)
+        # h_avg = (h('+') + h('-'))/2.0
 
-# FIXME: Add edge scaling to CIP term
-# FIXME: Think about how to treat boudary integrals:
-#   div(S)*KAPPA) * dx + (5/(4*XI_TILDE) * S_N * R_N
-#   + (11*XI_TILDE)/10 * S_T * R_T)*ds
-# FIXME: Include jump term, see MS thesis from sweden: "jump"
-# FIXME: L += (5/2 * THETA_W) * R_N * ds
+        stab = - (delta_1 * h_avg**3 * d.inner(d.jump(d.grad(theta_), n), d.jump(d.grad(kappa_), n))) * d.dS
+    else:
+        stab = 0
+
+    a_ = a1 + a2 + stab
+    l_ = l1 + l2
+
+    return (a_, l_)
 # ------------------------------------------------------------------------------
 
 
 # ------------------------------------------------------------------------------
 # SOLVE THE SYSTEM
+# - d.solve(a == l, sol, bcs): PETSc is default but RAM limited in conda
 # ------------------------------------------------------------------------------
-print("Solving system...")
-sol = d.Function(w)
-d.solve(a == l, sol, bcs)
-(s, theta) = sol.split()
+def solve_variational_formulation(a_, l_, w, bcs_, plot_=False):
+    "TODO"
+    sol_ = d.Function(w)
+    d.solve(a_ == l_, sol_, bcs_, solver_parameters={'linear_solver': 'mumps'})
+    (s_, theta_) = sol_.split()
 
-print("Writing output files...")
+    # Write files
+    s_.rename('s', 's')
+    file_s = d.File("s.pvd")
+    file_s.write(s_)
+    theta_.rename('theta', 'theta')
+    file_theta = d.File("theta.pvd")
+    file_theta.write(theta_)
 
-s.rename('s', 's')
-file_s = d.File("s.pvd")
-file_s.write(s)
+    if plot_:
+        plt.figure()
+        d.plot(s_, title="s")
+        plt.figure()
+        d.plot(theta_, title="theta")
+        plt.show()
 
-theta.rename('theta', 'theta')
-file_theta = d.File("theta.pvd")
-file_theta.write(theta)
-
-print("Plotting solution...")
-plt.figure()
-d.plot(s, title="s")
-plt.figure()
-d.plot(theta, title="theta")
-plt.show()
+    return (s_, theta_)
 # ------------------------------------------------------------------------------
 
 
 # ------------------------------------------------------------------------------
-# COMPARE WITH EXACT SOLUTION
+# CREATE EXACT SOLUTION
+# => Exact solution and L_2/L_inf errors, high degree for good quadr.
 # ------------------------------------------------------------------------------
-# Exact solution and L_2/L_inf errors, high degree for good quadr.
-# X0 = d.FunctionSpace(mesh, "Lagrange", 1)
-R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=50)
-C_1 = d.Expression("-0.40855716127979214", degree=5)
-C_2 = d.Expression("2.4471587630476663", degree=5)
-theta_e = d.Expression(""" C_2 + (1.0/75.0)*(-20*C_1*std::log(R) + (5.0/4.0)*std::pow(R, 4) - 2*std::pow(R, 2)*(24*std::pow(tau, 2) + 5))/tau """, degree=5, R=R, tau=tau, C_1=C_1, C_2=C_2)
-theta_e = d.interpolate(theta_e, v_p1)
-err_l2 = d.errornorm(theta_e, theta, 'L2')
-print("L2 error:", err_l2)
-plt.figure()
-d.plot(theta_e, title="theta_e")
-plt.show()
+def get_exact_solution(tau_):
+    "s_e = (s_R, s_phi)"
 
-theta_e.rename('theta_e', 'theta_e')
-file_theta_e = d.File("theta_e.pvd")
-file_theta_e.write(theta_e)
+    R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=50)
+    phi = d.Expression("atan2(x[1],x[0])", degree=50)
+
+    if tau_.values() == d.Constant(0.1).values():
+        C_1 = d.Expression("-0.40855716127979214", degree=5)
+        C_2 = d.Expression("2.4471587630476663", degree=5)
+    elif tau_.values() == d.Constant(10.0).values():
+        C_1 = d.Expression("-0.23487596350870713", degree=5)
+        C_2 = d.Expression("13.827308558560057", degree=5)
+    else:
+        raise Exception("No exact solution avail for given tau")
+
+    # 2) Theta
+    # theta_e = d.Expression(""" C_2 + (1.0/75.0)*(
+    #         -20.0*C_1*std::log(R) + (5.0/4.0)*std::pow(R, 4)
+    #         - 2*std::pow(R, 2)*(24*std::pow(tau, 2)
+    #         + 5))/tau """, degree=10, R=R, tau=tau, C_1=C_1, C_2=C_2)
+
+    theta_e = d.Expression("C_2 + (- (20.0*C_1*std::log(R)) + (5.0*std::pow(R, 4)/4.0) - (2*std::pow(R, 2)*(24*std::pow(tau, 2)+ 5)))/(tau*75.0)",
+                           degree=10, R=R, tau=tau, C_1=C_1, C_2=C_2)
+
+    # Is different TODO
+    # theta_e = d.Expression(""" C_2 + (1.0/75.0*tau)*(
+    #     -20*C_1*std::log(R) + (5.0/4.0)*std::pow(R, 4)
+    #     - 2*std::pow(R, 2)*(24*std::pow(tau, 2)
+    #     + 5)) """, degree=10, R=R, tau=tau, C_1=C_1, C_2=C_2)
+
+    # 1) s
+    s_R = d.Expression(""" C_1/R + ( pow(R,2) - (pow(R,4)/4)) /R""",
+                       degree=10, R=R, C_1=C_1)
+    s_e = (d.Expression(" s_R * cos(phi) ", degree=10, phi=phi, s_R=s_R),
+           d.Expression(" s_R * sin(phi) ", degree=10, phi=phi, s_R=s_R))
+
+    return (s_e, theta_e)
 # ------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------
+# CALCULATE VARIOUS ERRORS BETWEEN NUMERICAL AND EXACT SOLUTION
+# ------------------------------------------------------------------------------
+def calc_field_errors(theta_, theta_e_, v_theta_, name_):
+    "TODO"
+
+    # Theta
+    field_e_i = d.interpolate(theta_e_, v_theta_)
+    theta_i = d.interpolate(theta_, v_theta_)
+
+    difference = d.project(theta_e_ - theta_, v_theta_)
+    difference.rename("difference_{}".format(name_),
+                      "difference_{}".format(name_))
+    file_difference = d.File("difference_{}.pvd".format(name_))
+    file_difference.write(difference)
+
+    err_f_l2 = d.errornorm(theta_e_, theta_, 'L2')
+    err_v_l2 = d.norm(field_e_i.vector()-theta_i.vector(), 'l2')
+    err_v_linf = d.norm(field_e_i.vector()-theta_i.vector(), 'linf')
+    print("L_2 error:", err_f_l2)
+    print("l_2 error:", err_v_l2)
+    print("l_inf error:", err_v_linf)
+
+    field_e_i.rename("{}_e_i".format(name_), "{}_e_i".format(name_))
+    file_field_e = d.File("{}_e.pvd".format(name_))
+    file_field_e.write(field_e_i)
+
+    return (err_f_l2, err_v_l2, err_v_linf)
+# ------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------
+# CREATE ERROR/CONVERGENCE PLOT
+# ------------------------------------------------------------------------------
+def plot_errors(data_, title_):
+    "TODO"
+    plt.loglog(data_["h"], data_["L_2"], "-o", label="L_2")
+    plt.loglog(data_["h"], data_["l_2"], "-o", label="l_2")
+    plt.loglog(data_["h"], data_["l_inf"], "-o", label="l_inf")
+    plt.loglog(data_["h"], np.array(
+        2*np.power(data_["h"], 1)), "--", label="1st order")
+    plt.loglog(data_["h"], np.array(
+        0.02*np.power(data_["h"], 2)), "--", label="2nd order")
+    plt.xlabel("h_max")
+    plt.ylabel("Error")
+    plt.title(title_)
+    plt.legend()
+    plt.show()
+# ------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------
+# SOLVE DECOUPLED HEAT SYSTEM
+# ------------------------------------------------------------------------------
+def solve_heat_system():
+    "TODO"
+
+    max_exponent = 7  # minimum mesh edge length=2^(-p), 7 is max for macbook
+
+    data_sx, data_sy, data_theta = ({
+        "p": [], "h": [], "L_2": [], "l_2": [], "l_inf": []} for _ in range(3))
+
+    for p in range(max_exponent):
+        (mesh, _, mesh_bounds) = create_mesh(p)
+        (w, _, v_theta) = setup_function_spaces_heat(mesh, p_s, p_theta)
+        (a, l) = setup_variational_formulation(w, mesh, mesh_bounds)
+        (s, theta) = solve_variational_formulation(a, l, w, [])
+        (s_e, theta_e) = get_exact_solution(tau)
+
+        data_sx["p"].append(p)
+        data_sx["h"].append(mesh.hmax())
+        data_sy["p"].append(p)
+        data_sy["h"].append(mesh.hmax())
+        data_theta["p"].append(p)
+        data_theta["h"].append(mesh.hmax())
+
+        (err_f_l2_sx, err_v_l2_sx, err_v_linf_sx) = calc_field_errors(
+            s.split()[0], s_e[0], v_theta, "sx")
+        data_sx["L_2"].append(err_f_l2_sx)
+        data_sx["l_2"].append(err_v_l2_sx)
+        data_sx["l_inf"].append(err_v_linf_sx)
+
+        (err_f_l2_sy, err_v_l2_sy, err_v_linf_sy) = calc_field_errors(
+            s.split()[1], s_e[1], v_theta, "sy")
+        data_sy["L_2"].append(err_f_l2_sy)
+        data_sy["l_2"].append(err_v_l2_sy)
+        data_sy["l_inf"].append(err_v_linf_sy)
+
+        (err_f_l2_theta, err_v_l2_theta, err_v_linf_theta) = calc_field_errors(
+            theta, theta_e, v_theta, "theta")
+        data_theta["L_2"].append(err_f_l2_theta)
+        data_theta["l_2"].append(err_v_l2_theta)
+        data_theta["l_inf"].append(err_v_linf_theta)
+
+    plot_errors(data_sx, "sx")
+    plot_errors(data_sy, "sy")
+    plot_errors(data_theta, "Theta")
+# ------------------------------------------------------------------------------
+
+
+if __name__ == '__main__':
+    solve_heat_system()
