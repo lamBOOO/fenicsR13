@@ -210,6 +210,7 @@ def solve_variational_formulation(a_, l_, w, bcs_, plot_=False):
     d.solve(a_ == l_, sol_, bcs_, solver_parameters={'linear_solver': 'mumps'})
 
     (s_, theta_) = sol_.split()
+
     # Write files
     s_.rename('s', 's')
     file_s = d.File("s.pvd")
