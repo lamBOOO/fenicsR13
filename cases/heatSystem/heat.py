@@ -136,8 +136,6 @@ def setup_variational_formulation(w_, mesh_, mesh_bounds_):
     # Define custom measeasure for boundaries
     d.ds = d.Measure('ds', domain=mesh_, subdomain_data=mesh_bounds_)
 
-    x = d.SpatialCoordinate(mesh_)
-
     # Normal and tangential components
     # => tangential (tx,ty) = (-ny,nx) only for 2D
     n = d.FacetNormal(mesh_)
@@ -265,7 +263,7 @@ def get_exact_solution(tau_):
 
         # 1) s
         s_R = d.Expression(""" C_1/R + ( pow(R,2) - (pow(R,4)/4)) /R""",
-                        degree=10, R=R, C_1=C_1)
+                           degree=10, R=R, C_1=C_1)
         s_e = (d.Expression(" s_R * cos(phi) ", degree=10, phi=phi, s_R=s_R),
                d.Expression(" s_R * sin(phi) ", degree=10, phi=phi, s_R=s_R))
 
@@ -371,14 +369,14 @@ def plot_errors(data_, title_):
 # ------------------------------------------------------------------------------
 def plot_single(data_x_, data_y_, title_, legend_):
     "TODO"
-    plt.loglog(data_x_, data_y_, "-o", label="change of theta")
+    plt.loglog(data_x_, data_y_, "-o", label=legend_)
     plt.loglog(data_x_, np.array(
         2*np.power(data_x_, 1)), "--", label="1st order")
     plt.loglog(data_x_, np.array(
         0.02*np.power(data_x_, 2)), "--", label="2nd order")
     plt.xlabel("h_max")
     plt.ylabel("norm(theta_i-theta_{i-1})_L2")
-    plt.title("Change of theta: d.errornorm(d.project(theta_array[p], theta_fspaces[p-1]), theta_array[p-1])")
+    plt.title(title_)
     plt.legend()
     plt.show()
 # ------------------------------------------------------------------------------
