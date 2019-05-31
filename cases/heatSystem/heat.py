@@ -47,14 +47,21 @@ tau = d.Constant(0.1)
 A0 = d.Constant(2)
 A1 = d.Constant(0)
 A2 = d.Constant(-1)
-use_coeffless_system = True
+
+# Define system:
+# 1: Westerkamp2019
+# 2: Coefficientless
+# 3: Westerkamp2014: Mixed poisson
+system = 1
 
 # FEM parameters
-p_s = 3
-p_theta = 3
+deg_s = 2
+deg_theta = 1
+el_s = "Lagrange"
+el_theta = "Lagrange"
 
 # Continous Interior Penalty (CIP) Stabilization with parameter delta_1:
-stab_cip = True
+stab_cip = False
 delta_1 = d.Constant(1)
 
 # Meshing parameters
@@ -107,10 +114,11 @@ def create_mesh(p, plot_mesh_=False, overwrite_=False):
 # ------------------------------------------------------------------------------
 # Setup function spaces and shape functions
 # ------------------------------------------------------------------------------
-def setup_function_spaces_heat(mesh_, order_s=1, order_theta=1):
+def setup_function_spaces_heat(mesh_, deg_s_, deg_theta_):
     "TODO"
-    el_s_ = d.VectorElement("Lagrange", mesh_.ufl_cell(), degree=order_s, dim=2)
-    el_theta_ = d.FiniteElement("Lagrange", mesh_.ufl_cell(), degree=order_theta)
+    cell = mesh_.ufl_cell()
+    el_s_ = d.VectorElement(el_s, cell, degree=deg_s_)
+    el_theta_ = d.FiniteElement(el_theta, cell, degree=deg_theta_)
     el_mxd_ = d.MixedElement([el_s_, el_theta_])
     v_s_ = d.FunctionSpace(mesh_, el_s_)
     v_theta_ = d.FunctionSpace(mesh_, el_theta_)
@@ -149,7 +157,7 @@ def setup_variational_formulation(w_, mesh_, mesh_bounds_):
     phi = d.Expression("atan2(x[1],x[0])", degree=10)
     f = d.Expression("A0 + A2 * pow(R,2) + A1 * cos(phi)", degree=10, R=R, phi=phi, A0=A0, A1=A1, A2=A2)
 
-    if not use_coeffless_system:
+    if system == 1:
         a1 = (
             + 12/5 * tau * d.inner(0.5*(d.grad(s_)+u.transpose(d.grad(s_)))-(1/2)*u.tr(d.grad(s_))*u.Identity(2), d.grad(r_))
             + 2/3 * (1/tau) * d.inner(s_, r_)
@@ -161,7 +169,7 @@ def setup_variational_formulation(w_, mesh_, mesh_bounds_):
         a2 = - (d.div(s_) * kappa_) * d.dx
         l1 = - 5.0/2.0 * r_n * theta_w_outer * d.ds(3100) - 5.0/2.0 * r_n * theta_w_inner * d.ds(3000)
         l2 = - (f * kappa_) * d.dx
-    else:
+    elif system == 2:
         a1 = (
             tau * d.inner(0.5*(d.grad(s_)+u.transpose(d.grad(s_)))-(1/2)*u.tr(d.grad(s_))*u.Identity(2), d.grad(r_))
             + (1/tau) * d.inner(s_, r_)
@@ -173,6 +181,20 @@ def setup_variational_formulation(w_, mesh_, mesh_bounds_):
         a2 = - (d.div(s_) * kappa_) * d.dx
         l1 = - r_n * theta_w_outer * d.ds(3100) -  r_n * theta_w_inner * d.ds(3000)
         l2 = - (f * kappa_) * d.dx
+    elif system == 3:
+        a1 = (
+             (1/tau) * d.inner(s_, r_)
+            - theta_ * d.div(r_)
+        ) * d.dx + (
+            + 1/(xi_tilde) * s_n * r_n
+        ) * d.ds
+        a2 = - (d.div(s_) * kappa_) * d.dx
+        l1 = - r_n * theta_w_outer * d.ds(3100) -  r_n * theta_w_inner * d.ds(3000)
+        l2 = - (f * kappa_) * d.dx
+    else:
+        raise Exception('system={} is undefined'.format(system))
+
+
 
     if stab_cip:
 
@@ -237,7 +259,7 @@ def solve_variational_formulation(a_, l_, w, bcs_, plot_=False):
 def get_exact_solution(tau_):
     "s_e = (s_R, s_phi)"
 
-    if not use_coeffless_system:
+    if system == 1:
 
         R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=50)
         phi = d.Expression("atan2(x[1],x[0])", degree=50)
@@ -265,10 +287,9 @@ def get_exact_solution(tau_):
         # 1) s
         s_R = d.Expression(""" C_1/R + ( pow(R,2) - (pow(R,4)/4)) /R""",
                            degree=10, R=R, C_1=C_1)
-        s_e = (d.Expression(" s_R * cos(phi) ", degree=10, phi=phi, s_R=s_R),
-               d.Expression(" s_R * sin(phi) ", degree=10, phi=phi, s_R=s_R))
+        s_e = d.Expression((" s_R * cos(phi) ", " s_R * sin(phi)"), degree=10, phi=phi, s_R=s_R)
 
-    else:
+    elif system == 2:
         R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=50)
         phi = d.Expression("atan2(x[1],x[0])", degree=50)
 
@@ -306,6 +327,8 @@ def get_exact_solution(tau_):
             warnings.warn("No exact solution avail for given tau2")
             zero_dummy = d.Expression("0", degree=1)
             return ((zero_dummy, zero_dummy), zero_dummy)
+    else:
+        warnings.warn("No exact solution avail for system={}".format(system))
 
     return (s_e, theta_e)
 # ------------------------------------------------------------------------------
@@ -341,6 +364,40 @@ def calc_field_errors(theta_, theta_e_, v_theta_, name_, p_):
     file_field.write(field_i)
 
     return (err_f_L2, err_v_linf)
+# ------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------
+# CALCULATE VARIOUS ERRORS BETWEEN NUMERICAL AND EXACT SOLUTION
+# ------------------------------------------------------------------------------
+def calc_vectorfield_errors(sol_, sol_e_, v_sol, mesh_, name_, p_):
+    "TODO"
+
+    # Vector values functions interpolated
+    field_e_i = d.interpolate(sol_e_, v_sol)
+    field_i = d.interpolate(sol_, v_sol)
+
+    difference = d.project(sol_e_ - sol_, v_sol)
+    difference.rename("difference_{}".format(name_),
+                      "difference_{}".format(name_))
+    file_difference = d.File("difference_{}_{}.pvd".format(name_, p_))
+    file_difference.write(difference)
+
+    dim = field_i.geometric_dimension()
+    errs_f_L2 = [d.errornorm(field_e_i.split()[i], field_i.split()[i], 'L2', mesh=mesh_) for i in range(dim)]
+    errs_v_linf = [d.norm(field_e_i.split()[i].vector()-field_i.split()[i].vector(), 'linf') for i in range(dim)]
+    print("L_2 error:", errs_f_L2)
+    print("l_inf error:", errs_v_linf)
+
+    field_e_i.rename("{}_e_i".format(name_), "{}_e_i".format(name_))
+    file_field_e = d.File("{}_e.pvd".format(name_))
+    file_field_e.write(field_e_i)
+
+    field_i.rename("{}_i".format(name_), "{}_i".format(name_))
+    file_field = d.File("{}_i.pvd".format(name_))
+    file_field.write(field_i)
+
+    return (errs_f_L2, errs_v_linf)
 # ------------------------------------------------------------------------------
 
 
@@ -397,7 +454,7 @@ def solve_heat_system():
 
     for p in range(max_exponent):
         (mesh, _, mesh_bounds) = create_mesh(p)
-        (w, _, v_theta) = setup_function_spaces_heat(mesh, p_s, p_theta)
+        (w, v_s, v_theta) = setup_function_spaces_heat(mesh, deg_s, deg_theta)
         (a, l) = setup_variational_formulation(w, mesh, mesh_bounds)
         (s, theta) = solve_variational_formulation(a, l, w, [])
         (s_e, theta_e) = get_exact_solution(tau)
@@ -415,15 +472,12 @@ def solve_heat_system():
         data_theta["p"].append(p)
         data_theta["h"].append(mesh.hmax())
 
-        (err_f_l2_sx, err_v_linf_sx) = calc_field_errors(
-            s.split()[0], s_e[0], v_theta, "sx", p)
-        data_sx["L_2"].append(err_f_l2_sx)
-        data_sx["l_inf"].append(err_v_linf_sx)
-
-        (err_f_l2_sy, err_v_linf_sy) = calc_field_errors(
-            s.split()[1], s_e[1], v_theta, "sy", p)
-        data_sy["L_2"].append(err_f_l2_sy)
-        data_sy["l_inf"].append(err_v_linf_sy)
+        (err_f_l2_s, err_v_linf_s) = calc_vectorfield_errors(
+            s, s_e, v_s, mesh, "s", p)
+        data_sx["L_2"].append(err_f_l2_s[0])
+        data_sx["l_inf"].append(err_v_linf_s[0])
+        data_sy["L_2"].append(err_f_l2_s[1])
+        data_sy["l_inf"].append(err_v_linf_s[1])
 
         (err_f_l2_theta, err_v_linf_theta) = calc_field_errors(
             theta, theta_e, v_theta, "theta", p)
@@ -434,7 +488,6 @@ def solve_heat_system():
     plot_errors(data_sy, "sy")
     plot_errors(data_theta, "Theta")
     plot_single(data_sx["h"][:-1], theta_l2_change, "norm(theta_i-theta_{i-1})_L2", "theta change")
-
 # ------------------------------------------------------------------------------
 
 
