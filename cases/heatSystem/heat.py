@@ -44,15 +44,15 @@ d.set_log_level(1000)  # 1: all logs
 
 # Problem parameters
 tau = d.Constant(0.1)
-A0 = d.Constant(2)
+A0 = d.Constant(0)
 A1 = d.Constant(0)
-A2 = d.Constant(-1)
+A2 = d.Constant(0)
 
 # Define system:
 # 1: Westerkamp2019
 # 2: Coefficientless
 # 3: Westerkamp2014: Mixed poisson
-system = 1
+system = 3
 
 # FEM parameters
 deg_s = 2
@@ -130,7 +130,7 @@ def setup_function_spaces_heat(mesh_, deg_s_, deg_theta_):
 # ------------------------------------------------------------------------------
 # Setup problem
 # ------------------------------------------------------------------------------
-def setup_variational_formulation(w_, mesh_, mesh_bounds_):
+def setup_variational_formulation(w_, v_scalar_, mesh_, mesh_bounds_):
     "xi_tilde normally d.sqrt(2/d.pi), but we use 1 that looks right"
 
     xi_tilde = d.Constant(1.0)
@@ -156,6 +156,10 @@ def setup_variational_formulation(w_, mesh_, mesh_bounds_):
     R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=10)
     phi = d.Expression("atan2(x[1],x[0])", degree=10)
     f = d.Expression("A0 + A2 * pow(R,2) + A1 * cos(phi)", degree=10, R=R, phi=phi, A0=A0, A1=A1, A2=A2)
+    f_i = d.interpolate(f, v_scalar_)
+    file_f = d.File("f.pvd")
+    file_f.write(f_i)
+
 
     if system == 1:
         a1 = (
@@ -166,9 +170,9 @@ def setup_variational_formulation(w_, mesh_, mesh_bounds_):
             + 5/(4*xi_tilde) * s_n * r_n
             + 11/10 * xi_tilde * s_t * r_t
         ) * d.ds
-        a2 = - (d.div(s_) * kappa_) * d.dx
+        a2 = (d.div(s_) * kappa_) * d.dx
         l1 = - 5.0/2.0 * r_n * theta_w_outer * d.ds(3100) - 5.0/2.0 * r_n * theta_w_inner * d.ds(3000)
-        l2 = - (f * kappa_) * d.dx
+        l2 = (f * kappa_) * d.dx
     elif system == 2:
         a1 = (
             tau * d.inner(0.5*(d.grad(s_)+u.transpose(d.grad(s_)))-(1/2)*u.tr(d.grad(s_))*u.Identity(2), d.grad(r_))
@@ -178,19 +182,19 @@ def setup_variational_formulation(w_, mesh_, mesh_bounds_):
             + 1/(xi_tilde) * s_n * r_n
             + xi_tilde * s_t * r_t
         ) * d.ds
-        a2 = - (d.div(s_) * kappa_) * d.dx
+        a2 = (d.div(s_) * kappa_) * d.dx
         l1 = - r_n * theta_w_outer * d.ds(3100) -  r_n * theta_w_inner * d.ds(3000)
-        l2 = - (f * kappa_) * d.dx
+        l2 = (f * kappa_) * d.dx
     elif system == 3:
         a1 = (
-             (1/tau) * d.inner(s_, r_)
+            (1/tau) * d.inner(s_, r_)
             - theta_ * d.div(r_)
         ) * d.dx + (
             + 1/(xi_tilde) * s_n * r_n
         ) * d.ds
-        a2 = - (d.div(s_) * kappa_) * d.dx
+        a2 = (d.div(s_) * kappa_) * d.dx
         l1 = - r_n * theta_w_outer * d.ds(3100) -  r_n * theta_w_inner * d.ds(3000)
-        l2 = - (f * kappa_) * d.dx
+        l2 = (f * kappa_) * d.dx
     else:
         raise Exception('system={} is undefined'.format(system))
 
@@ -327,6 +331,20 @@ def get_exact_solution(tau_):
             warnings.warn("No exact solution avail for given tau2")
             zero_dummy = d.Expression("0", degree=1)
             return ((zero_dummy, zero_dummy), zero_dummy)
+    elif system == 3:
+        R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=50)
+        phi = d.Expression("atan2(x[1],x[0])", degree=50)
+        A0_expr = d.Expression(str(A0.values()[0]), degree=50)
+        A1_expr = d.Expression(str(A1.values()[0]), degree=50)
+        A2_expr = d.Expression(str(A2.values()[0]), degree=50)
+        if tau_.values() == d.Constant(0.1).values():
+            theta_e = d.Expression("(-1600*A0*std::pow(R,2) - 400*A2*std::pow(R,4) - 1600*A1*std::pow(R,2)*std::cos(phi) + (48*A1*std::cos(1)*(1 + 20*std::log(2)) + 80*A0*(71 + 364*std::log(2)) + 5*A2*(1229 + 6148*std::log(2)) + 5632*A1*std::cos(0.5)*(1 + std::log(32)) + 3840*(1 + std::log(1024)))/(1 + std::log(256)) + (20*(1360*A0 + 1535*A2 - 16*(40 - 88*A1*std::cos(0.5) + 3*A1*std::cos(1)))*std::log(R))/(1 + std::log(256)))/6400.", degree=10, R=R, phi=phi, A0=A0_expr, A1=A1_expr, A2=A2_expr)
+            s_R = d.Expression("(A0*R)/20. + (A2*std::pow(R,3))/40. + (A1*R*std::cos(phi))/20. - (1360*A0 + 1535*A2 - 16*(40 - 88*A1*std::cos(0.5) + 3*A1*std::cos(1)))/(3200.*R*(1 + std::log(256)))", degree=10, R=R, phi=phi, A0=A0_expr, A1=A1_expr, A2=A2_expr)
+            s_e = d.Expression(("s_R * cos(phi)", "s_R * sin(phi)"), degree=10, phi=phi, s_R=s_R)
+        else:
+            warnings.warn("No exact solution avail for given tau1")
+            zero_dummy = d.Expression("0", degree=1)
+            return ((zero_dummy, zero_dummy), zero_dummy)
     else:
         warnings.warn("No exact solution avail for system={}".format(system))
 
@@ -455,7 +473,7 @@ def solve_heat_system():
     for p in range(max_exponent):
         (mesh, _, mesh_bounds) = create_mesh(p)
         (w, v_s, v_theta) = setup_function_spaces_heat(mesh, deg_s, deg_theta)
-        (a, l) = setup_variational_formulation(w, mesh, mesh_bounds)
+        (a, l) = setup_variational_formulation(w, v_theta, mesh, mesh_bounds)
         (s, theta) = solve_variational_formulation(a, l, w, [])
         (s_e, theta_e) = get_exact_solution(tau)
 
