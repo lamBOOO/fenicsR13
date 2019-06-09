@@ -47,12 +47,15 @@ tau = d.Constant(0.1)
 A0 = d.Constant(2)
 A1 = d.Constant(0)
 A2 = d.Constant(-1)
+xi_tilde = d.Constant(1.0)
+theta_w_inner = d.Constant(1.0)
+theta_w_outer = d.Constant(0.5)
 
 # Define system:
 # - 1: Westerkamp2019
 # - 2: Coefficientless
 # - 3: Westerkamp2014: Mixed poisson
-system = 3
+system = 1
 
 # FEM parameters
 deg_s = 2
@@ -134,11 +137,10 @@ def setup_function_spaces_heat(mesh_, deg_s_, deg_theta_):
 # Setup problem
 # ------------------------------------------------------------------------------
 def setup_variational_formulation(w_, v_scalar_, mesh_, mesh_bounds_):
-    "xi_tilde normally d.sqrt(2/d.pi), but we use 1 that looks right"
-
-    xi_tilde = d.Constant(1.0)
-    theta_w_inner = d.Constant(1.0)
-    theta_w_outer = d.Constant(0.5)
+    """
+    xi_tilde normally d.sqrt(2/d.pi), but we use 1 that looks right
+    Note: Sign of a2 and l2 are correlated to sign of cip stabilization!!
+    """
 
     # Define trial and testfunction
     (s_, theta_) = d.TrialFunctions(w_)
@@ -146,6 +148,7 @@ def setup_variational_formulation(w_, v_scalar_, mesh_, mesh_bounds_):
 
     # Define custom measeasure for boundaries
     d.ds = d.Measure('ds', domain=mesh_, subdomain_data=mesh_bounds_)
+    d.dS = d.Measure('dS', domain=mesh_, subdomain_data=mesh_bounds_)
 
     # Normal and tangential components
     # => tangential (tx,ty) = (-ny,nx) only for 2D
@@ -156,38 +159,44 @@ def setup_variational_formulation(w_, v_scalar_, mesh_, mesh_bounds_):
     r_t = - r_[0] * n[1] + r_[1] * n[0]
 
     # Define source function
-    R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=10)
-    phi = d.Expression("atan2(x[1],x[0])", degree=10)
-    f = d.Expression("A0 + A2 * pow(R,2) + A1 * cos(phi)", degree=10, R=R, phi=phi, A0=A0, A1=A1, A2=A2)
+    R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+    phi = d.Expression("atan2(x[1],x[0])", degree=2)
+    f = d.Expression("A0 + A2 * pow(R,2) + A1 * cos(phi)", degree=2, R=R, phi=phi, A0=A0, A1=A1, A2=A2)
     f_i = d.interpolate(f, v_scalar_)
     file_f = d.File("f.pvd")
     file_f.write(f_i)
 
+    # # No interpolation of f: No improvement
+    # x = d.SpatialCoordinate(mesh_)
+    # f = A0 + A2 * (x[0]**2 + x[1]**2)
 
     if system == 1:
         a1 = (
-            + 12/5 * tau * d.inner(0.5*(d.grad(s_)+u.transpose(d.grad(s_)))-(1/2)*u.tr(d.grad(s_))*u.Identity(2), d.grad(r_))
+            # Attention: We actually solve a 3D problem!
+            + 12/5 * tau * d.inner(0.5*(d.grad(s_)+u.transpose(d.grad(s_)))-(1/3)*u.tr(d.grad(s_))*u.Identity(2), d.grad(r_))
+            # + 12/5 * tau * d.inner(d.dev(d.grad(s_)), d.grad(r_))
             + 2/3 * (1/tau) * d.inner(s_, r_)
             - (5/2) * theta_ * d.div(r_)
         ) * d.dx + (
             + 5/(4*xi_tilde) * s_n * r_n
             + 11/10 * xi_tilde * s_t * r_t
         ) * d.ds
-        a2 = (d.div(s_) * kappa_) * d.dx
+        a2 = - (d.div(s_) * kappa_) * d.dx
         l1 = - 5.0/2.0 * r_n * theta_w_outer * d.ds(3100) - 5.0/2.0 * r_n * theta_w_inner * d.ds(3000)
-        l2 = (f * kappa_) * d.dx
+        l2 = - (f * kappa_) * d.dx
     elif system == 2:
         a1 = (
-            tau * d.inner(0.5*(d.grad(s_)+u.transpose(d.grad(s_)))-(1/2)*u.tr(d.grad(s_))*u.Identity(2), d.grad(r_))
+            tau * d.inner(0.5*(d.grad(s_)+u.transpose(d.grad(s_)))-(1/3)*u.tr(d.grad(s_))*u.Identity(2), d.grad(r_))
+            # tau * d.inner(d.dev(d.grad(s_)), d.grad(r_))
             + (1/tau) * d.inner(s_, r_)
             - theta_ * d.div(r_)
         ) * d.dx + (
             + 1/(xi_tilde) * s_n * r_n
             + xi_tilde * s_t * r_t
         ) * d.ds
-        a2 = (d.div(s_) * kappa_) * d.dx
-        l1 = - r_n * theta_w_outer * d.ds(3100) -  r_n * theta_w_inner * d.ds(3000)
-        l2 = (f * kappa_) * d.dx
+        a2 = - (d.div(s_) * kappa_) * d.dx
+        l1 = - r_n * theta_w_outer * d.ds(3100) - r_n * theta_w_inner * d.ds(3000)
+        l2 = - (f * kappa_) * d.dx
     elif system == 3:
         a1 = (
             (1/tau) * d.inner(s_, r_)
@@ -195,9 +204,9 @@ def setup_variational_formulation(w_, v_scalar_, mesh_, mesh_bounds_):
         ) * d.dx + (
             + 1/(xi_tilde) * s_n * r_n
         ) * d.ds
-        a2 = (d.div(s_) * kappa_) * d.dx
+        a2 = - (d.div(s_) * kappa_) * d.dx
         l1 = - r_n * theta_w_outer * d.ds(3100) -  r_n * theta_w_inner * d.ds(3000)
-        l2 = (f * kappa_) * d.dx
+        l2 = - (f * kappa_) * d.dx
     else:
         raise Exception('system={} is undefined'.format(system))
 
@@ -210,12 +219,21 @@ def setup_variational_formulation(w_, v_scalar_, mesh_, mesh_bounds_):
         # h = d.CellDiameter(mesh_)
         # h_avg = (h('+') + h('-'))/2.0
 
-        stab = - (delta_1 * h_avg**3 * d.inner(d.jump(d.grad(theta_), n), d.jump(d.grad(kappa_), n))) * d.dS
+        stab = - (delta_1 * h_avg**3 * d.jump(d.grad(theta_), n) * d.jump(d.grad(kappa_), n)) * d.dS
     else:
         stab = 0
 
     a_ = a1 + a2 + stab
     l_ = l1 + l2
+
+    # Save matrix
+    # np.savetxt("a.txt", d.assemble(a_).array())
+    ### >> T = readtable("a.txt");
+    ### >> M=table2array(T);
+    ### >> spy(M);
+    ### >> cond(M);
+    ### >> det(M);
+    ### >> svd(M);
 
     return (a_, l_)
 # ------------------------------------------------------------------------------
@@ -231,6 +249,7 @@ def solve_variational_formulation(a_, l_, w, bcs_, plot_=False):
     solver_parameters={'linear_solver': 'gmres', 'preconditioner': 'ilu'}
     solver_parameters={'linear_solver': 'petsc', 'preconditioner': 'ilu'}
     solver_parameters={'linear_solver': 'direct'}
+    solver_parameters={'linear_solver': 'mumps'}
     """
 
     sol_ = d.Function(w)
@@ -262,75 +281,124 @@ def solve_variational_formulation(a_, l_, w, bcs_, plot_=False):
 # => Exact solution and L_2/L_inf errors, high degree for good quadr.
 # ------------------------------------------------------------------------------
 def get_exact_solution(tau_):
-    "s_e = (s_R, s_phi)"
+    """
+    s_e = (s_R, s_phi)
+    TODO: Print parameters
+    """
 
     if system == 1:
 
-        R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=50)
-        phi = d.Expression("atan2(x[1],x[0])", degree=50)
+        R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+        phi = d.Expression("atan2(x[1],x[0])", degree=2)
 
         if tau_.values() == d.Constant(0.1).values():
-            C_1 = d.Expression("-0.40855716127979214", degree=50)
-            C_2 = d.Expression("2.4471587630476663", degree=50)
+            C_1 = d.Expression("-0.40855716127979214", degree=2)
+            C_2 = d.Expression("2.4471587630476663", degree=2)
         elif tau_.values() == d.Constant(10.0).values():
-            C_1 = d.Expression("-0.23487596350870713", degree=50)
-            C_2 = d.Expression("13.827308558560057", degree=50)
+            C_1 = d.Expression("-0.23487596350870713", degree=2)
+            C_2 = d.Expression("13.827308558560057", degree=2)
         else:
             # raise Exception("No exact solution avail for given tau")
             warnings.warn("No exact solution avail for given tau")
             zero_dummy = d.Expression("0", degree=1)
             return ((zero_dummy, zero_dummy), zero_dummy)
 
-        theta_e = d.Expression("C_2 + (- (20.0*C_1*std::log(R)) + ((5.0/4.0)*std::pow(R, 4)) - (2.0*std::pow(R, 2)*(24.0*std::pow(tau, 2) + 5.0)))/(tau*75.0)", degree=10, R=R, tau=tau, C_1=C_1, C_2=C_2)
+        theta_e = d.Expression("C_2 + (- (20.0*C_1*std::log(R)) + ((5.0/4.0)*std::pow(R, 4)) - (2.0*std::pow(R, 2)*(24.0*std::pow(tau, 2) + 5.0)))/(tau*75.0)", degree=2, R=R, tau=tau, C_1=C_1, C_2=C_2)
         s_R = d.Expression(""" C_1/R + ( pow(R,2) - (pow(R,4)/4)) /R""",
-                           degree=10, R=R, C_1=C_1)
-        s_e = d.Expression((" s_R * cos(phi) ", " s_R * sin(phi)"), degree=10, phi=phi, s_R=s_R)
+                           degree=2, R=R, C_1=C_1)
+        s_e = d.Expression((" s_R * cos(phi) ", " s_R * sin(phi)"), degree=2, phi=phi, s_R=s_R)
 
     elif system == 2:
-        R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=50)
-        phi = d.Expression("atan2(x[1],x[0])", degree=50)
-
-        if tau_.values() == d.Constant(0.1).values():
-            if A0.values() == d.Constant(0).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(0).values():
-                theta_e = d.Expression("(-67 + 200*std::log(5) - 400*std::log(20) + 200*std::log(10*R))/ (5.*(-23 + 80*std::log(5) - 80*std::log(20)))", degree=10, R=R)
-                s_R = d.Expression(""" -4/(R*(-23 + 80*std::log(5) - 80*std::log(20)))""", degree=10, R=R)
-            elif A0.values() == d.Constant(2).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(-1).values():
-                theta_e = d.Expression("(-76*std::pow(R,2))/15. + (5*std::pow(R,4))/8. + (11*(-36817 + 148480*std::log(5) - 24880*std::log(20)))/(1920.*(-23 + 80*std::log(5) - 80*std::log(20))) - (5665*std::log(10*R))/(8.*(-23 + 80*std::log(5) - 80*std::log(20)))", degree=10, R=R)
-                s_R = d.Expression("""R - std::pow(R,3)/4. + 1133/(16.*R*(-23 + 80*std::log(5) - 80*std::log(20)))""", degree=10, R=R)
-            elif A0.values() == d.Constant(2).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(0).values():
-                theta_e = d.Expression("-(5273 - 21632*std::log(5) + 60*std::pow(R,2)*(-23 + 80*std::log(5) - 80*std::log(20)) + 1712*std::log(20) + 19920*std::log(10*R))/(12.*(-23 + 80*std::log(5) - 80*std::log(20)))", degree=10, R=R)
-                s_R = d.Expression("""R + 166/(R*(-23 + 80*std::log(5) - 80*std::log(20)))""", degree=10, R=R)
-            elif A0.values() == d.Constant(1).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(0).values():
-                theta_e = d.Expression("7.036395447356292 - 2.5*std::pow(R,2) + 6.049130188983095*std::log(R)", degree=10, R=R)
-                s_R = d.Expression("""0. - 0.6049130188983095/R + R/2.""", degree=10, R=R)
+        R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+        phi = d.Expression("atan2(x[1],x[0])", degree=2)
+        if tau_.values() == d.Constant(100).values():
+            if A0.values() == d.Constant(2).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(-1).values() and theta_w_inner.values() == d.Constant(1.0).values() and theta_w_outer.values() == d.Constant(0.5).values():
+                print("22")
+                theta_e = d.Expression("0.000625*(223878.98943374405 - 106674.66666666667*std::pow(R,2) + std::pow(R,4) + 3.972412068014572*std::log(R))", degree=2, R=R)
+                s_R = d.Expression("-0.24827575425091075/R + R - std::pow(R,3)/4.", degree=2, R=R)
+            else:
+                warnings.warn("No exact solution avail for given tau=100")
+                zero_dummy = d.Expression("0", degree=1)
+                return ((zero_dummy, zero_dummy), zero_dummy)
+        elif tau_.values() == d.Constant(0.01).values():
+            if A0.values() == d.Constant(1).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(0).values() and theta_w_inner.values() == d.Constant(1.0).values() and theta_w_outer.values() == d.Constant(1.0).values():
+                print("2")
+                theta_e = d.Expression("77.26748929184684 - 0.25*std::pow(R,2) + 0.49360872123410277*std::log(R)", degree=2, R=R)
+                s_R = d.Expression("0. - 0.49360872123410277/R + R/2.", degree=2, R=R)
+            else:
+                warnings.warn("No exact solution avail for given tau=0.01")
+                zero_dummy = d.Expression("0", degree=1)
+                return ((zero_dummy, zero_dummy), zero_dummy)
+        elif tau_.values() == d.Constant(0.1).values():
+            if A0.values() == d.Constant(0).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(0).values() and theta_w_inner.values() == d.Constant(1.0).values() and theta_w_outer.values() == d.Constant(0.5).values():
+                theta_e = d.Expression("(-67 + 200*std::log(5) - 400*std::log(20) + 200*std::log(10*R))/ (5.*(-23 + 80*std::log(5) - 80*std::log(20)))", degree=2, R=R)
+                s_R = d.Expression(""" -4/(R*(-23 + 80*std::log(5) - 80*std::log(20)))""", degree=2, R=R)
+            elif A0.values() == d.Constant(2).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(-1).values() and theta_w_inner.values() == d.Constant(1.0).values() and theta_w_outer.values() == d.Constant(0.5).values():
+                theta_e = d.Expression("(-76*std::pow(R,2))/15. + (5*std::pow(R,4))/8. + (11*(-36817 + 148480*std::log(5) - 24880*std::log(20)))/(1920.*(-23 + 80*std::log(5) - 80*std::log(20))) - (5665*std::log(10*R))/(8.*(-23 + 80*std::log(5) - 80*std::log(20)))", degree=2, R=R)
+                s_R = d.Expression("""R - std::pow(R,3)/4. + 1133/(16.*R*(-23 + 80*std::log(5) - 80*std::log(20)))""", degree=2, R=R)
+            elif A0.values() == d.Constant(2).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(0).values() and theta_w_inner.values() == d.Constant(1.0).values() and theta_w_outer.values() == d.Constant(0.5).values():
+                theta_e = d.Expression("-(5273 - 21632*std::log(5) + 60*std::pow(R,2)*(-23 + 80*std::log(5) - 80*std::log(20)) + 1712*std::log(20) + 19920*std::log(10*R))/(12.*(-23 + 80*std::log(5) - 80*std::log(20)))", degree=2, R=R)
+                s_R = d.Expression("""R + 166/(R*(-23 + 80*std::log(5) - 80*std::log(20)))""", degree=2, R=R)
+            elif A0.values() == d.Constant(1).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(0).values() and theta_w_inner.values() == d.Constant(1.0).values() and theta_w_outer.values() == d.Constant(0.5).values():
+                theta_e = d.Expression("7.036395447356292 - 2.5*std::pow(R,2) + 6.049130188983095*std::log(R)", degree=2, R=R)
+                s_R = d.Expression("0. - 0.6049130188983095/R + R/2.", degree=2, R=R)
+            elif A0.values() == d.Constant(1).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(0).values() and theta_w_inner.values() == d.Constant(1.0).values() and theta_w_outer.values() == d.Constant(1.0).values():
+                print("1p")
+                theta_e = d.Expression("9.73961676589525 - 0.25*std::pow(R,2) + 0.44589091940037223*std::log(R)", degree=2, R=R)
+                s_R = d.Expression("0. - 0.44589091940037223/R + R/2.", degree=2, R=R)
+            elif A0.values() == d.Constant(0).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(0).values() and theta_w_inner.values() == d.Constant(1.0).values() and theta_w_outer.values() == d.Constant(1.0).values():
+                print("2")
+                theta_e = d.Expression("1. + 3.230519938209405e-18*std::log(R)", degree=2, R=R)
+                s_R = d.Expression("0. - 3.230519938209405e-18/R", degree=2, R=R)
+            elif A0.values() == d.Constant(2).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(-1).values() and theta_w_inner.values() == d.Constant(1.0).values() and theta_w_outer.values() == d.Constant(1.0).values():
+                print("2")
+                theta_e = d.Expression("6.995305054386943 - 5.066666666666666*std::pow(R,2) + 0.625*std::pow(R,4) + 5.587043855102441*std::log(R)", degree=2, R=R)
+                s_R = d.Expression("0. - 0.5587043855102442/R + R - std::pow(R,3)/4.", degree=2, R=R)
             else:
                 warnings.warn("No exact solution avail for given tau1")
                 zero_dummy = d.Expression("0", degree=1)
                 return ((zero_dummy, zero_dummy), zero_dummy)
+        elif tau_.values() == d.Constant(1).values():
+            if A0.values() == d.Constant(2).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(-1).values() and theta_w_inner.values() == d.Constant(1.0).values() and theta_w_outer.values() == d.Constant(1.0).values():
+                theta_e = d.Expression("(-896*std::pow(R,2) + 48*std::pow(R,4) + (5*(12449 + 2692*std::log(2)))/(25 + std::log(256)) + (7020*std::log(R))/(25 + std::log(256)))/768.", degree=2, R=R, A0=A0, A2=A2)
+                s_R = d.Expression("R - std::pow(R,3)/4. - 585/(64.*R*(25 + std::log(256)))", degree=2, R=R)
+            elif A0.values() == d.Constant(2).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(-0.5).values() and theta_w_inner.values() == d.Constant(1.0).values() and theta_w_outer.values() == d.Constant(1.0).values():
+                theta_e = d.Expression(" + 3.9220404147903793 - 0.8333333333333333*std::pow(R,2) + 0.03125*std::pow(R,4) + 0.4360856152894074*std::log(R)", degree=2, R=R, A0=A0, A2=A2)
+                s_R = d.Expression("-0.4360856152894074/R + R - 0.125*std::pow(R,3)", degree=2, R=R)
+            else:
+                warnings.warn("No exact solution avail for given tau=1")
+                zero_dummy = d.Expression("0", degree=1)
+                return ((zero_dummy, zero_dummy), zero_dummy)
         elif tau_.values() == d.Constant(10.0).values():
             if A0.values() == d.Constant(1).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(-1).values():
-                theta_e = d.Expression("14.386999290419796 - 6.716666666666666*std::pow(R,2) + 0.00625*std::pow(R,4) + 0.023497664861756654*std::log(R)", degree=10, R=R)
-                s_R = d.Expression("""- 0.23497664861756654/R + R - std::pow(R,3)/4.""", degree=10, R=R)
+                theta_e = d.Expression("14.386999290419796 - 6.716666666666666*std::pow(R,2) + 0.00625*std::pow(R,4) + 0.023497664861756654*std::log(R)", degree=2, R=R)
+                s_R = d.Expression("""- 0.23497664861756654/R + R - std::pow(R,3)/4.""", degree=2, R=R)
             elif A0.values() == d.Constant(2).values() and A1.values() == d.Constant(0).values() and A2.values() == d.Constant(-1).values():
-                theta_e = d.Expression("14.386999290419796 - 6.716666666666666*std::pow(R,2) + 0.00625*std::pow(R,4) + 0.023497664861756654*std::log(R)", degree=10, R=R)
-                s_R = d.Expression("""- 0.23497664861756654/R + R - std::pow(R,3)/4.""", degree=10, R=R)
+                theta_e = d.Expression("14.386999290419796 - 6.716666666666666*std::pow(R,2) + 0.00625*std::pow(R,4) + 0.023497664861756654*std::log(R)", degree=2, R=R)
+                s_R = d.Expression("""- 0.23497664861756654/R + R - std::pow(R,3)/4.""", degree=2, R=R)
+            else:
+                warnings.warn("No exact solution avail for given tau1")
+                zero_dummy = d.Expression("0", degree=1)
+                return ((zero_dummy, zero_dummy), zero_dummy)
         else:
             warnings.warn("No exact solution avail for given tau2")
             zero_dummy = d.Expression("0", degree=1)
             return ((zero_dummy, zero_dummy), zero_dummy)
-        s_e = d.Expression(("s_R * cos(phi)", "s_R * sin(phi)"), degree=10, phi=phi, s_R=s_R)
+        s_e = d.Expression(("s_R * cos(phi)", "s_R * sin(phi)"), degree=2, phi=phi, s_R=s_R)
     elif system == 3:
-        R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=50)
-        phi = d.Expression("atan2(x[1],x[0])", degree=50)
-        A0_expr = d.Expression(str(A0.values()[0]), degree=50)
-        A1_expr = d.Expression(str(A1.values()[0]), degree=50)
-        A2_expr = d.Expression(str(A2.values()[0]), degree=50)
+        R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+        phi = d.Expression("atan2(x[1],x[0])", degree=2)
+        A0_expr = d.Expression(str(A0.values()[0]), degree=2)
+        A1_expr = d.Expression(str(A1.values()[0]), degree=2)
+        A2_expr = d.Expression(str(A2.values()[0]), degree=2)
+        print(tau_.values())
+        print(d.Constant(0.1).values())
         if tau_.values() == d.Constant(0.1).values():
-            theta_e = d.Expression("(80*A0*(71 + 364*std::log(2)) + 5*A2*(1229 + 6148*std::log(2)) + 16*(24 + 240*std::log(2) + 3*A1*std::cos(1)*(1 + 20*std::log(2)) + 352*A1*std::cos(0.5)*(1 + std::log(32))))/(640.*(1 + std::log(256))) - (5*(4*A0*std::pow(R,2) + A2*std::pow(R,4) + 4*A1*std::pow(R,2)*std::cos(phi) - ((-64 + 1360*A0 + 1535*A2 + 1408*A1*std::cos(0.5) - 48*A1*std::cos(1))*std::log(R))/(20.*(1 + std::log(256)))))/8.", degree=10, R=R, phi=phi, A0=A0_expr, A1=A1_expr, A2=A2_expr)
-            s_R = d.Expression("(8*A0*R + 4*A2*std::pow(R,3) + 8*A1*R*std::cos(phi) - (1360*A0 + 1535*A2 - 16*(4 - 88*A1*std::cos(0.5) + 3*A1*std::cos(1)))/(20.*R*(1 + std::log(256))))/16.", degree=10, R=R, phi=phi, A0=A0_expr, A1=A1_expr, A2=A2_expr)
-            s_e = d.Expression(("s_R * cos(phi)", "s_R * sin(phi)"), degree=10, phi=phi, s_R=s_R)
+            theta_e = d.Expression("(80*A0*(71 + 364*std::log(2)) + 5*A2*(1229 + 6148*std::log(2)) + 16*(24 + 240*std::log(2) + 3*A1*std::cos(1)*(1 + 20*std::log(2)) + 352*A1*std::cos(0.5)*(1 + std::log(32))))/(640.*(1 + std::log(256))) - (5*(4*A0*std::pow(R,2) + A2*std::pow(R,4) + 4*A1*std::pow(R,2)*std::cos(phi) - ((-64 + 1360*A0 + 1535*A2 + 1408*A1*std::cos(0.5) - 48*A1*std::cos(1))*std::log(R))/(20.*(1 + std::log(256)))))/8.", degree=2, R=R, phi=phi, A0=A0_expr, A1=A1_expr, A2=A2_expr)
+            s_R = d.Expression("(8*A0*R + 4*A2*std::pow(R,3) + 8*A1*R*std::cos(phi) - (1360*A0 + 1535*A2 - 16*(4 - 88*A1*std::cos(0.5) + 3*A1*std::cos(1)))/(20.*R*(1 + std::log(256))))/16.", degree=2, R=R, phi=phi, A0=A0_expr, A1=A1_expr, A2=A2_expr)
+            s_e = d.Expression(("s_R * cos(phi)", "s_R * sin(phi)"), degree=2, phi=phi, s_R=s_R)
         else:
-            warnings.warn("No exact solution avail for given tau1")
+            warnings.warn("No exact solution avail for given tau3")
             zero_dummy = d.Expression("0", degree=1)
             return ((zero_dummy, zero_dummy), zero_dummy)
     else:
