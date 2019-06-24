@@ -1,32 +1,41 @@
 #!/usr/bin/env python3
-# pylint: disable=invalid-name
 
 
-# ------------------------------------------------------------------------------
-# PYLINT SETTINGS
-# ------------------------------------------------------------------------------
-# pylint: disable=unsubscriptable-object
-# pylint: disable=unused-import
-# ------------------------------------------------------------------------------
 
-
-# ------------------------------------------------------------------------------
-# TODOs
-# ------------------------------------------------------------------------------
-# - Export series of meshes
-# - Fix the value for xi_tilde
-# - Add edge scaling to CIP term
-# ------------------------------------------------------------------------------
-
-
+# **************************************************************************** #
+# DOCUMENTATION
+# **************************************************************************** #
 """
 Program to solve the decoupled (removed coupling term) heat system of the linearized R13 equations
 """
+# **************************************************************************** #
 
 
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
+# SETTINGS
+# **************************************************************************** #
+
+    # ------------------------------------------------------------------------ #
+    # PYLINT SETTINGS
+    # ------------------------------------------------------------------------ #
+    # pylint: disable=unsubscriptable-object
+    # pylint: disable=unused-import
+    # pylint: disable=invalid-name
+    # ------------------------------------------------------------------------ #
+
+    # ------------------------------------------------------------------------ #
+    # TODOs
+    # ------------------------------------------------------------------------ #
+    # - Export series of meshes
+    # ------------------------------------------------------------------------ #
+
+# **************************************************************************** #
+
+
+
+# **************************************************************************** #
 # IMPORTS
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 import os
 import warnings
 import matplotlib.pyplot as plt
@@ -35,12 +44,14 @@ import ufl as u
 import mshr as m
 import numpy as np
 d.set_log_level(1000)  # 1: all logs
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 
 
-# ------------------------------------------------------------------------------
+
+
+# **************************************************************************** #
 # SETTINGS
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 
 # Problem parameters
 # TODO: Make them as doubles and then convert
@@ -74,12 +85,16 @@ delta_1 = d.Constant(1)
 # Meshing parameters
 use_gmsh = True
 
-# ------------------------------------------------------------------------------
+# Etc
+save_matrix = False
+
+# **************************************************************************** #
 
 
-# ------------------------------------------------------------------------------
+
+# **************************************************************************** #
 # SETUP COMPUTATIONAL DOMAIN BY GENERATING MESH
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 def create_mesh(p, plot_mesh_=False, overwrite_=False):
     """
     3000 = inner circle, 3100 = outer circle
@@ -115,12 +130,13 @@ def create_mesh(p, plot_mesh_=False, overwrite_=False):
     print("Max edge length:", mesh_.hmax())
 
     return (mesh_, domain_markers_, boundary_markers_)
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 
 
-# ------------------------------------------------------------------------------
+
+# **************************************************************************** #
 # Setup function spaces and shape functions
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 def setup_function_spaces_heat(mesh_, deg_s_, deg_theta_):
     "TODO"
     cell = mesh_.ufl_cell()
@@ -131,16 +147,18 @@ def setup_function_spaces_heat(mesh_, deg_s_, deg_theta_):
     v_theta_ = d.FunctionSpace(mesh_, el_theta_)
     w_ = d.FunctionSpace(mesh_, el_mxd_)
     return (w_, v_s_, v_theta_)
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 
 
-# ------------------------------------------------------------------------------
+
+# **************************************************************************** #
 # Setup problem
-# ------------------------------------------------------------------------------
-def setup_variational_formulation(w_, v_scalar_, mesh_, mesh_bounds_):
+# **************************************************************************** #
+def setup_variational_formulation_heat(w_, v_scalar_, mesh_, mesh_bounds_):
     """
     xi_tilde normally d.sqrt(2/d.pi), but we use 1 that looks right
     Note: Sign of a2 and l2 are correlated to sign of cip stabilization!!
+    Attention: We actually solve a 3D problem! Therefore adjust dev part
     """
 
     # Define trial and testfunction
@@ -167,15 +185,9 @@ def setup_variational_formulation(w_, v_scalar_, mesh_, mesh_bounds_):
     file_f = d.File("f.pvd")
     file_f.write(f_i)
 
-    # # No interpolation of f: No improvement
-    # x = d.SpatialCoordinate(mesh_)
-    # f = A0 + A2 * (x[0]**2 + x[1]**2)
-
     if system == 1:
         a1 = (
-            # Attention: We actually solve a 3D problem!
             + 12/5 * tau * d.inner(0.5*(d.grad(s_)+u.transpose(d.grad(s_)))-(1/3)*u.tr(d.grad(s_))*u.Identity(2), d.grad(r_))
-            # + 12/5 * tau * d.inner(d.dev(d.grad(s_)), d.grad(r_))
             + 2/3 * (1/tau) * d.inner(s_, r_)
             - (5/2) * theta_ * d.div(r_)
         ) * d.dx + (
@@ -188,7 +200,6 @@ def setup_variational_formulation(w_, v_scalar_, mesh_, mesh_bounds_):
     elif system == 2:
         a1 = (
             tau * d.inner(0.5*(d.grad(s_)+u.transpose(d.grad(s_)))-(1/3)*u.tr(d.grad(s_))*u.Identity(2), d.grad(r_))
-            # tau * d.inner(d.dev(d.grad(s_)), d.grad(r_))
             + (1/tau) * d.inner(s_, r_)
             - theta_ * d.div(r_)
         ) * d.dx + (
@@ -227,24 +238,27 @@ def setup_variational_formulation(w_, v_scalar_, mesh_, mesh_bounds_):
     a_ = a1 + a2 + stab
     l_ = l1 + l2
 
-    # Save matrix
-    # np.savetxt("a.txt", d.assemble(a_).array())
-    ### >> T = readtable("a.txt");
-    ### >> M=table2array(T);
-    ### >> spy(M);
-    ### >> cond(M);
-    ### >> det(M);
-    ### >> svd(M);
+    if save_matrix:
+        np.savetxt("A.mat", d.assemble(a_).array())
+        ### Use in matrix with:
+        ### >> T = readtable("a.txt");
+        ### >> M=table2array(T);
+        ### >> spy(M);
+        ### >> cond(M);
+        ### >> det(M);
+        ### >> svd(M);
 
     return (a_, l_)
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 
 
-# ------------------------------------------------------------------------------
+
+# **************************************************************************** #
 # SOLVE THE SYSTEM
+# **************************************************************************** #
 # - d.solve(a == l, sol, bcs): PETSc is default but RAM limited in conda
-# ------------------------------------------------------------------------------
-def solve_variational_formulation(a_, l_, w, bcs_, plot_=False):
+# **************************************************************************** #
+def solve_variational_formulation_heat(a_, l_, w, bcs_, plot_=False):
     """
     Available solvers:
     solver_parameters={'linear_solver': 'gmres', 'preconditioner': 'ilu'}
@@ -274,14 +288,15 @@ def solve_variational_formulation(a_, l_, w, bcs_, plot_=False):
         plt.show()
 
     return (s_, theta_)
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 
 
-# ------------------------------------------------------------------------------
+
+# **************************************************************************** #
 # CREATE EXACT SOLUTION
 # => Exact solution and L_2/L_inf errors, high degree for good quadr.
-# ------------------------------------------------------------------------------
-def get_exact_solution(tau_):
+# **************************************************************************** #
+def get_exact_solution_heat(tau_):
     """
     s_e = (s_R, s_phi)
     TODO: Print parameters
@@ -406,13 +421,13 @@ def get_exact_solution(tau_):
         warnings.warn("No exact solution avail for system={}".format(system))
 
     return (s_e, theta_e)
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 
 
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 # CALCULATE VARIOUS ERRORS BETWEEN NUMERICAL AND EXACT SOLUTION
-# ------------------------------------------------------------------------------
-def calc_field_errors(theta_, theta_e_, v_theta_, name_, p_):
+# **************************************************************************** #
+def calc_scalarfield_errors(theta_, theta_e_, v_theta_, name_, p_):
     "TODO"
 
     # Theta
@@ -439,12 +454,12 @@ def calc_field_errors(theta_, theta_e_, v_theta_, name_, p_):
     file_field.write(field_i)
 
     return (err_f_L2, err_v_linf)
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 
 
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 # CALCULATE VARIOUS ERRORS BETWEEN NUMERICAL AND EXACT SOLUTION
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 def calc_vectorfield_errors(sol_, sol_e_, v_sol, mesh_, name_, p_):
     "TODO"
 
@@ -473,12 +488,12 @@ def calc_vectorfield_errors(sol_, sol_e_, v_sol, mesh_, name_, p_):
     file_field.write(field_i)
 
     return (errs_f_L2, errs_v_linf)
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 
 
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 # CREATE ERROR/CONVERGENCE PLOT
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 def plot_errors(data_, title_):
     "TODO"
     plt.loglog(data_["h"], data_["L_2"], "-o", label="L_2")
@@ -494,12 +509,12 @@ def plot_errors(data_, title_):
     plt.title(title_)
     plt.legend()
     plt.show()
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 
 
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 # PLOT SINGLE FIELD, I.E. CHANGE OF A FIELD
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 def plot_single(data_x_, data_y_, title_, legend_):
     "TODO"
     plt.loglog(data_x_, data_y_, "-o", label=legend_)
@@ -512,27 +527,26 @@ def plot_single(data_x_, data_y_, title_, legend_):
     plt.title(title_)
     plt.legend()
     plt.show()
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 
 
-# ------------------------------------------------------------------------------
+
+# **************************************************************************** #
 # SOLVE DECOUPLED HEAT SYSTEM
-# ------------------------------------------------------------------------------
-def solve_heat_system():
+# **************************************************************************** #
+def solve_system_heat():
     "TODO"
-
-    max_exponent_ = max_exponent
 
     data_sx, data_sy, data_theta = ({
         "p": [], "h": [], "L_2": [], "l_2": [], "l_inf": []} for _ in range(3))
     theta_array, theta_fspaces, theta_l2_change = ([] for _ in range(3))
 
-    for p in range(max_exponent_):
+    for p in range(max_exponent):
         (mesh, _, mesh_bounds) = create_mesh(p)
         (w, v_s, v_theta) = setup_function_spaces_heat(mesh, deg_s, deg_theta)
-        (a, l) = setup_variational_formulation(w, v_theta, mesh, mesh_bounds)
-        (s, theta) = solve_variational_formulation(a, l, w, [])
-        (s_e, theta_e) = get_exact_solution(tau)
+        (a, l) = setup_variational_formulation_heat(w, v_theta, mesh, mesh_bounds)
+        (s, theta) = solve_variational_formulation_heat(a, l, w, [])
+        (s_e, theta_e) = get_exact_solution_heat(tau)
 
         theta_array.append(theta)
         theta_fspaces.append(v_theta)
@@ -554,7 +568,7 @@ def solve_heat_system():
         data_sy["L_2"].append(err_f_l2_s[1])
         data_sy["l_inf"].append(err_v_linf_s[1])
 
-        (err_f_l2_theta, err_v_linf_theta) = calc_field_errors(
+        (err_f_l2_theta, err_v_linf_theta) = calc_scalarfield_errors(
             theta, theta_e, v_theta, "theta", p)
         data_theta["L_2"].append(err_f_l2_theta)
         data_theta["l_inf"].append(err_v_linf_theta)
@@ -563,8 +577,13 @@ def solve_heat_system():
     plot_errors(data_sy, "sy")
     plot_errors(data_theta, "Theta")
     plot_single(data_sx["h"][:-1], theta_l2_change, "norm(theta_i-theta_{i-1})_L2", "theta change")
-# ------------------------------------------------------------------------------
+# **************************************************************************** #
 
 
+
+# **************************************************************************** #
+# MAIN
+# **************************************************************************** #
 if __name__ == '__main__':
-    solve_heat_system()
+    solve_system_heat()
+# **************************************************************************** #
