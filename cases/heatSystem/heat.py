@@ -43,6 +43,7 @@ d.set_log_level(1000)  # 1: all logs
 # ------------------------------------------------------------------------------
 
 # Problem parameters
+# TODO: Make them as doubles and then convert
 tau = d.Constant(0.1)
 A0 = d.Constant(2)
 A1 = d.Constant(0)
@@ -58,7 +59,7 @@ theta_w_outer = d.Constant(0.5)
 system = 1
 
 # FEM parameters
-deg_s = 2
+deg_s = 1
 deg_theta = 1
 el_s = "Lagrange"
 el_theta = "Lagrange"
@@ -67,7 +68,7 @@ el_theta = "Lagrange"
 max_exponent = 5
 
 # Continous Interior Penalty (CIP) Stabilization with parameter delta_1:
-stab_cip = False
+stab_cip = True
 delta_1 = d.Constant(1)
 
 # Meshing parameters
