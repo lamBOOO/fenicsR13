@@ -82,7 +82,7 @@ el_s = "Lagrange"
 el_theta = "Lagrange"
 
 # Convergence Study Parameters
-max_exponent = 5
+max_exponent = 7
 
 # Continous Interior Penalty (CIP) Stabilization with parameter delta_1:
 stab_cip = True
@@ -229,15 +229,11 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
         raise Exception('system={} is undefined'.format(system))
 
     if stab_cip:
-
         # 1)
-        h_avg = mesh_.hmax()
-
+        # h_avg = mesh_.hmax()
         # 2)
-        # TODO: Test this
-        # h = d.CellDiameter(mesh_)
-        # h_avg = (h('+') + h('-'))/2.0
-
+        h = d.CellDiameter(mesh_)
+        h_avg = (h('+') + h('-'))/2.0 #pylint: disable=not-callable
         stab = - (delta_1 * h_avg**3 * d.jump(d.grad(theta_), n)
                   * d.jump(d.grad(kappa_), n)) * d.dS
     else:
@@ -248,13 +244,13 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
 
     if save_matrix:
         np.savetxt("A.mat", d.assemble(a_).array())
-        ### Use in matrix with:
-        ### >> T = readtable("a.txt");
-        ### >> M=table2array(T);
-        ### >> spy(M);
-        ### >> cond(M);
-        ### >> det(M);
-        ### >> svd(M);
+        # Use in matrix with:
+        # >> T = readtable("a.txt");
+        # >> M=table2array(T);
+        # >> spy(M);
+        # >> cond(M);
+        # >> det(M);
+        # >> svd(M);
 
     return (a_, l_)
 # **************************************************************************** #
