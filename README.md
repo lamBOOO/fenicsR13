@@ -10,13 +10,14 @@ Repository for Master thesis project regarding FEM simulations for non-equilibri
    3. Optional: Create separate coda environment: `conda creafenics-env`
 2. Install FEniCS using conda: `conda install -c conda-forge fenics`
    1. Optional: Install `matplobib`: `conda install -c conda-forge matplotlib`
-   2. Optional (for linting): `conda install pylint`
-   3. Install mshr with `conda install -c conda-forge mshr`
-   4. Fix macOS bug in matplotbib: `mkdir -p ~/.matplotlib; echo "backend: TkAgg" > ~/.matplotlib/matplotlibrc`
-   5. XCode and command line developer tools msut be installed!
-   6. Optional: Install Jupyter: `conda install -c anaconda jupyter`
-   7. Optional: Install documentation system: `conda install -c anaconda sphinx`
-   8. Optional: `conda install -c anaconda sympy`
+   2. Optional: Install `meshio`: `conda install -c mrossi meshio`
+   3. Optional (for linting): `conda install pylint`
+   4. Install mshr with `conda install -c conda-forge mshr`
+   5. Fix macOS bug in matplotbib: `mkdir -p ~/.matplotlib; echo "backend: TkAgg" > ~/.matplotlib/matplotlibrc`
+   6. XCode and command line developer tools msut be installed!
+   7. Optional: Install Jupyter: `conda install -c anaconda jupyter`
+   8. Optional: Install documentation system: `conda install -c anaconda sphinx`
+   9. Optional: `conda install -c anaconda sympy`
 
 ## Docker Usage
 
