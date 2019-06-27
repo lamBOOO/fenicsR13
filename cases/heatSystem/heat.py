@@ -78,7 +78,7 @@ el_s = "Lagrange"
 el_theta = "Lagrange"
 
 # Convergence Study Parameters
-max_exponent = 7
+max_exponent = 5
 
 # Continous Interior Penalty (CIP) Stabilization with parameter delta_1:
 stab_cip = True
@@ -89,9 +89,13 @@ use_gmsh = True
 
 # Etc
 save_matrix = False
+plot_conv_rates = True
+
+d.parameters["ghost_mode"] = "shared_vertex"
+# parameters["ghost_mode"] = "shared_vertex"
+# parameters["ghost_mode"] = "shared_facet"
 
 # **************************************************************************** #
-
 
 # **************************************************************************** #
 # SETUP COMPUTATIONAL DOMAIN BY GENERATING MESH
@@ -103,26 +107,44 @@ def create_mesh(p, plot_mesh_=False, overwrite_=False):
 
     if use_gmsh:
         gmsh_path = "/Applications/gmsh/Gmsh.app/Contents/MacOS/gmsh"
-        geo_name = "ring"
+        geo_name = "mesh/ring"
         mesh_name = "{}{}".format(geo_name, p)
 
         mesh_avail = (
             os.path.isfile(mesh_name + ".xml") and
             os.path.isfile(mesh_name + "_facet_region.xml") and
-            os.path.isfile(mesh_name + "_physical_region.xml")
+            os.path.isfile(mesh_name + "_physical_region.xml") and
+            os.path.isfile(mesh_name + ".h5")
         )
 
         if not mesh_avail or overwrite_:
             os.system(
                 "{} -setnumber p {} -2 -o {}.msh {}.geo".format(
                     gmsh_path, p, mesh_name, geo_name))
+
             os.system("dolfin-convert {0}.msh {0}.xml".format(mesh_name))
 
-        mesh_ = d.Mesh("{}.xml".format(mesh_name))
-        domain_markers_ = d.MeshFunction(
-            'size_t', mesh_, "{}_physical_region.xml".format(mesh_name))
-        boundary_markers_ = d.MeshFunction(
-            'size_t', mesh_, "{}_facet_region.xml".format(mesh_name))
+            mesh_ = d.Mesh("{}.xml".format(mesh_name))
+            domain_markers_ = d.MeshFunction("size_t", mesh_, "{}_physical_region.xml".format(mesh_name))
+            boundary_markers_ = d.MeshFunction("size_t", mesh_, "{}_facet_region.xml".format(mesh_name))
+            hdf = d.HDF5File(mesh_.mpi_comm(), "{}.h5".format(mesh_name), "w")
+            hdf.write(mesh_, "/mesh")
+            hdf.write(domain_markers_, "/subdomains")
+            hdf.write(boundary_markers_, "/boundaries")
+
+        mesh_ = d.Mesh()
+        hdf = d.HDF5File(mesh_.mpi_comm(), "{}.h5".format(mesh_name), "r")
+        hdf.read(mesh_, "/mesh", False)
+        domain_markers_ = d.MeshFunction("size_t", mesh_, mesh_.topology().dim())
+        hdf.read(domain_markers_, "/subdomains")
+        boundary_markers_ = d.MeshFunction("size_t", mesh_, mesh_.topology().dim() - 1)
+        hdf.read(boundary_markers_, "/boundaries")
+
+        # mesh_ = d.Mesh("{}.xml".format(mesh_name))
+        # domain_markers_ = d.MeshFunction(
+        #     'size_t', mesh_, "{}_physical_region.xml".format(mesh_name))
+        # boundary_markers_ = d.MeshFunction(
+        #     'size_t', mesh_, "{}_facet_region.xml".format(mesh_name))
 
     else:
         raise Exception("FIXME: BCs are not working automatically here")
@@ -300,13 +322,16 @@ def get_exact_solution_heat():
     data = open("exact_solutions_heat.csv")
     csv_dict = csv.DictReader(data, delimiter=",", quotechar="\"")
     for item in csv_dict:
-        if (item.get("system") == system_ and
-                item.get("tau") == tau_ and
-                item.get("A0") == A0_ and
-                item.get("A1") == A1_ and
-                item.get("A2") == A2_ and
-                item.get("theta_w_inner") == theta_w_inner_ and
-                item.get("theta_w_outer") == theta_w_outer_):
+        entry_available = (
+            item.get("system") == system_ and
+            item.get("tau") == tau_ and
+            item.get("A0") == A0_ and
+            item.get("A1") == A1_ and
+            item.get("A2") == A2_ and
+            item.get("theta_w_inner") == theta_w_inner_ and
+            item.get("theta_w_outer") == theta_w_outer_
+        )
+        if entry_available:
             R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
             phi = d.Expression("atan2(x[1],x[0])", degree=2)
             theta_e = d.Expression(item.get("theta_e"), degree=2, R=R, tau=tau)
@@ -476,11 +501,12 @@ def solve_system_heat():
         data_theta["L_2"].append(err_f_l2_theta)
         data_theta["l_inf"].append(err_v_linf_theta)
 
-    plot_errors(data_sx, "sx")
-    plot_errors(data_sy, "sy")
-    plot_errors(data_theta, "Theta")
-    plot_single(data_sx["h"][:-1], theta_l2_change,
-                "norm(theta_i-theta_{i-1})_L2", "theta change")
+    if plot_conv_rates:
+        plot_errors(data_sx, "sx")
+        plot_errors(data_sy, "sy")
+        plot_errors(data_theta, "Theta")
+        plot_single(data_sx["h"][:-1], theta_l2_change,
+                    "norm(theta_i-theta_{i-1})_L2", "theta change")
 # **************************************************************************** #
 
 

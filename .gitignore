@@ -1,6 +1,7 @@
 # Ignore FEnicCS output
 *.pvd
 *.vtu
+*.pvtu
 
 # Ignore macOS helper files
 *.DS_STORE
@@ -12,3 +13,4 @@
 # ignore mesh data
 *.xml
 *.msh
+*.h5
