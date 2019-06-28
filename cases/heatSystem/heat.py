@@ -90,6 +90,7 @@ use_gmsh = True
 # Etc
 save_matrix = False
 plot_conv_rates = True
+output_folder = "results/"
 
 d.parameters["ghost_mode"] = "shared_vertex"
 # parameters["ghost_mode"] = "shared_vertex"
@@ -125,20 +126,23 @@ def create_mesh(p, plot_mesh_=False, overwrite_=False):
             os.system("dolfin-convert {0}.msh {0}.xml".format(mesh_name))
 
             mesh_ = d.Mesh("{}.xml".format(mesh_name))
-            domain_markers_ = d.MeshFunction("size_t", mesh_, "{}_physical_region.xml".format(mesh_name))
-            boundary_markers_ = d.MeshFunction("size_t", mesh_, "{}_facet_region.xml".format(mesh_name))
+            domains_ = d.MeshFunction(
+                "size_t", mesh_, "{}_physical_region.xml".format(mesh_name))
+            boundaries = d.MeshFunction(
+                "size_t", mesh_, "{}_facet_region.xml".format(mesh_name))
             hdf = d.HDF5File(mesh_.mpi_comm(), "{}.h5".format(mesh_name), "w")
             hdf.write(mesh_, "/mesh")
-            hdf.write(domain_markers_, "/subdomains")
-            hdf.write(boundary_markers_, "/boundaries")
+            hdf.write(domains_, "/subdomains")
+            hdf.write(boundaries, "/boundaries")
 
         mesh_ = d.Mesh()
         hdf = d.HDF5File(mesh_.mpi_comm(), "{}.h5".format(mesh_name), "r")
         hdf.read(mesh_, "/mesh", False)
-        domain_markers_ = d.MeshFunction("size_t", mesh_, mesh_.topology().dim())
-        hdf.read(domain_markers_, "/subdomains")
-        boundary_markers_ = d.MeshFunction("size_t", mesh_, mesh_.topology().dim() - 1)
-        hdf.read(boundary_markers_, "/boundaries")
+        domains_ = d.MeshFunction("size_t", mesh_, mesh_.topology().dim())
+        hdf.read(domains_, "/subdomains")
+        boundaries = d.MeshFunction(
+            "size_t", mesh_, mesh_.topology().dim() - 1)
+        hdf.read(boundaries, "/boundaries")
 
         # mesh_ = d.Mesh("{}.xml".format(mesh_name))
         # domain_markers_ = d.MeshFunction(
@@ -156,7 +160,7 @@ def create_mesh(p, plot_mesh_=False, overwrite_=False):
 
     print("Max edge length:", mesh_.hmax())
 
-    return (mesh_, domain_markers_, boundary_markers_)
+    return (mesh_, domains_, boundaries)
 # **************************************************************************** #
 
 
@@ -342,8 +346,9 @@ def get_exact_solution_heat():
 
     # no exact solution is csv file
     warnings.warn("No exact solution avail for given tau3")
-    zero_dummy = d.Expression("0", degree=1)
-    return ((zero_dummy, zero_dummy), zero_dummy)
+    scalar_dummy = d.Expression("0", degree=1)
+    vector_dummy = d.Expression(("0", "0"), degree=1)
+    return (vector_dummy, scalar_dummy)
 # **************************************************************************** #
 
 
