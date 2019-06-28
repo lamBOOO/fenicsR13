@@ -212,7 +212,7 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
     f_str = "A0 + A2 * pow(R,2) + A1 * cos(phi)"
     f = d.Expression(f_str, degree=2, R=R, phi=phi, A0=A0, A1=A1, A2=A2)
     f_i = d.interpolate(f, v_scalar_)
-    file_f = d.File("f.pvd")
+    file_f = d.File(output_folder + "f.pvd")
     file_f.write(f_i)
 
     dev_grad_s = (0.5*(d.grad(s_)+u.transpose(d.grad(s_)))
@@ -296,10 +296,10 @@ def solve_variational_formulation_heat(a_, l_, w, bcs_, plot_=False):
 
     # Write files
     s_.rename('s', 's')
-    file_s = d.File("s.pvd")
+    file_s = d.File(output_folder + "s.pvd")
     file_s.write(s_)
     theta_.rename('theta', 'theta')
-    file_theta = d.File("theta.pvd")
+    file_theta = d.File(output_folder + "theta.pvd")
     file_theta.write(theta_)
 
     if plot_:
@@ -365,7 +365,7 @@ def calc_scalarfield_errors(theta_, theta_e_, v_theta_, name_, p_):
     difference = d.project(theta_e_ - theta_, v_theta_)
     difference.rename("difference_{}".format(name_),
                       "difference_{}".format(name_))
-    file_difference = d.File("difference_{}_{}.pvd".format(name_, p_))
+    file_difference = d.File(output_folder + "difference_{}_{}.pvd".format(name_, p_))
     file_difference.write(difference)
 
     err_f_L2 = d.errornorm(theta_e_, theta_, 'L2')
@@ -374,11 +374,11 @@ def calc_scalarfield_errors(theta_, theta_e_, v_theta_, name_, p_):
     print("l_inf error:", err_v_linf)
 
     field_e_i.rename("{}_e_i".format(name_), "{}_e_i".format(name_))
-    file_field_e = d.File("{}_e.pvd".format(name_))
+    file_field_e = d.File(output_folder + "{}_e.pvd".format(name_))
     file_field_e.write(field_e_i)
 
     field_i.rename("{}_i".format(name_), "{}_i".format(name_))
-    file_field = d.File("{}_i.pvd".format(name_))
+    file_field = d.File(output_folder + "{}_i.pvd".format(name_))
     file_field.write(field_i)
 
     return (err_f_L2, err_v_linf)
@@ -398,7 +398,7 @@ def calc_vectorfield_errors(sol_, sol_e_, v_sol, mesh_, name_, p_):
     difference = d.project(sol_e_ - sol_, v_sol)
     difference.rename("difference_{}".format(name_),
                       "difference_{}".format(name_))
-    file_difference = d.File("difference_{}_{}.pvd".format(name_, p_))
+    file_difference = d.File(output_folder + "difference_{}_{}.pvd".format(name_, p_))
     file_difference.write(difference)
 
     dim = field_i.geometric_dimension()
@@ -412,11 +412,11 @@ def calc_vectorfield_errors(sol_, sol_e_, v_sol, mesh_, name_, p_):
     print("l_inf error:", errs_v_linf)
 
     field_e_i.rename("{}_e_i".format(name_), "{}_e_i".format(name_))
-    file_field_e = d.File("{}_e.pvd".format(name_))
+    file_field_e = d.File(output_folder + "{}_e.pvd".format(name_))
     file_field_e.write(field_e_i)
 
     field_i.rename("{}_i".format(name_), "{}_i".format(name_))
-    file_field = d.File("{}_i.pvd".format(name_))
+    file_field = d.File(output_folder + "{}_i.pvd".format(name_))
     file_field.write(field_i)
 
     return (errs_f_L2, errs_v_linf)
