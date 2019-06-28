@@ -358,6 +358,8 @@ def get_exact_solution_heat():
 def calc_scalarfield_errors(theta_, theta_e_, v_theta_, name_, p_):
     "TODO"
 
+    of = output_folder
+
     # Theta
     field_e_i = d.interpolate(theta_e_, v_theta_)
     field_i = d.interpolate(theta_, v_theta_)
@@ -365,7 +367,7 @@ def calc_scalarfield_errors(theta_, theta_e_, v_theta_, name_, p_):
     difference = d.project(theta_e_ - theta_, v_theta_)
     difference.rename("difference_{}".format(name_),
                       "difference_{}".format(name_))
-    file_difference = d.File(output_folder + "difference_{}_{}.pvd".format(name_, p_))
+    file_difference = d.File(of + "difference_{}_{}.pvd".format(name_, p_))
     file_difference.write(difference)
 
     err_f_L2 = d.errornorm(theta_e_, theta_, 'L2')
@@ -374,11 +376,11 @@ def calc_scalarfield_errors(theta_, theta_e_, v_theta_, name_, p_):
     print("l_inf error:", err_v_linf)
 
     field_e_i.rename("{}_e_i".format(name_), "{}_e_i".format(name_))
-    file_field_e = d.File(output_folder + "{}_e.pvd".format(name_))
+    file_field_e = d.File(of + "{}_e.pvd".format(name_))
     file_field_e.write(field_e_i)
 
     field_i.rename("{}_i".format(name_), "{}_i".format(name_))
-    file_field = d.File(output_folder + "{}_i.pvd".format(name_))
+    file_field = d.File(of + "{}_i.pvd".format(name_))
     file_field.write(field_i)
 
     return (err_f_L2, err_v_linf)
@@ -391,6 +393,8 @@ def calc_scalarfield_errors(theta_, theta_e_, v_theta_, name_, p_):
 def calc_vectorfield_errors(sol_, sol_e_, v_sol, mesh_, name_, p_):
     "TODO"
 
+    of = output_folder
+
     # Vector values functions interpolated
     field_e_i = d.interpolate(sol_e_, v_sol)
     field_i = d.interpolate(sol_, v_sol)
@@ -398,7 +402,7 @@ def calc_vectorfield_errors(sol_, sol_e_, v_sol, mesh_, name_, p_):
     difference = d.project(sol_e_ - sol_, v_sol)
     difference.rename("difference_{}".format(name_),
                       "difference_{}".format(name_))
-    file_difference = d.File(output_folder + "difference_{}_{}.pvd".format(name_, p_))
+    file_difference = d.File(of + "difference_{}_{}.pvd".format(name_, p_))
     file_difference.write(difference)
 
     dim = field_i.geometric_dimension()
@@ -412,11 +416,11 @@ def calc_vectorfield_errors(sol_, sol_e_, v_sol, mesh_, name_, p_):
     print("l_inf error:", errs_v_linf)
 
     field_e_i.rename("{}_e_i".format(name_), "{}_e_i".format(name_))
-    file_field_e = d.File(output_folder + "{}_e.pvd".format(name_))
+    file_field_e = d.File(of + "{}_e.pvd".format(name_))
     file_field_e.write(field_e_i)
 
     field_i.rename("{}_i".format(name_), "{}_i".format(name_))
-    file_field = d.File(output_folder + "{}_i.pvd".format(name_))
+    file_field = d.File(of + "{}_i.pvd".format(name_))
     file_field.write(field_i)
 
     return (errs_f_L2, errs_v_linf)
@@ -426,21 +430,30 @@ def calc_vectorfield_errors(sol_, sol_e_, v_sol, mesh_, name_, p_):
 # **************************************************************************** #
 # CREATE ERROR/CONVERGENCE PLOT
 # **************************************************************************** #
-def plot_errors(data_, title_):
+def plot_errrorsNew(data_):
     "TODO"
-    plt.loglog(data_["h"], data_["L_2"], "-o", label="L_2")
-    plt.loglog(data_["h"], data_["l_inf"], "-o", label="l_inf")
-    plt.loglog(data_["h"], np.array(
-        2*np.power(data_["h"], 1)), "--", label="1st order")
-    plt.loglog(data_["h"], np.array(
-        0.02*np.power(data_["h"], 2)), "--", label="2nd order")
-    plt.loglog(data_["h"], np.array(
-        0.02*np.power(data_["h"], 3)), "--", label="3nd order")
-    plt.xlabel("h_max")
-    plt.ylabel("Error")
-    plt.title(title_)
-    plt.legend()
-    plt.show()
+
+    h = [d["h"] for d in data_]
+    for key in data_[0]:
+        if key != "h":
+
+            # LaTeX text fonts:
+            # Use with raw strings: r"$\mathcal{O}(h^1)$"
+            # plt.rc('text', usetex=True)
+            # plt.rc('font', family='serif')
+
+            field = [d[key] for d in data_]
+            for etype in field[0]:
+                values = [d[etype] for d in field]
+                plt.loglog(h, values, "-o", label=etype)
+            plt.loglog(h, np.array(2*np.power(h, 1)), "--", label="O(h^1)")
+            plt.loglog(h, np.array(0.02*np.power(h, 2)), "--", label="O(h^2)")
+            plt.loglog(h, np.array(0.02*np.power(h, 3)), "--", label="O(h^3)")
+            plt.xlabel("max(h)")
+            plt.ylabel("Error")
+            plt.title(key)
+            plt.legend()
+            plt.show()
 # **************************************************************************** #
 
 
@@ -468,50 +481,34 @@ def plot_single(data_x_, data_y_, title_, legend_):
 def solve_system_heat():
     "TODO"
 
-    data_sx, data_sy, data_theta = ({
-        "p": [], "h": [], "L_2": [], "l_2": [], "l_inf": []} for _ in range(3))
-    theta_array, theta_fspaces, theta_l2_change = ([] for _ in range(3))
+    data = []
 
     for p in range(max_exponent):
+
+        # setup and solve problem
         (mesh, _, mesh_bounds) = create_mesh(p)
         (w, v_s, v_theta) = setup_function_spaces_heat(mesh, deg_s, deg_theta)
         (a, l) = setup_variational_form_heat(w, v_theta, mesh, mesh_bounds)
         (s, theta) = solve_variational_formulation_heat(a, l, w, [])
         (s_e, theta_e) = get_exact_solution_heat()
 
-        theta_array.append(theta)
-        theta_fspaces.append(v_theta)
-        if not p == 0:
-            d.Function.set_allow_extrapolation(theta_array[p], True)
-            theta_l2_change.append(d.errornorm(
-                d.project(theta_array[p], theta_fspaces[p-1]), theta_array[p-1]
-            ))
-
-        data_sx["p"].append(p)
-        data_sx["h"].append(mesh.hmax())
-        data_sy["p"].append(p)
-        data_sy["h"].append(mesh.hmax())
-        data_theta["p"].append(p)
-        data_theta["h"].append(mesh.hmax())
-
-        (err_f_l2_s, err_v_linf_s) = calc_vectorfield_errors(
+        # calc errors
+        (f_l2_s, v_linf_s) = calc_vectorfield_errors(
             s, s_e, v_s, mesh, "s", p)
-        data_sx["L_2"].append(err_f_l2_s[0])
-        data_sx["l_inf"].append(err_v_linf_s[0])
-        data_sy["L_2"].append(err_f_l2_s[1])
-        data_sy["l_inf"].append(err_v_linf_s[1])
-
-        (err_f_l2_theta, err_v_linf_theta) = calc_scalarfield_errors(
+        (f_l2_theta, v_linf_theta) = calc_scalarfield_errors(
             theta, theta_e, v_theta, "theta", p)
-        data_theta["L_2"].append(err_f_l2_theta)
-        data_theta["l_inf"].append(err_v_linf_theta)
 
+        # store errors
+        data.append({
+            "h": mesh.hmax(),
+            "sx": {"L_2": f_l2_s[0], "l_inf": v_linf_s[0]},
+            "sy": {"L_2": f_l2_s[1], "l_inf": v_linf_s[1]},
+            "theta": {"L_2": f_l2_theta, "l_inf": v_linf_theta}
+        })
+
+    # plot errors
     if plot_conv_rates:
-        plot_errors(data_sx, "sx")
-        plot_errors(data_sy, "sy")
-        plot_errors(data_theta, "Theta")
-        plot_single(data_sx["h"][:-1], theta_l2_change,
-                    "norm(theta_i-theta_{i-1})_L2", "theta change")
+        plot_errrorsNew(data)
 # **************************************************************************** #
 
 
