@@ -40,7 +40,7 @@ import warnings
 import csv
 import matplotlib.pyplot as plt
 import dolfin as d
-import ufl as u
+import ufl
 import mshr as m
 import numpy as np
 d.set_log_level(1000)  # 1: all logs
@@ -61,8 +61,12 @@ xi_tilde_ = "1.0"  # float
 theta_w_inner_ = "1.0"  # float
 theta_w_outer_ = "0.5"  # float
 
-# UFL vars
+# Model definitions
 system = int(system_)
+solve_heat = False
+solve_stress = True
+
+# UFL vars
 tau = d.Constant(float(tau_))
 A0 = d.Constant(float(A0_))
 A1 = d.Constant(float(A1_))
@@ -92,9 +96,10 @@ save_matrix = False
 plot_conv_rates = True
 output_folder = "results/"
 
+# Parallel MPI Settings
+# -> parameters["ghost_mode"] = "shared_vertex"
+# -> parameters["ghost_mode"] = "shared_facet"
 d.parameters["ghost_mode"] = "shared_vertex"
-# parameters["ghost_mode"] = "shared_vertex"
-# parameters["ghost_mode"] = "shared_facet"
 
 # **************************************************************************** #
 
@@ -167,16 +172,35 @@ def create_mesh(p, plot_mesh_=False, overwrite_=False):
 # **************************************************************************** #
 # Setup function spaces and shape functions
 # **************************************************************************** #
-def setup_function_spaces_heat(mesh_, deg_s_, deg_theta_):
+def setup_function_spaces_heat(mesh_, deg_theta_, deg_s_):
     "TODO"
-    cell = mesh_.ufl_cell()
-    el_s_ = d.VectorElement(el_s, cell, degree=deg_s_)
-    el_theta_ = d.FiniteElement(el_theta, cell, degree=deg_theta_)
-    el_mxd_ = d.MixedElement([el_s_, el_theta_])
-    v_s_ = d.FunctionSpace(mesh_, el_s_)
+    c = mesh_.ufl_cell()
+
+    el_theta_ = d.FiniteElement(el_theta, c, degree=deg_theta_)
+    el_s_ = d.VectorElement(el_s, c, degree=deg_s_)
+    el_mxd_ = d.MixedElement([el_theta_, el_s_])
+
     v_theta_ = d.FunctionSpace(mesh_, el_theta_)
+    v_s_ = d.FunctionSpace(mesh_, el_s_)
+
     w_ = d.FunctionSpace(mesh_, el_mxd_)
-    return (w_, v_s_, v_theta_)
+    return (w_, v_theta_, v_s_)
+
+def setup_function_spaces_stress(mesh_, deg_p_, deg_u_, deg_sigma_):
+    "TODO"
+    c = mesh_.ufl_cell()
+
+    el_theta_ = d.FiniteElement(el_theta, c, degree=deg_p_)
+    el_s_ = d.VectorElement(el_s, c, degree=deg_u_)
+    el_sigma_ = d.TensorElement(el_sigma, c, degree=deg_sigma_, symmetry=True)
+    el_mxd_ = d.MixedElement([el_theta_, el_s_, el_sigma_])
+
+    v_theta_ = d.FunctionSpace(mesh_, el_theta_)
+    v_s_ = d.FunctionSpace(mesh_, el_s_)
+    v_sigma_ = d.FunctionSpace(mesh_, el_sigma_)
+
+    w_ = d.FunctionSpace(mesh_, el_mxd_)
+    return (w_, v_theta_, v_s_, v_sigma_)
 # **************************************************************************** #
 
 
@@ -191,20 +215,21 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
     """
 
     # Define trial and testfunction
-    (s_, theta_) = d.TrialFunctions(w_)
-    (r_, kappa_) = d.TestFunctions(w_)
+    (theta_, s_) = d.TrialFunctions(w_)
+    (kappa_, r_) = d.TestFunctions(w_)
 
     # Define custom measeasure for boundaries
     d.ds = d.Measure('ds', domain=mesh_, subdomain_data=mesh_bounds_)
     d.dS = d.Measure('dS', domain=mesh_, subdomain_data=mesh_bounds_)
 
     # Normal and tangential components
-    # => tangential (tx,ty) = (-ny,nx) only for 2D
+    # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
     n = d.FacetNormal(mesh_)
-    s_n = s_[0] * n[0] + s_[1] * n[1]
-    r_n = r_[0] * n[0] + r_[1] * n[1]
-    s_t = - s_[0] * n[1] + s_[1] * n[0]
-    r_t = - r_[0] * n[1] + r_[1] * n[0]
+    t = ufl.perp(n)
+    s_n = d.dot(s_, n)
+    r_n = d.dot(r_, n)
+    s_t = d.dot(s_, t)
+    r_t = d.dot(r_, t)
 
     # Define source function
     R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
@@ -212,15 +237,17 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
     f_str = "A0 + A2 * pow(R,2) + A1 * cos(phi)"
     f = d.Expression(f_str, degree=2, R=R, phi=phi, A0=A0, A1=A1, A2=A2)
     f_i = d.interpolate(f, v_scalar_)
+    f_i.rename('f_i', 'f_i')
     file_f = d.File(output_folder + "f.pvd")
     file_f.write(f_i)
 
-    dev_grad_s = (0.5*(d.grad(s_)+u.transpose(d.grad(s_)))
-                  - (1/3)*u.tr(d.grad(s_))*u.Identity(2))
+    def dev3d(mat):
+        "2d deviatoric part of actually 3d matrix"
+        return 0.5 * (mat + ufl.transpose(mat)) - (1/3) * ufl.tr(mat) * ufl.Identity(2)
 
     if system == 1:
         a1 = (
-            + 12/5 * tau * d.inner(dev_grad_s, d.grad(r_))
+            + 12/5 * tau * d.inner(dev3d(d.grad(s_)), d.grad(r_))
             + 2/3 * (1/tau) * d.inner(s_, r_)
             - (5/2) * theta_ * d.div(r_)
         ) * d.dx + (
@@ -233,7 +260,7 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
         l2 = - (f * kappa_) * d.dx
     elif system == 2:
         a1 = (
-            tau * d.inner(dev_grad_s, d.grad(r_))
+            tau * d.inner(dev3d(d.grad(s_)), d.grad(r_))
             + (1/tau) * d.inner(s_, r_)
             - theta_ * d.div(r_)
         ) * d.dx + (
@@ -241,8 +268,8 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
             + xi_tilde * s_t * r_t
         ) * d.ds
         a2 = - (d.div(s_) * kappa_) * d.dx
-        l1 = (- r_n * theta_w_outer * d.ds(3100)
-              - r_n * theta_w_inner * d.ds(3000))
+        l1 = (-1 * r_n * theta_w_inner * d.ds(3000)
+              -1 * r_n * theta_w_outer * d.ds(3100))
         l2 = - (f * kappa_) * d.dx
     else:
         raise Exception('system={} is undefined'.format(system))
@@ -272,6 +299,7 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
         # >> svd(M);
 
     return (a_, l_)
+    return (a_, l_)
 # **************************************************************************** #
 
 
@@ -292,7 +320,7 @@ def solve_variational_formulation_heat(a_, l_, w, bcs_, plot_=False):
     sol_ = d.Function(w)
     d.solve(a_ == l_, sol_, bcs_, solver_parameters={'linear_solver': 'mumps'})
 
-    (s_, theta_) = sol_.split()
+    (theta_, s_) = sol_.split()
 
     # Write files
     s_.rename('s', 's')
@@ -487,7 +515,7 @@ def solve_system_heat():
 
         # setup and solve problem
         (mesh, _, mesh_bounds) = create_mesh(p)
-        (w, v_s, v_theta) = setup_function_spaces_heat(mesh, deg_s, deg_theta)
+        (w, v_theta, v_s) = setup_function_spaces_heat(mesh, deg_theta, deg_s)
         (a, l) = setup_variational_form_heat(w, v_theta, mesh, mesh_bounds)
         (s, theta) = solve_variational_formulation_heat(a, l, w, [])
         (s_e, theta_e) = get_exact_solution_heat()
@@ -516,5 +544,6 @@ def solve_system_heat():
 # MAIN
 # **************************************************************************** #
 if __name__ == '__main__':
+    if solve_heat:
     solve_system_heat()
 # **************************************************************************** #
