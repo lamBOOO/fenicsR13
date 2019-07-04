@@ -60,6 +60,8 @@ A2_ = "-1"  # int
 xi_tilde_ = "1.0"  # float
 theta_w_inner_ = "1.0"  # float
 theta_w_outer_ = "0.5"  # float
+v_t_inner_ = "10.0"  # float
+v_t_outer_ = "0.0"  # float
 
 # Model definitions
 system = int(system_)
@@ -74,12 +76,21 @@ A2 = d.Constant(float(A2_))
 xi_tilde = d.Constant(float(xi_tilde_))
 theta_w_inner = d.Constant(float(theta_w_inner_))
 theta_w_outer = d.Constant(float(theta_w_outer_))
+v_t_inner = d.Constant(float(v_t_inner_))
+v_t_outer = d.Constant(float(v_t_outer_))
 
 # FEM parameters
 deg_s = 1
 deg_theta = 1
+deg_sigma = 1
+deg_u = 1
+deg_p = 1
+
 el_s = "Lagrange"
 el_theta = "Lagrange"
+el_sigma = "Lagrange"
+el_u = "Lagrange"
+el_p = "Lagrange"
 
 # Convergence Study Parameters
 max_exponent = 5
@@ -87,6 +98,8 @@ max_exponent = 5
 # Continous Interior Penalty (CIP) Stabilization with parameter delta_1:
 stab_cip = True
 delta_1 = d.Constant(1)
+delta_2 = d.Constant(1)
+delta_3 = d.Constant(0.01)
 
 # Meshing parameters
 use_gmsh = True
@@ -299,6 +312,110 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
         # >> svd(M);
 
     return (a_, l_)
+
+def setup_variational_form_stress(w_, v_scalar_, mesh_, mesh_bounds_):
+    """
+    xi_tilde normally d.sqrt(2/d.pi), but we use 1 that looks right
+    Note: Sign of a2 and l2 are correlated to sign of cip stabilization!!
+    Attention: We actually solve a 3D problem! Therefore adjust dev part
+    """
+
+    # Define trial and testfunction
+    (p_, u_, sigma_) = d.TrialFunctions(w_)
+    (q_, v_, psi_) = d.TestFunctions(w_)
+
+    # Define custom measeasure for boundaries
+    d.ds = d.Measure('ds', domain=mesh_, subdomain_data=mesh_bounds_)
+    d.dS = d.Measure('dS', domain=mesh_, subdomain_data=mesh_bounds_)
+
+    # Normal and tangential components
+    # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
+    n = d.FacetNormal(mesh_)
+    t = ufl.perp(n)
+    sigma_nn = d.dot(sigma_*n, n)
+    psi_nn = d.dot(psi_*n, n)
+    sigma_tt = d.dot(sigma_*t, t)
+    psi_tt = d.dot(psi_*t, t)
+    sigma_nt = d.dot(sigma_*n, t)
+    psi_nt = d.dot(psi_*n, t)
+
+    # Define source function
+    R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+    phi = d.Expression("atan2(x[1],x[0])", degree=2)
+    f_str = "2.0/5.0 * (1.0 - (5.0*std::pow(R,2))/(18.0*tau)) * std::cos(phi)"
+    # f_str = "0"
+    f = d.Expression(f_str, degree=2, R=R, phi=phi, A0=A0, A1=A1, A2=A2, tau=tau)
+    f_i = d.interpolate(f, v_scalar_)
+    f_i.rename('f', 'f')
+    file_f = d.File(output_folder + "f.pvd")
+    file_f.write(f_i)
+
+    # d x d identiy matrix to use for Kronecker delta
+    delta = d.Identity(2)
+
+    def devOfGrad2(rank2):
+        "From Henning's book p232"
+        i, j, k, r = ufl.indices(4)
+        entry_ijk = (
+            (1/3) * (rank2[i, j].dx(k) + rank2[i, k].dx(j) + rank2[j, k].dx(i))
+            # ufl.sym(ufl.grad(rank2))
+            - (1/15) * (
+                + (2 * rank2[i, r].dx(r) + rank2[r, r].dx(i)) * delta[j, k]
+                + (2 * rank2[j, r].dx(r) + rank2[r, r].dx(j)) * delta[i, k]
+                + (2 * rank2[k, r].dx(r) + rank2[r, r].dx(k)) * delta[i, j]
+            )
+        )
+        tensor = ufl.as_tensor(entry_ijk, (i, j, k))
+        return tensor
+
+    if system == 1:
+        a1 = (
+            + 2 * tau * d.inner(devOfGrad2(sigma_), d.grad(psi_))
+            # + 2 * tau * d.inner(ufl.tr(d.grad(sigma_)), d.grad(psi_))
+            + (1/tau) * d.inner(sigma_, psi_)
+            - 2 * d.dot(u_, d.div(d.sym(psi_)))
+        ) * d.dx + (
+            + 21/(10*xi_tilde) * sigma_nn * psi_nn
+            + 2 * xi_tilde * (
+                (sigma_tt + (1/2) * sigma_nn) * (psi_tt + (1/2) * psi_nn)
+            )
+            + (2/xi_tilde) * sigma_nt * psi_nt
+        ) * d.ds
+        l1 = (- 2 * v_t_inner * psi_nt * d.ds(3000)
+              - 2 * v_t_outer * psi_nt * d.ds(3100))
+        a2 = (d.dot(d.div(sigma_), v_) + d.dot(d.grad(p_), v_)) * d.dx
+        l2 = d.Constant(0) * d.div(v_) * d.dx # dummy
+        a3 = d.dot(u_, d.grad(q_)) * d.dx
+        l3 = - (f * q_) * d.dx
+    elif system == 2:
+        raise Exception("not avail")
+    else:
+        raise Exception('system={} is undefined'.format(system))
+
+    if stab_cip:
+        # 1)
+        # h_avg = mesh_.hmax()
+        # 2)
+        h = d.CellDiameter(mesh_)
+        h_avg = (h('+') + h('-'))/2.0  # pylint: disable=not-callable
+        stab = (+ delta_2 * h_avg**3 * d.dot(d.jump(d.grad(u_), n), d.jump(d.grad(v_), n))
+                - delta_3 * h_avg * d.jump(d.grad(p_), n) * d.jump(d.grad(q_), n)) * d.dS
+    else:
+        stab = 0
+
+    a_ = a1 + a2 + a3 + stab
+    l_ = l1 + l2 + l3
+
+    if save_matrix:
+        np.savetxt("A.mat", d.assemble(a_).array())
+        # Use in matrix with:
+        # >> T = readtable("a.txt");
+        # >> M=table2array(T);
+        # >> spy(M);
+        # >> cond(M);
+        # >> det(M);
+        # >> svd(M);
+
     return (a_, l_)
 # **************************************************************************** #
 
@@ -338,6 +455,57 @@ def solve_variational_formulation_heat(a_, l_, w, bcs_, plot_=False):
         plt.show()
 
     return (s_, theta_)
+
+def solve_variational_formulation_stress(a_, l_, w, bcs_, plot_=False):
+    """
+    Available solvers:
+    solver_parameters={'linear_solver': 'gmres', 'preconditioner': 'ilu'}
+    solver_parameters={'linear_solver': 'petsc', 'preconditioner': 'ilu'}
+    solver_parameters={'linear_solver': 'direct'}
+    solver_parameters={'linear_solver': 'mumps'}
+    """
+
+    sol_ = d.Function(w)
+    d.solve(a_ == l_, sol_, bcs_, solver_parameters={'linear_solver': 'mumps'})
+
+    (p_, u_, sigma_) = sol_.split()
+
+    # Write files
+
+    # If symmetry, sigma only has 3 entries
+    sigma_.rename('sigma_xx', 'sigma_xx')
+    file_sigma_xx = d.File(output_folder + "sigma_xx.pvd")
+    file_sigma_xx.write(sigma_.split()[0])
+    sigma_.rename('sigma_xy', 'sigma_xy')
+    file_sigma_xx = d.File(output_folder + "sigma_xy.pvd")
+    file_sigma_xx.write(sigma_.split()[1])
+    sigma_.rename('sigma_yy', 'sigma_yy')
+    file_sigma_xx = d.File(output_folder + "sigma_yy.pvd")
+    file_sigma_xx.write(sigma_.split()[2])
+
+    u_.rename('u', 'u')
+    file_u = d.File(output_folder + "u.pvd")
+    file_u.write(u_)
+
+    p_.rename('p', 'p')
+    file_p = d.File(output_folder + "p.pvd")
+    file_p.write(p_)
+
+    if plot_:
+
+        plt.figure()
+        d.plot(p_, title="p")
+
+        plt.figure()
+        d.plot(u_, title="u")
+
+
+        plt.figure()
+        d.plot(sigma_, title="sigma")
+
+        plt.show()
+
+    return (p_, u_, sigma_)
 # **************************************************************************** #
 
 
@@ -537,7 +705,40 @@ def solve_system_heat():
     # plot errors
     if plot_conv_rates:
         plot_errrorsNew(data)
+# ------------------------------------------------------------------------------
+def solve_system_stress():
+    "TODO"
+
+    data = []
+
+    for expo in range(max_exponent):
+
+        # setup and solve problem
+        (mesh, _, mesh_bounds) = create_mesh(expo)
+        (w, v_theta, v_s, v_sigma) = setup_function_spaces_stress(mesh, deg_p, deg_u, deg_sigma)
+        (a, l) = setup_variational_form_stress(w, v_theta, mesh, mesh_bounds)
+        (p, u, sigma) = solve_variational_formulation_stress(a, l, w, [])
+    #     (s_e, theta_e) = get_exact_solution_heat()
+
+    #     # calc errors
+    #     (f_l2_s, v_linf_s) = calc_vectorfield_errors(
+    #         s, s_e, v_s, mesh, "s", p)
+    #     (f_l2_theta, v_linf_theta) = calc_scalarfield_errors(
+    #         theta, theta_e, v_theta, "theta", p)
+
+    #     # store errors
+    #     data.append({
+    #         "h": mesh.hmax(),
+    #         "sx": {"L_2": f_l2_s[0], "l_inf": v_linf_s[0]},
+    #         "sy": {"L_2": f_l2_s[1], "l_inf": v_linf_s[1]},
+    #         "theta": {"L_2": f_l2_theta, "l_inf": v_linf_theta}
+    #     })
+
+    # # plot errors
+    # if plot_conv_rates:
+    #     plot_errrorsNew(data)
 # **************************************************************************** #
+
 
 
 # **************************************************************************** #
@@ -545,5 +746,7 @@ def solve_system_heat():
 # **************************************************************************** #
 if __name__ == '__main__':
     if solve_heat:
-    solve_system_heat()
+        solve_system_heat()
+    if solve_stress:
+        solve_system_stress()
 # **************************************************************************** #
