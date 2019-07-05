@@ -523,7 +523,6 @@ def solve_variational_formulation_stress(a_, l_, w, bcs_, plot_=False):
 def get_exact_solution_heat():
     """
     s_e = (s_R, s_phi)
-    TODO: Print parameters
     """
 
     data = open("exact_solutions_heat.csv")
@@ -552,6 +551,29 @@ def get_exact_solution_heat():
     scalar_dummy = d.Expression("0", degree=1)
     vector_dummy = d.Expression(("0", "0"), degree=1)
     return (vector_dummy, scalar_dummy)
+
+# def get_exact_solution_stress():
+#     ""
+
+#     if system_ == "1":
+#         R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+#         phi = d.Expression("atan2(x[1],x[0])", degree=2)
+
+#         gamma_0 = 2/(R**2)
+#         gamma = 7
+
+#         d0 = 1
+#         d = 2
+#         p = d.Expression("d0 * cos(phi) * d", degree=2, phi=phi, R=R, d=d, d0=d0)
+
+#         p_e = p_
+
+#         return (p_e, u_e, sigma_e)
+#     else:
+#         warnings.warn("No exact solution avail")
+#         scalar_dummy = d.Expression("0", degree=1)
+#         vector_dummy = d.Expression(("0", "0"), degree=1)
+#         return (vector_dummy, scalar_dummy)
 # **************************************************************************** #
 
 
@@ -727,7 +749,7 @@ def solve_system_stress():
         )
         (a, l) = setup_variational_form_stress(w, v_theta, mesh, mesh_bounds)
         (p, u, sigma) = solve_variational_formulation_stress(a, l, w, [])
-        (p_e, u_e, sigma_e) = get_exact_solution_stress()
+        # (p_e, u_e, sigma_e) = get_exact_solution_stress()
 
     #     # calc errors
     #     (f_l2_s, v_linf_s) = calc_vectorfield_errors(
