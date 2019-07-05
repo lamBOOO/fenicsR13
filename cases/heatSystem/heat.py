@@ -345,7 +345,7 @@ def setup_variational_form_stress(w_, v_scalar_, mesh_, mesh_bounds_):
     f_str = "2.0/5.0 * (1.0 - (5.0*std::pow(R,2))/(18.0*tau)) * std::cos(phi)"
     # f_str = "0"
     f = d.Expression(f_str, degree=2, R=R, phi=phi, A0=A0, A1=A1, A2=A2, tau=tau)
-    f_i = d.interpolate(f, v_scalar_)
+    f_i = d.project(f, v_scalar_)
     f_i.rename('f', 'f')
     file_f = d.File(output_folder + "f.pvd")
     file_f.write(f_i)
