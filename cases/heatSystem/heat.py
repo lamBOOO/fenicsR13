@@ -39,11 +39,11 @@ import os
 import warnings
 import csv
 import matplotlib.pyplot as plt
-import dolfin as d
+import dolfin as df
 import ufl
 import mshr as m
 import numpy as np
-d.set_log_level(1000)  # 1: all logs
+df.set_log_level(1000)  # 1: all logs
 # **************************************************************************** #
 
 
@@ -65,19 +65,21 @@ v_t_outer_ = "0.0"  # float
 
 # Model definitions
 system = int(system_)
+# solve_stress = False
+# solve_heat = True
 solve_heat = False
 solve_stress = True
 
 # UFL vars
-tau = d.Constant(float(tau_))
-A0 = d.Constant(float(A0_))
-A1 = d.Constant(float(A1_))
-A2 = d.Constant(float(A2_))
-xi_tilde = d.Constant(float(xi_tilde_))
-theta_w_inner = d.Constant(float(theta_w_inner_))
-theta_w_outer = d.Constant(float(theta_w_outer_))
-v_t_inner = d.Constant(float(v_t_inner_))
-v_t_outer = d.Constant(float(v_t_outer_))
+tau = df.Constant(float(tau_))
+A0 = df.Constant(float(A0_))
+A1 = df.Constant(float(A1_))
+A2 = df.Constant(float(A2_))
+xi_tilde = df.Constant(float(xi_tilde_))
+theta_w_inner = df.Constant(float(theta_w_inner_))
+theta_w_outer = df.Constant(float(theta_w_outer_))
+v_t_inner = df.Constant(float(v_t_inner_))
+v_t_outer = df.Constant(float(v_t_outer_))
 
 # FEM parameters
 deg_s = 1
@@ -97,9 +99,9 @@ max_exponent = 5
 
 # Continous Interior Penalty (CIP) Stabilization with parameter delta_1:
 stab_cip = True
-delta_1 = d.Constant(1)
-delta_2 = d.Constant(1)
-delta_3 = d.Constant(0.01)
+delta_1 = df.Constant(1)
+delta_2 = df.Constant(1)
+delta_3 = df.Constant(0.01)
 
 # Meshing parameters
 use_gmsh = True
@@ -112,7 +114,7 @@ output_folder = "results/"
 # Parallel MPI Settings
 # -> parameters["ghost_mode"] = "shared_vertex"
 # -> parameters["ghost_mode"] = "shared_facet"
-d.parameters["ghost_mode"] = "shared_vertex"
+df.parameters["ghost_mode"] = "shared_vertex"
 
 # **************************************************************************** #
 
@@ -143,22 +145,22 @@ def create_mesh(p, plot_mesh_=False, overwrite_=False):
 
             os.system("dolfin-convert {0}.msh {0}.xml".format(mesh_name))
 
-            mesh_ = d.Mesh("{}.xml".format(mesh_name))
-            domains_ = d.MeshFunction(
+            mesh_ = df.Mesh("{}.xml".format(mesh_name))
+            domains_ = df.MeshFunction(
                 "size_t", mesh_, "{}_physical_region.xml".format(mesh_name))
-            boundaries = d.MeshFunction(
+            boundaries = df.MeshFunction(
                 "size_t", mesh_, "{}_facet_region.xml".format(mesh_name))
-            hdf = d.HDF5File(mesh_.mpi_comm(), "{}.h5".format(mesh_name), "w")
+            hdf = df.HDF5File(mesh_.mpi_comm(), "{}.h5".format(mesh_name), "w")
             hdf.write(mesh_, "/mesh")
             hdf.write(domains_, "/subdomains")
             hdf.write(boundaries, "/boundaries")
 
-        mesh_ = d.Mesh()
-        hdf = d.HDF5File(mesh_.mpi_comm(), "{}.h5".format(mesh_name), "r")
+        mesh_ = df.Mesh()
+        hdf = df.HDF5File(mesh_.mpi_comm(), "{}.h5".format(mesh_name), "r")
         hdf.read(mesh_, "/mesh", False)
-        domains_ = d.MeshFunction("size_t", mesh_, mesh_.topology().dim())
+        domains_ = df.MeshFunction("size_t", mesh_, mesh_.topology().dim())
         hdf.read(domains_, "/subdomains")
-        boundaries = d.MeshFunction(
+        boundaries = df.MeshFunction(
             "size_t", mesh_, mesh_.topology().dim() - 1)
         hdf.read(boundaries, "/boundaries")
 
@@ -173,7 +175,7 @@ def create_mesh(p, plot_mesh_=False, overwrite_=False):
 
     if plot_mesh_:
         plt.figure()
-        d.plot(mesh_, title="Mesh")
+        df.plot(mesh_, title="Mesh")
         plt.draw()
 
     print("Max edge length:", mesh_.hmax())
@@ -189,30 +191,30 @@ def setup_function_spaces_heat(mesh_, deg_theta_, deg_s_):
     "TODO"
     c = mesh_.ufl_cell()
 
-    el_theta_ = d.FiniteElement(el_theta, c, degree=deg_theta_)
-    el_s_ = d.VectorElement(el_s, c, degree=deg_s_)
-    el_mxd_ = d.MixedElement([el_theta_, el_s_])
+    el_theta_ = df.FiniteElement(el_theta, c, degree=deg_theta_)
+    el_s_ = df.VectorElement(el_s, c, degree=deg_s_)
+    el_mxd_ = df.MixedElement([el_theta_, el_s_])
 
-    v_theta_ = d.FunctionSpace(mesh_, el_theta_)
-    v_s_ = d.FunctionSpace(mesh_, el_s_)
+    v_theta_ = df.FunctionSpace(mesh_, el_theta_)
+    v_s_ = df.FunctionSpace(mesh_, el_s_)
 
-    w_ = d.FunctionSpace(mesh_, el_mxd_)
+    w_ = df.FunctionSpace(mesh_, el_mxd_)
     return (w_, v_theta_, v_s_)
 
 def setup_function_spaces_stress(mesh_, deg_p_, deg_u_, deg_sigma_):
     "TODO"
     c = mesh_.ufl_cell()
 
-    el_theta_ = d.FiniteElement(el_theta, c, degree=deg_p_)
-    el_s_ = d.VectorElement(el_s, c, degree=deg_u_)
-    el_sigma_ = d.TensorElement(el_sigma, c, degree=deg_sigma_, symmetry=True)
-    el_mxd_ = d.MixedElement([el_theta_, el_s_, el_sigma_])
+    el_theta_ = df.FiniteElement(el_theta, c, degree=deg_p_)
+    el_s_ = df.VectorElement(el_s, c, degree=deg_u_)
+    el_sigma_ = df.TensorElement(el_sigma, c, degree=deg_sigma_, symmetry=True)
+    el_mxd_ = df.MixedElement([el_theta_, el_s_, el_sigma_])
 
-    v_theta_ = d.FunctionSpace(mesh_, el_theta_)
-    v_s_ = d.FunctionSpace(mesh_, el_s_)
-    v_sigma_ = d.FunctionSpace(mesh_, el_sigma_)
+    v_theta_ = df.FunctionSpace(mesh_, el_theta_)
+    v_s_ = df.FunctionSpace(mesh_, el_s_)
+    v_sigma_ = df.FunctionSpace(mesh_, el_sigma_)
 
-    w_ = d.FunctionSpace(mesh_, el_mxd_)
+    w_ = df.FunctionSpace(mesh_, el_mxd_)
     return (w_, v_theta_, v_s_, v_sigma_)
 # **************************************************************************** #
 
@@ -228,30 +230,30 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
     """
 
     # Define trial and testfunction
-    (theta_, s_) = d.TrialFunctions(w_)
-    (kappa_, r_) = d.TestFunctions(w_)
+    (theta_, s_) = df.TrialFunctions(w_)
+    (kappa_, r_) = df.TestFunctions(w_)
 
     # Define custom measeasure for boundaries
-    d.ds = d.Measure('ds', domain=mesh_, subdomain_data=mesh_bounds_)
-    d.dS = d.Measure('dS', domain=mesh_, subdomain_data=mesh_bounds_)
+    df.ds = df.Measure('ds', domain=mesh_, subdomain_data=mesh_bounds_)
+    df.dS = df.Measure('dS', domain=mesh_, subdomain_data=mesh_bounds_)
 
     # Normal and tangential components
     # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
-    n = d.FacetNormal(mesh_)
+    n = df.FacetNormal(mesh_)
     t = ufl.perp(n)
-    s_n = d.dot(s_, n)
-    r_n = d.dot(r_, n)
-    s_t = d.dot(s_, t)
-    r_t = d.dot(r_, t)
+    s_n = df.dot(s_, n)
+    r_n = df.dot(r_, n)
+    s_t = df.dot(s_, t)
+    r_t = df.dot(r_, t)
 
     # Define source function
-    R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
-    phi = d.Expression("atan2(x[1],x[0])", degree=2)
+    R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+    phi = df.Expression("atan2(x[1],x[0])", degree=2)
     f_str = "A0 + A2 * pow(R,2) + A1 * cos(phi)"
-    f = d.Expression(f_str, degree=2, R=R, phi=phi, A0=A0, A1=A1, A2=A2)
-    f_i = d.interpolate(f, v_scalar_)
+    f = df.Expression(f_str, degree=2, R=R, phi=phi, A0=A0, A1=A1, A2=A2)
+    f_i = df.interpolate(f, v_scalar_)
     f_i.rename('f_i', 'f_i')
-    file_f = d.File(output_folder + "f.pvd")
+    file_f = df.File(output_folder + "f.pvd")
     file_f.write(f_i)
 
     def dev3d(mat):
@@ -263,30 +265,30 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
 
     if system == 1:
         a1 = (
-            + 12/5 * tau * d.inner(dev3d(d.grad(s_)), d.grad(r_))
-            + 2/3 * (1/tau) * d.inner(s_, r_)
-            - (5/2) * theta_ * d.div(r_)
-        ) * d.dx + (
+            + 12/5 * tau * df.inner(dev3d(df.grad(s_)), df.grad(r_))
+            + 2/3 * (1/tau) * df.inner(s_, r_)
+            - (5/2) * theta_ * df.div(r_)
+        ) * df.dx + (
             + 5/(4*xi_tilde) * s_n * r_n
             + 11/10 * xi_tilde * s_t * r_t
-        ) * d.ds
-        a2 = - (d.div(s_) * kappa_) * d.dx
-        l1 = (- 5.0/2.0 * r_n * theta_w_outer * d.ds(3100)
-              - 5.0/2.0 * r_n * theta_w_inner * d.ds(3000))
-        l2 = - (f * kappa_) * d.dx
+        ) * df.ds
+        a2 = - (df.div(s_) * kappa_) * df.dx
+        l1 = (- 5.0/2.0 * r_n * theta_w_outer * df.ds(3100)
+              - 5.0/2.0 * r_n * theta_w_inner * df.ds(3000))
+        l2 = - (f * kappa_) * df.dx
     elif system == 2:
         a1 = (
-            tau * d.inner(dev3d(d.grad(s_)), d.grad(r_))
-            + (1/tau) * d.inner(s_, r_)
-            - theta_ * d.div(r_)
-        ) * d.dx + (
+            tau * df.inner(dev3d(df.grad(s_)), df.grad(r_))
+            + (1/tau) * df.inner(s_, r_)
+            - theta_ * df.div(r_)
+        ) * df.dx + (
             + 1/(xi_tilde) * s_n * r_n
             + xi_tilde * s_t * r_t
-        ) * d.ds
-        a2 = - (d.div(s_) * kappa_) * d.dx
-        l1 = (-1 * r_n * theta_w_inner * d.ds(3000)
-              -1 * r_n * theta_w_outer * d.ds(3100))
-        l2 = - (f * kappa_) * d.dx
+        ) * df.ds
+        a2 = - (df.div(s_) * kappa_) * df.dx
+        l1 = (-1 * r_n * theta_w_inner * df.ds(3000)
+              -1 * r_n * theta_w_outer * df.ds(3100))
+        l2 = - (f * kappa_) * df.dx
     else:
         raise Exception('system={} is undefined'.format(system))
 
@@ -294,10 +296,10 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
         # 1)
         # h_avg = mesh_.hmax()
         # 2)
-        h = d.CellDiameter(mesh_)
+        h = df.CellDiameter(mesh_)
         h_avg = (h('+') + h('-'))/2.0  # pylint: disable=not-callable
-        stab = - (delta_1 * h_avg**3 * d.jump(d.grad(theta_), n)
-                  * d.jump(d.grad(kappa_), n)) * d.dS
+        stab = - (delta_1 * h_avg**3 * df.jump(df.grad(theta_), n)
+                  * df.jump(df.grad(kappa_), n)) * df.dS
     else:
         stab = 0
 
@@ -305,7 +307,7 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
     l_ = l1 + l2
 
     if save_matrix:
-        np.savetxt("A.mat", d.assemble(a_).array())
+        np.savetxt("A.mat", df.assemble(a_).array())
         # Use in matrix with:
         # >> T = readtable("a.txt");
         # >> M=table2array(T);
@@ -324,38 +326,38 @@ def setup_variational_form_stress(w_, v_scalar_, mesh_, mesh_bounds_):
     """
 
     # Define trial and testfunction
-    (p_, u_, sigma_) = d.TrialFunctions(w_)
-    (q_, v_, psi_) = d.TestFunctions(w_)
+    (p_, u_, sigma_) = df.TrialFunctions(w_)
+    (q_, v_, psi_) = df.TestFunctions(w_)
 
     # Define custom measeasure for boundaries
-    d.ds = d.Measure('ds', domain=mesh_, subdomain_data=mesh_bounds_)
-    d.dS = d.Measure('dS', domain=mesh_, subdomain_data=mesh_bounds_)
+    df.ds = df.Measure('ds', domain=mesh_, subdomain_data=mesh_bounds_)
+    df.dS = df.Measure('dS', domain=mesh_, subdomain_data=mesh_bounds_)
 
     # Normal and tangential components
     # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
-    n = d.FacetNormal(mesh_)
+    n = df.FacetNormal(mesh_)
     t = ufl.perp(n)
-    sigma_nn = d.dot(sigma_*n, n)
-    psi_nn = d.dot(psi_*n, n)
-    sigma_tt = d.dot(sigma_*t, t)
-    psi_tt = d.dot(psi_*t, t)
-    sigma_nt = d.dot(sigma_*n, t)
-    psi_nt = d.dot(psi_*n, t)
+    sigma_nn = df.dot(sigma_*n, n)
+    psi_nn = df.dot(psi_*n, n)
+    sigma_tt = df.dot(sigma_*t, t)
+    psi_tt = df.dot(psi_*t, t)
+    sigma_nt = df.dot(sigma_*n, t)
+    psi_nt = df.dot(psi_*n, t)
 
     # Define source function
-    R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
-    phi = d.Expression("atan2(x[1],x[0])", degree=2)
+    R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+    phi = df.Expression("atan2(x[1],x[0])", degree=2)
     f_str = "2.0/5.0 * (1.0 - (5.0*std::pow(R,2))/(18.0*tau)) * std::cos(phi)"
     # f_str = "0"
-    f = d.Expression(f_str, degree=2, R=R, phi=phi, A0=A0, A1=A1, A2=A2,
-                     tau=tau)
-    f_i = d.project(f, v_scalar_)
+    f = df.Expression(f_str, degree=2, R=R, phi=phi, A0=A0, A1=A1, A2=A2,
+                      tau=tau)
+    f_i = df.project(f, v_scalar_)
     f_i.rename('f', 'f')
-    file_f = d.File(output_folder + "f.pvd")
+    file_f = df.File(output_folder + "f.pvd")
     file_f.write(f_i)
 
     # d x d identiy matrix to use for Kronecker delta
-    delta = d.Identity(2)
+    delta = df.Identity(2)
 
     def devOfGrad2(rank2):
         "From Henning's book p232"
@@ -374,23 +376,23 @@ def setup_variational_form_stress(w_, v_scalar_, mesh_, mesh_bounds_):
 
     if system == 1:
         a1 = (
-            + 2 * tau * d.inner(devOfGrad2(sigma_), d.grad(psi_))
+            + 2 * tau * df.inner(devOfGrad2(sigma_), df.grad(psi_))
             # + 2 * tau * d.inner(ufl.tr(d.grad(sigma_)), d.grad(psi_))
-            + (1/tau) * d.inner(sigma_, psi_)
-            - 2 * d.dot(u_, d.div(d.sym(psi_)))
-        ) * d.dx + (
+            + (1/tau) * df.inner(sigma_, psi_)
+            - 2 * df.dot(u_, df.div(df.sym(psi_)))
+        ) * df.dx + (
             + 21/(10*xi_tilde) * sigma_nn * psi_nn
             + 2 * xi_tilde * (
                 (sigma_tt + (1/2) * sigma_nn) * (psi_tt + (1/2) * psi_nn)
             )
             + (2/xi_tilde) * sigma_nt * psi_nt
-        ) * d.ds
-        l1 = (- 2 * v_t_inner * psi_nt * d.ds(3000)
-              - 2 * v_t_outer * psi_nt * d.ds(3100))
-        a2 = (d.dot(d.div(sigma_), v_) + d.dot(d.grad(p_), v_)) * d.dx
-        l2 = d.Constant(0) * d.div(v_) * d.dx # dummy
-        a3 = d.dot(u_, d.grad(q_)) * d.dx
-        l3 = - (f * q_) * d.dx
+        ) * df.ds
+        l1 = (- 2 * v_t_inner * psi_nt * df.ds(3000)
+              - 2 * v_t_outer * psi_nt * df.ds(3100))
+        a2 = (df.dot(df.div(sigma_), v_) + df.dot(df.grad(p_), v_)) * df.dx
+        l2 = df.Constant(0) * df.div(v_) * df.dx # dummy
+        a3 = df.dot(u_, df.grad(q_)) * df.dx
+        l3 = - (f * q_) * df.dx
     elif system == 2:
         raise Exception("not avail")
     else:
@@ -400,13 +402,14 @@ def setup_variational_form_stress(w_, v_scalar_, mesh_, mesh_bounds_):
         # 1)
         # h_avg = mesh_.hmax()
         # 2)
-        h = d.CellDiameter(mesh_)
+        h = df.CellDiameter(mesh_)
         h_avg = (h('+') + h('-'))/2.0  # pylint: disable=not-callable
         stab = (
             + delta_2 * h_avg**3
-            * d.dot(d.jump(d.grad(u_), n), d.jump(d.grad(v_), n))
-            - delta_3 * h_avg * d.jump(d.grad(p_), n) * d.jump(d.grad(q_), n)
-            ) * d.dS
+            * df.dot(df.jump(df.grad(u_), n), df.jump(df.grad(v_), n))
+            - delta_3 * h_avg *
+            df.jump(df.grad(p_), n) * df.jump(df.grad(q_), n)
+            ) * df.dS
     else:
         stab = 0
 
@@ -414,7 +417,7 @@ def setup_variational_form_stress(w_, v_scalar_, mesh_, mesh_bounds_):
     l_ = l1 + l2 + l3
 
     if save_matrix:
-        np.savetxt("A.mat", d.assemble(a_).array())
+        np.savetxt("A.mat", df.assemble(a_).array())
         # Use in matrix with:
         # >> T = readtable("a.txt");
         # >> M=table2array(T);
@@ -441,24 +444,24 @@ def solve_variational_formulation_heat(a_, l_, w, bcs_, plot_=False):
     solver_parameters={'linear_solver': 'mumps'}
     """
 
-    sol_ = d.Function(w)
-    d.solve(a_ == l_, sol_, bcs_, solver_parameters={'linear_solver': 'mumps'})
+    sol_ = df.Function(w)
+    df.solve(a_ == l_, sol_, bcs_, solver_parameters={'linear_solver': 'mumps'})
 
     (theta_, s_) = sol_.split()
 
     # Write files
     s_.rename('s', 's')
-    file_s = d.File(output_folder + "s.pvd")
+    file_s = df.File(output_folder + "s.pvd")
     file_s.write(s_)
     theta_.rename('theta', 'theta')
-    file_theta = d.File(output_folder + "theta.pvd")
+    file_theta = df.File(output_folder + "theta.pvd")
     file_theta.write(theta_)
 
     if plot_:
         plt.figure()
-        d.plot(s_, title="s")
+        df.plot(s_, title="s")
         plt.figure()
-        d.plot(theta_, title="theta")
+        df.plot(theta_, title="theta")
         plt.show()
 
     return (s_, theta_)
@@ -472,8 +475,8 @@ def solve_variational_formulation_stress(a_, l_, w, bcs_, plot_=False):
     solver_parameters={'linear_solver': 'mumps'}
     """
 
-    sol_ = d.Function(w)
-    d.solve(a_ == l_, sol_, bcs_, solver_parameters={'linear_solver': 'mumps'})
+    sol_ = df.Function(w)
+    df.solve(a_ == l_, sol_, bcs_, solver_parameters={'linear_solver': 'mumps'})
 
     (p_, u_, sigma_) = sol_.split()
 
@@ -481,34 +484,34 @@ def solve_variational_formulation_stress(a_, l_, w, bcs_, plot_=False):
 
     # If symmetry, sigma only has 3 entries
     sigma_.rename('sigma_xx', 'sigma_xx')
-    file_sigma_xx = d.File(output_folder + "sigma_xx.pvd")
+    file_sigma_xx = df.File(output_folder + "sigma_xx.pvd")
     file_sigma_xx.write(sigma_.split()[0])
     sigma_.rename('sigma_xy', 'sigma_xy')
-    file_sigma_xx = d.File(output_folder + "sigma_xy.pvd")
+    file_sigma_xx = df.File(output_folder + "sigma_xy.pvd")
     file_sigma_xx.write(sigma_.split()[1])
     sigma_.rename('sigma_yy', 'sigma_yy')
-    file_sigma_xx = d.File(output_folder + "sigma_yy.pvd")
+    file_sigma_xx = df.File(output_folder + "sigma_yy.pvd")
     file_sigma_xx.write(sigma_.split()[2])
 
     u_.rename('u', 'u')
-    file_u = d.File(output_folder + "u.pvd")
+    file_u = df.File(output_folder + "u.pvd")
     file_u.write(u_)
 
     p_.rename('p', 'p')
-    file_p = d.File(output_folder + "p.pvd")
+    file_p = df.File(output_folder + "p.pvd")
     file_p.write(p_)
 
     if plot_:
 
         plt.figure()
-        d.plot(p_, title="p")
+        df.plot(p_, title="p")
 
         plt.figure()
-        d.plot(u_, title="u")
+        df.plot(u_, title="u")
 
 
         plt.figure()
-        d.plot(sigma_, title="sigma")
+        df.plot(sigma_, title="sigma")
 
         plt.show()
 
@@ -538,18 +541,18 @@ def get_exact_solution_heat():
             item.get("theta_w_outer") == theta_w_outer_
         )
         if entry_available:
-            R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
-            phi = d.Expression("atan2(x[1],x[0])", degree=2)
-            theta_e = d.Expression(item.get("theta_e"), degree=2, R=R, tau=tau)
-            s_R = d.Expression(item.get("s_R"), degree=2, R=R, tau=tau)
-            s_e = d.Expression(("s_R * cos(phi)", "s_R * sin(phi)"),
-                               degree=2, phi=phi, s_R=s_R)
+            R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+            phi = df.Expression("atan2(x[1],x[0])", degree=2)
+            theta_e = df.Expression(item.get("theta_e"), degree=2, R=R, tau=tau)
+            s_R = df.Expression(item.get("s_R"), degree=2, R=R, tau=tau)
+            s_e = df.Expression(("s_R * cos(phi)", "s_R * sin(phi)"),
+                                degree=2, phi=phi, s_R=s_R)
             return (s_e, theta_e)
 
     # no exact solution is csv file
     warnings.warn("No exact solution avail for given tau3")
-    scalar_dummy = d.Expression("0", degree=1)
-    vector_dummy = d.Expression(("0", "0"), degree=1)
+    scalar_dummy = df.Expression("0", degree=1)
+    vector_dummy = df.Expression(("0", "0"), degree=1)
     return (vector_dummy, scalar_dummy)
 
 # def get_exact_solution_stress():
@@ -586,26 +589,26 @@ def calc_scalarfield_errors(theta_, theta_e_, v_theta_, name_, p_):
     of = output_folder
 
     # Theta
-    field_e_i = d.interpolate(theta_e_, v_theta_)
-    field_i = d.interpolate(theta_, v_theta_)
+    field_e_i = df.interpolate(theta_e_, v_theta_)
+    field_i = df.interpolate(theta_, v_theta_)
 
-    difference = d.project(theta_e_ - theta_, v_theta_)
+    difference = df.project(theta_e_ - theta_, v_theta_)
     difference.rename("difference_{}".format(name_),
                       "difference_{}".format(name_))
-    file_difference = d.File(of + "difference_{}_{}.pvd".format(name_, p_))
+    file_difference = df.File(of + "difference_{}_{}.pvd".format(name_, p_))
     file_difference.write(difference)
 
-    err_f_L2 = d.errornorm(theta_e_, theta_, 'L2')
-    err_v_linf = d.norm(field_e_i.vector()-field_i.vector(), 'linf')
+    err_f_L2 = df.errornorm(theta_e_, theta_, 'L2')
+    err_v_linf = df.norm(field_e_i.vector()-field_i.vector(), 'linf')
     print("L_2 error:", err_f_L2)
     print("l_inf error:", err_v_linf)
 
     field_e_i.rename("{}_e_i".format(name_), "{}_e_i".format(name_))
-    file_field_e = d.File(of + "{}_e.pvd".format(name_))
+    file_field_e = df.File(of + "{}_e.pvd".format(name_))
     file_field_e.write(field_e_i)
 
     field_i.rename("{}_i".format(name_), "{}_i".format(name_))
-    file_field = d.File(of + "{}_i.pvd".format(name_))
+    file_field = df.File(of + "{}_i.pvd".format(name_))
     file_field.write(field_i)
 
     return (err_f_L2, err_v_linf)
@@ -621,31 +624,31 @@ def calc_vectorfield_errors(sol_, sol_e_, v_sol, mesh_, name_, p_):
     of = output_folder
 
     # Vector values functions interpolated
-    field_e_i = d.interpolate(sol_e_, v_sol)
-    field_i = d.interpolate(sol_, v_sol)
+    field_e_i = df.interpolate(sol_e_, v_sol)
+    field_i = df.interpolate(sol_, v_sol)
 
-    difference = d.project(sol_e_ - sol_, v_sol)
+    difference = df.project(sol_e_ - sol_, v_sol)
     difference.rename("difference_{}".format(name_),
                       "difference_{}".format(name_))
-    file_difference = d.File(of + "difference_{}_{}.pvd".format(name_, p_))
+    file_difference = df.File(of + "difference_{}_{}.pvd".format(name_, p_))
     file_difference.write(difference)
 
     dim = field_i.geometric_dimension()
-    errs_f_L2 = [d.errornorm(
+    errs_f_L2 = [df.errornorm(
         field_e_i.split()[i], field_i.split()[i], 'L2', mesh=mesh_
     ) for i in range(dim)]
-    errs_v_linf = [d.norm(
+    errs_v_linf = [df.norm(
         field_e_i.split()[i].vector()-field_i.split()[i].vector(), 'linf'
     ) for i in range(dim)]
     print("L_2 error:", errs_f_L2)
     print("l_inf error:", errs_v_linf)
 
     field_e_i.rename("{}_e_i".format(name_), "{}_e_i".format(name_))
-    file_field_e = d.File(of + "{}_e.pvd".format(name_))
+    file_field_e = df.File(of + "{}_e.pvd".format(name_))
     file_field_e.write(field_e_i)
 
     field_i.rename("{}_i".format(name_), "{}_i".format(name_))
-    file_field = d.File(of + "{}_i.pvd".format(name_))
+    file_field = df.File(of + "{}_i.pvd".format(name_))
     file_field.write(field_i)
 
     return (errs_f_L2, errs_v_linf)
@@ -658,7 +661,7 @@ def calc_vectorfield_errors(sol_, sol_e_, v_sol, mesh_, name_, p_):
 def plot_errrorsNew(data_):
     "TODO"
 
-    h = [d["h"] for d in data_]
+    h = [df["h"] for df in data_]
     for key in data_[0]:
         if key != "h":
 
@@ -667,9 +670,9 @@ def plot_errrorsNew(data_):
             # plt.rc('text', usetex=True)
             # plt.rc('font', family='serif')
 
-            field = [d[key] for d in data_]
+            field = [df[key] for df in data_]
             for etype in field[0]:
-                values = [d[etype] for d in field]
+                values = [df[etype] for df in field]
                 plt.loglog(h, values, "-o", label=etype)
             plt.loglog(h, np.array(2*np.power(h, 1)), "--", label="O(h^1)")
             plt.loglog(h, np.array(0.02*np.power(h, 2)), "--", label="O(h^2)")
