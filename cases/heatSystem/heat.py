@@ -256,7 +256,10 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
 
     def dev3d(mat):
         "2d deviatoric part of actually 3d matrix"
-        return 0.5 * (mat + ufl.transpose(mat)) - (1/3) * ufl.tr(mat) * ufl.Identity(2)
+        return (
+            0.5 * (mat + ufl.transpose(mat))
+            - (1/3) * ufl.tr(mat) * ufl.Identity(2)
+        )
 
     if system == 1:
         a1 = (
@@ -344,7 +347,8 @@ def setup_variational_form_stress(w_, v_scalar_, mesh_, mesh_bounds_):
     phi = d.Expression("atan2(x[1],x[0])", degree=2)
     f_str = "2.0/5.0 * (1.0 - (5.0*std::pow(R,2))/(18.0*tau)) * std::cos(phi)"
     # f_str = "0"
-    f = d.Expression(f_str, degree=2, R=R, phi=phi, A0=A0, A1=A1, A2=A2, tau=tau)
+    f = d.Expression(f_str, degree=2, R=R, phi=phi, A0=A0, A1=A1, A2=A2,
+                     tau=tau)
     f_i = d.project(f, v_scalar_)
     f_i.rename('f', 'f')
     file_f = d.File(output_folder + "f.pvd")
@@ -398,8 +402,11 @@ def setup_variational_form_stress(w_, v_scalar_, mesh_, mesh_bounds_):
         # 2)
         h = d.CellDiameter(mesh_)
         h_avg = (h('+') + h('-'))/2.0  # pylint: disable=not-callable
-        stab = (+ delta_2 * h_avg**3 * d.dot(d.jump(d.grad(u_), n), d.jump(d.grad(v_), n))
-                - delta_3 * h_avg * d.jump(d.grad(p_), n) * d.jump(d.grad(q_), n)) * d.dS
+        stab = (
+            + delta_2 * h_avg**3
+            * d.dot(d.jump(d.grad(u_), n), d.jump(d.grad(v_), n))
+            - delta_3 * h_avg * d.jump(d.grad(p_), n) * d.jump(d.grad(q_), n)
+            ) * d.dS
     else:
         stab = 0
 
@@ -715,10 +722,12 @@ def solve_system_stress():
 
         # setup and solve problem
         (mesh, _, mesh_bounds) = create_mesh(expo)
-        (w, v_theta, v_s, v_sigma) = setup_function_spaces_stress(mesh, deg_p, deg_u, deg_sigma)
+        (w, v_theta, v_s, v_sigma) = setup_function_spaces_stress(
+            mesh, deg_p, deg_u, deg_sigma
+        )
         (a, l) = setup_variational_form_stress(w, v_theta, mesh, mesh_bounds)
         (p, u, sigma) = solve_variational_formulation_stress(a, l, w, [])
-    #     (s_e, theta_e) = get_exact_solution_heat()
+        (p_e, u_e, sigma_e) = get_exact_solution_stress()
 
     #     # calc errors
     #     (f_l2_s, v_linf_s) = calc_vectorfield_errors(
