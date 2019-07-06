@@ -2,6 +2,8 @@ version: '3.2'
 services:
   fenics:
     build: .
+    environment: # open tunnel first and set ${ip}
+       - DISPLAY=${ip}:0
     working_dir: /home/fenics/shared
     volumes:
       - type: bind
@@ -12,6 +14,8 @@ services:
         target: /home/fenics/.cache
         volume:
           nocopy: true
+    ports:
+      - 127.0.0.1:8000:8000
     stdin_open: true
     tty: true
 
