@@ -65,10 +65,10 @@ v_t_outer_ = "0.0"  # float
 
 # Model definitions
 system = int(system_)
-# solve_stress = False
-# solve_heat = True
-solve_heat = False
-solve_stress = True
+solve_stress = False
+solve_heat = True
+# solve_heat = False
+# solve_stress = True
 
 # UFL vars
 tau = df.Constant(float(tau_))
@@ -555,28 +555,67 @@ def get_exact_solution_heat():
     vector_dummy = df.Expression(("0", "0"), degree=1)
     return (vector_dummy, scalar_dummy)
 
-# def get_exact_solution_stress():
-#     ""
+def get_exact_solution_stress(space):
+    ".."
 
-#     if system_ == "1":
-#         R = d.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
-#         phi = d.Expression("atan2(x[1],x[0])", degree=2)
+    if system_ == "1":
+        R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+        phi = df.Expression("atan2(x[1],x[0])", degree=5)
 
-#         gamma_0 = 2/(R**2)
-#         gamma = 7
+        x = df.Expression("x[0]", degree=1)
+        y = df.Expression("x[1]", degree=1)
 
-#         d0 = 1
-#         d = 2
-#         p = d.Expression("d0 * cos(phi) * d", degree=2, phi=phi, R=R, d=d, d0=d0)
+        C_0 = df.Constant(-50.80230139855979)
+        C_1 = df.Constant(0.6015037593984962)
+        C_2 = df.Constant(0)
+        C_3 = df.Constant(-444.7738727200452)
+        C_4 = df.Constant(-0.12443443849461801)
+        C_5 = df.Constant(39.38867688999618)
+        C_6 = df.Constant(-0.6917293233082705)
+        C_7 = df.Constant(0)
+        C_8 = df.Constant(0)
+        C_9 = df.Constant(0)
+        C_10 = df.Constant(0)
+        C_11 = df.Constant(0)
+        C_12 = df.Constant(2.255312046238658E-11)
+        C_13 = df.Constant(407.2248457002586)
+        C_14 = df.Constant(-104.89346597195336)
+        C_15 = df.Constant(4.870715709115059E-7)
 
-#         p_e = p_
+        lambda_1 = df.Constant(df.sqrt(5/9))
+        lambda_2 = df.Constant(df.sqrt(5/6))
+        lambda_3 = df.Constant(df.sqrt(3/2))
 
-#         return (p_e, u_e, sigma_e)
-#     else:
-#         warnings.warn("No exact solution avail")
-#         scalar_dummy = d.Expression("0", degree=1)
-#         vector_dummy = d.Expression(("0", "0"), degree=1)
-#         return (vector_dummy, scalar_dummy)
+        gamma_0 = 1
+        gamma = 1
+
+        A_1 = df.Constant(0.4)
+
+        d_0 = C_9 + C_2*ufl.bessel_K(0, R*lambda_2/tau) + C_8*ufl.bessel_I(0, R*lambda_2/tau)
+        d = - (10*A_1 * R**2)/(27*tau) + (4*C_4*R)/(tau) - (2*C_5*tau)/R + C_14*ufl.bessel_K(1, R*lambda_2/tau) + C_15* ufl.bessel_I(1, R*lambda_2/tau)
+        p = d_0 + ufl.cos(phi) * d
+        test = df.UserExpression(p, degree=2)
+        # p = df.Expression("d_0 + cos(phi) * d", degree=2, R=R, phi=phi, d_0=d_0, d=d)
+
+        # p_e_i = df.project(p, space) # FIXME: Interpolate better
+
+        # p_e_i = df.interpolate(phi, space) # FIXME: Interpolate better
+        p_e_i = df.project(phi, space) # FIXME: Interpolate better
+
+        p_e_i.rename("p_e", "p_e")
+        file_p = df.File(output_folder + "p_e.pvd")
+        file_p.write(p_e_i)
+
+        p_e = p
+        u_e = 0
+        sigma_e = 0
+
+        return (p_e, u_e, sigma_e)
+    else:
+        warnings.warn("No exact solution avail")
+        scalar_dummy = d.Expression("0", degree=1)
+        vector_dummy = d.Expression(("0", "0"), degree=1)
+        return (vector_dummy, scalar_dummy)
 # **************************************************************************** #
 
 
@@ -752,7 +791,7 @@ def solve_system_stress():
         )
         (a, l) = setup_variational_form_stress(w, v_theta, mesh, mesh_bounds)
         (p, u, sigma) = solve_variational_formulation_stress(a, l, w, [])
-        # (p_e, u_e, sigma_e) = get_exact_solution_stress()
+        (p_e, u_e, sigma_e) = get_exact_solution_stress(v_theta)
 
     #     # calc errors
     #     (f_l2_s, v_linf_s) = calc_vectorfield_errors(
