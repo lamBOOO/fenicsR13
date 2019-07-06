@@ -3,5 +3,7 @@
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "fenics",
 	"workspaceFolder": "/home/fenics/shared",
-	"extensions": []
+	"extensions": [
+		"ms-python.python"
+	]
 }
