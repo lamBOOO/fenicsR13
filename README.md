@@ -36,3 +36,4 @@ TODO
 
 - Matplotbib fails when having wrong backend on macOS
   - Fix: Add `backend: TkAgg` to `~/.matplotlib/matplotlibrc` file
+- Performance in Docker is way bette, especially JIT compilation is 4x faster

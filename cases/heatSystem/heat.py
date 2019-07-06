@@ -127,7 +127,8 @@ def create_mesh(p, plot_mesh_=False, overwrite_=False):
     """
 
     if use_gmsh:
-        gmsh_path = "/Applications/gmsh/Gmsh.app/Contents/MacOS/gmsh"
+        # gmsh_path = "/Applications/gmsh/Gmsh.app/Contents/MacOS/gmsh"
+        gmsh_path = "gmsh"
         geo_name = "mesh/ring"
         mesh_name = "{}{}".format(geo_name, p)
 
