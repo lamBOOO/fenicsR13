@@ -7,5 +7,13 @@ services:
       - type: bind
         source: .
         target: /home/fenics/shared
+      - type: volume
+        source: instant-cache
+        target: /home/fenics/.cache
+        volume:
+          nocopy: true
     stdin_open: true
     tty: true
+
+volumes:
+  instant-cache:
