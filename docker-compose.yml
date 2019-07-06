@@ -1,0 +1,11 @@
+version: '3.2'
+services:
+  fenics:
+    build: .
+    working_dir: /home/fenics/shared
+    volumes:
+      - type: bind
+        source: .
+        target: /home/fenics/shared
+    stdin_open: true
+    tty: true
