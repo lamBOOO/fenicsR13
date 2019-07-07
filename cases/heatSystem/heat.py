@@ -483,16 +483,16 @@ def solve_variational_formulation_stress(a_, l_, w, bcs_, plot_=False):
 
     # Write files
 
-    # If symmetry, sigma only has 3 entries
+    # symmetric tensor has three comps
     sigma_.rename('sigma_xx', 'sigma_xx')
     file_sigma_xx = df.File(output_folder + "sigma_xx.pvd")
     file_sigma_xx.write(sigma_.split()[0])
     sigma_.rename('sigma_xy', 'sigma_xy')
-    file_sigma_xx = df.File(output_folder + "sigma_xy.pvd")
-    file_sigma_xx.write(sigma_.split()[1])
+    file_sigma_xy = df.File(output_folder + "sigma_xy.pvd")
+    file_sigma_xy.write(sigma_.split()[1])
     sigma_.rename('sigma_yy', 'sigma_yy')
-    file_sigma_xx = df.File(output_folder + "sigma_yy.pvd")
-    file_sigma_xx.write(sigma_.split()[2])
+    file_sigma_yy = df.File(output_folder + "sigma_yy.pvd")
+    file_sigma_yy.write(sigma_.split()[2])
 
     u_.rename('u', 'u')
     file_u = df.File(output_folder + "u.pvd")
