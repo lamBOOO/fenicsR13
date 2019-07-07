@@ -556,164 +556,101 @@ def get_exact_solution_heat():
     vector_dummy = df.Expression(("0", "0"), degree=1)
     return (vector_dummy, scalar_dummy)
 
-def get_exact_solution_stress(space, mesh_):
+def get_exact_solution_stress(space0, space1, mesh_):
     ".."
 
     if system_ == "1":
-        R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
-        phi = df.Expression("atan2(x[1],x[0])", degree=5)
 
-        x = df.Expression("x[0]", degree=1)
-        y = df.Expression("x[1]", degree=1)
+        with open('exact_solution.cpp', 'r') as file:
+            exact_solution_cpp_code = file.read()
 
-        C_0 = df.Constant(-50.80230139855979)
-        C_1 = df.Constant(0.6015037593984962)
-        C_2 = df.Constant(0)
-        C_3 = df.Constant(-444.7738727200452)
-        C_4 = df.Constant(-0.12443443849461801)
-        C_5 = df.Constant(39.38867688999618)
-        C_6 = df.Constant(-0.6917293233082705)
-        C_7 = df.Constant(0)
-        C_8 = df.Constant(0)
-        C_9 = df.Constant(0)
-        C_10 = df.Constant(0)
-        C_11 = df.Constant(0)
-        C_12 = df.Constant(2.255312046238658E-11)
-        C_13 = df.Constant(407.2248457002586)
-        C_14 = df.Constant(-104.89346597195336)
-        C_15 = df.Constant(4.870715709115059E-7)
-
-        lambda_1 = df.Constant(df.sqrt(5/9))
-        lambda_2 = df.Constant(df.sqrt(5/6))
-        lambda_3 = df.Constant(df.sqrt(3/2))
-
-        gamma_0 = 1
-        gamma = 1
-
-        A_1 = df.Constant(0.4)
-
-        ######
-
-        p_code = """
-        #include <pybind11/pybind11.h>
-        #include <pybind11/eigen.h>
-
-        #include <cmath>
-        #include <boost/math/special_functions/bessel.hpp>
-
-        using namespace std;
-        using namespace boost::math;
-
-        namespace py = pybind11;
-
-        #include <dolfin/function/Expression.h>
-
-        double C_0 = -50.80230139855979;
-        double C_1 = 0.6015037593984962;
-        double C_2 = 0;
-        double C_3 = -444.7738727200452;
-        double C_4 = -0.12443443849461801;
-        double C_5 = 9.38867688999618;
-        double C_6 = -0.6917293233082705;
-        double C_7 = 0;
-        double C_8 = 0;
-        double C_9 = 0;
-        double C_10 = 0;
-        double C_11 = 0;
-        double C_12 = 2.255312046238658E-11;
-        double C_13 = 7.2248457002586;
-        double C_14 = -104.89346597195336;
-        double C_15 = 4.870715709115059E-7;
-
-        double tau = 0.1;
-        double A_1 = 0.4;
-
-        double lambda_1 = sqrt(5.0/9.0);
-        double lambda_2 = sqrt(5.0/6.0);
-        double lambda_3 = sqrt(3.0/2.0);
-
-        class Pressure : public dolfin::Expression
-        {
-        public:
-
-        Pressure() : dolfin::Expression() {}
-
-        // Function for evaluating expression on each cell
-        void eval(Eigen::Ref<Eigen::VectorXd> values, Eigen::Ref<const Eigen::VectorXd> x) const override
-        {
-
-            double R = sqrt(pow(x[0],2)+pow(x[1],2));
-            double phi = atan2(x[1],x[0]);
-
-            double d_0 = C_9 + C_2*cyl_bessel_k(0, R*lambda_2/tau) + C_8*cyl_bessel_i(0, R*lambda_2/tau);
-            double d = - (10*A_1 * pow(R,2))/(27*tau) + (4*C_4*R)/(tau) - (2*C_5*tau)/R + C_14*cyl_bessel_k(1, R*lambda_2/tau) + C_15* cyl_bessel_i(1, R*lambda_2/tau);
-
-            values[0] = d_0 + cos(phi) * d;
-        }
-
-        };
-
-        PYBIND11_MODULE(SIGNATURE, m)
-        {
-        py::class_<Pressure, std::shared_ptr<Pressure>, dolfin::Expression>
-            (m, "Pressure")
-        .def(py::init<>());
-        }
-
-        """
-
-        exact_solution = df.compile_cpp_code(p_code)
+        exact_solution = df.compile_cpp_code(exact_solution_cpp_code)
 
         p = df.CompiledExpression(exact_solution.Pressure(), degree=1)
-        p_e_i = df.interpolate(p, space)
+        p_e_i = df.interpolate(p, space0)
         p_e_i.rename("p_e", "p_e")
         file_p = df.File(output_folder + "p_e.pvd")
         file_p.write(p_e_i)
 
-        #######
-
-        # # x = df.SpatialCoordinate(mesh_)
-        # class PressureExact(df.UserExpression):
-        #     def eval(self, values, x):
-        #         C_0 = df.Constant(-50.80230139855979)
-        #         values[0] = ufl.atan_2(x[1], x[0])*C_0
-        # p_e_i = df.interpolate(PressureExact(), space)
-        # # p_e_i = df.interpolate(df.Expression("2*bessel", degree=2, bessel=PressureExact()), space)
-        # p_e_i.rename("p_e", "p_e")
-        # file_p = df.File(output_folder + "p_e.pvd")
-        # file_p.write(p_e_i)
-
-
-
-
-
-        d_0 = C_9 + C_2*ufl.bessel_K(0, R*lambda_2/tau) + C_8*ufl.bessel_I(0, R*lambda_2/tau)
-        d = - (10*A_1 * R**2)/(27*tau) + (4*C_4*R)/(tau) - (2*C_5*tau)/R + C_14*ufl.bessel_K(1, R*lambda_2/tau) + C_15* ufl.bessel_I(1, R*lambda_2/tau)
-        p = d_0 + ufl.cos(phi) * d
-        # test = ufl.bessel_K(0,1)
-        # p = df.Expression("d_0 + cos(phi) * d", degree=2, R=R, phi=phi, d_0=d_0, d=d)
-
-        # p_e_i = df.project(p, space) # FIXME: Interpolate better
-
-        # p_e_i = df.interpolate(phi, space) # FIXME: Interpolate better
-        # p_e_i = df.project(test, space) # FIXME: Interpolate better
-        # p_e_i = df.project(phi, space) # FIXME: Interpolate better
-
-
-        x = df.SpatialCoordinate(mesh_)
-        # p_e_i = df.project(ufl.atan_2(x[1], x[0]), space) # FIXME: Interpolate better
+        u = df.CompiledExpression(exact_solution.Velocity(), degree=1)
+        u_e_i = df.interpolate(u, space1)
+        u_e_i.rename("u_e", "u_e")
+        file_u = df.File(output_folder + "u_e.pvd")
+        file_u.write(u_e_i)
 
 
 
         p_e = p
-        u_e = 0
+        u_e = u
         sigma_e = 0
 
         return (p_e, u_e, sigma_e)
+
+
+
+
+        # ##### OLD, NOT WORKING WELL
+        # R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+        # phi = df.Expression("atan2(x[1],x[0])", degree=5)
+
+        # x = df.Expression("x[0]", degree=1)
+        # y = df.Expression("x[1]", degree=1)
+
+        # C_0 = df.Constant(-50.80230139855979)
+        # C_1 = df.Constant(0.6015037593984962)
+        # C_2 = df.Constant(0)
+        # C_3 = df.Constant(-444.7738727200452)
+        # C_4 = df.Constant(-0.12443443849461801)
+        # C_5 = df.Constant(39.38867688999618)
+        # C_6 = df.Constant(-0.6917293233082705)
+        # C_7 = df.Constant(0)
+        # C_8 = df.Constant(0)
+        # C_9 = df.Constant(0)
+        # C_10 = df.Constant(0)
+        # C_11 = df.Constant(0)
+        # C_12 = df.Constant(2.255312046238658E-11)
+        # C_13 = df.Constant(407.2248457002586)
+        # C_14 = df.Constant(-104.89346597195336)
+        # C_15 = df.Constant(4.870715709115059E-7)
+
+        # lambda_1 = df.Constant(df.sqrt(5/9))
+        # lambda_2 = df.Constant(df.sqrt(5/6))
+        # lambda_3 = df.Constant(df.sqrt(3/2))
+
+        # gamma_0 = 1
+        # gamma = 1
+
+        # A_1 = df.Constant(0.4)
+
+        # # # x = df.SpatialCoordinate(mesh_)
+        # # class PressureExact(df.UserExpression):
+        # #     def eval(self, values, x):
+        # #         C_0 = df.Constant(-50.80230139855979)
+        # #         values[0] = ufl.atan_2(x[1], x[0])*C_0
+        # # p_e_i = df.interpolate(PressureExact(), space)
+        # # # p_e_i = df.interpolate(df.Expression("2*bessel", degree=2, bessel=PressureExact()), space)
+        # # p_e_i.rename("p_e", "p_e")
+        # # file_p = df.File(output_folder + "p_e.pvd")
+        # # file_p.write(p_e_i)
+
+        # d_0 = C_9 + C_2*ufl.bessel_K(0, R*lambda_2/tau) + C_8*ufl.bessel_I(0, R*lambda_2/tau)
+        # d = - (10*A_1 * R**2)/(27*tau) + (4*C_4*R)/(tau) - (2*C_5*tau)/R + C_14*ufl.bessel_K(1, R*lambda_2/tau) + C_15* ufl.bessel_I(1, R*lambda_2/tau)
+        # p = d_0 + ufl.cos(phi) * d
+        # # test = ufl.bessel_K(0,1)
+        # # p = df.Expression("d_0 + cos(phi) * d", degree=2, R=R, phi=phi, d_0=d_0, d=d)
+
+        # # p_e_i = df.project(p, space)
+
+        # # p_e_i = df.interpolate(phi, space)
+        # # p_e_i = df.project(test, space)
+        # # p_e_i = df.project(phi, space)
+
+        # x = df.SpatialCoordinate(mesh_)
+        # # p_e_i = df.project(ufl.atan_2(x[1], x[0]), space)
     else:
         warnings.warn("No exact solution avail")
-        scalar_dummy = d.Expression("0", degree=1)
-        vector_dummy = d.Expression(("0", "0"), degree=1)
+        scalar_dummy = df.Expression("0", degree=1)
+        vector_dummy = df.Expression(("0", "0"), degree=1)
         return (vector_dummy, scalar_dummy)
 # **************************************************************************** #
 
@@ -885,16 +822,16 @@ def solve_system_stress():
 
         # setup and solve problem
         (mesh, _, mesh_bounds) = create_mesh(expo)
-        (w, v_theta, v_s, v_sigma) = setup_function_spaces_stress(
+        (w, v_theta, v_u, v_sigma) = setup_function_spaces_stress(
             mesh, deg_p, deg_u, deg_sigma
         )
         (a, l) = setup_variational_form_stress(w, v_theta, mesh, mesh_bounds)
         (p, u, sigma) = solve_variational_formulation_stress(a, l, w, [])
-        (p_e, u_e, sigma_e) = get_exact_solution_stress(v_theta, mesh)
+        (p_e, u_e, sigma_e) = get_exact_solution_stress(v_theta, v_u, mesh)
 
     #     # calc errors
     #     (f_l2_s, v_linf_s) = calc_vectorfield_errors(
-    #         s, s_e, v_s, mesh, "s", p)
+    #         s, s_e, v_u, mesh, "s", p)
     #     (f_l2_theta, v_linf_theta) = calc_scalarfield_errors(
     #         theta, theta_e, v_theta, "theta", p)
 
