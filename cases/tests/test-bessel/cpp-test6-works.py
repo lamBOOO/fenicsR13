@@ -1,24 +1,34 @@
-from dolfin import *
+print("start0")
+
+import dolfin as df
+
+print("start")
+
+mesh = df.RectangleMesh(df.Point(-1.0, -1.0), df.Point(1.0, 1.0), 10, 10)
+# mesh = UnitIntervalMesh(10)
+
+el = df.FiniteElement("Lagrange", mesh.ufl_cell(), degree=1)
+V = df.FunctionSpace(mesh, el)
+x = df.SpatialCoordinate(mesh)
 
 conductivity_code = """
-
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 namespace py = pybind11;
 
 #include <dolfin/function/Expression.h>
 
-class Conductivity : public dolfin::Expression
+class RadialAngle : public dolfin::Expression
 {
 public:
 
   // Create expression with 3 components
-  Conductivity() : dolfin::Expression(1) {}
+  RadialAngle() : dolfin::Expression() {}
 
   // Function for evaluating expression on each cell
   void eval(Eigen::Ref<Eigen::VectorXd> values, Eigen::Ref<const Eigen::VectorXd> x) const override
   {
-    values[0] = R;
+    values[0] = atan2(x[1],x[0]);
   }
 
     // The data stored in mesh functions
@@ -28,16 +38,12 @@ public:
 
 PYBIND11_MODULE(SIGNATURE, m)
 {
-  py::class_<Conductivity, std::shared_ptr<Conductivity>, dolfin::Expression>
-    (m, "Conductivity")
+  py::class_<RadialAngle, std::shared_ptr<RadialAngle>, dolfin::Expression>
+    (m, "RadialAngle")
     .def(py::init<>())
-    .def_readwrite("R", &Conductivity::R);
+    .def_readwrite("R", &RadialAngle::R);
 }
-
 """
 
-c = CompiledExpression(compile_cpp_code(conductivity_code).Conductivity(), degree=0, R=1.23)
+c = df.CompiledExpression(df.compile_cpp_code(conductivity_code).RadialAngle(), degree=1, R=1.23)
 print(2*c(1))
-
-f = Expression("c_", degree=2, c_=c)
-print(f(1))
