@@ -6,6 +6,7 @@ services:
        - DISPLAY=${ip}:0
     working_dir: /home/fenics/shared
     volumes:
+      - ~/.gitconfig:/etc/gitconfig:ro # move Git config
       - type: bind
         source: .
         target: /home/fenics/shared

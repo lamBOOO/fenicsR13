@@ -29,6 +29,8 @@ ENV PATH=/usr/local/gmsh-${GMSH_VERSION}-Linux64-sdk/bin:$PATH
 COPY requirements.txt /tmp/
 RUN pip install --requirement /tmp/requirements.txt
 
+# USER root
+
 # OLD:
 
 # Download gmsh
