@@ -37,3 +37,14 @@ TODO
 - Matplotbib fails when having wrong backend on macOS
   - Fix: Add `backend: TkAgg` to `~/.matplotlib/matplotlibrc` file
 - Performance in Docker is way bette, especially JIT compilation is 4x faster
+
+
+### Path to use Bessel functions
+C++17 functions cannpot be used. Boost functions also not per default. `Expression("boost::math::cyl_bessel_i(0,atan2(x[1], x[0]))", degree=2)` is allowed if one changes in file `/usr/local/lib/python3.6/dist-packages/dolfin/jit/jit.py`:
+
+```
+_math_header = """
+// cmath functions
+#include <boost/math/special_functions/bessel.hpp> // Added
+%s
+```
