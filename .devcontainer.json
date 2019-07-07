@@ -4,6 +4,7 @@
 	"service": "fenics",
 	"workspaceFolder": "/home/fenics/shared",
 	"extensions": [
-		"ms-python.python"
+		"ms-python.python",
+		"ms-vscode.cpptools"
 	]
 }
