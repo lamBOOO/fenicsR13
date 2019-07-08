@@ -2,6 +2,33 @@
 
 Repository for Master thesis project regarding FEM simulations for non-equilibrium gas dynamics.
 
+## Usage with Docker
+
+The main folder of this repository contains a `Dockerfile` defining the used environment. Here, we used the optimized and official FEniCS Docker image and include `Gmsh` and install some requirements from the `requirements.txt`. This can take a while, especially the `Gmsh`mirror can be quite slow. To avoid very long execution commands (`docker run <..> -v <volume share> <etc..>`), a `docker-compose.yml` is used to store all these parameters. `docker-compose` acts as an wrapper for the Docker execution.
+
+The `fenics` environment (also called *service* in the `docker-compose.yml`) first has to be build and can be executed afterwards. The steps to perform then read
+
+```
+docker-compose build fenics
+docker-compose run fenics
+```
+
+The whole repository is mounted as a volume under `/home/fenics/shared` in the container and should be the default folder on startup. To execute the solver, move to the case folder (e.g. `/home/fenics/shared/cases/heatSystem`) and execute the script (e.g. `python3 heat.py`). Output files should be written in that case, e.g. to the `results` folder.
+
+It is convenient to use a Jupyter sever or a X11 forwarding.
+
+### Interactive Jupyter Notebooks with Microsoft's Visual Studio Code
+
+This is the most convenient solution. A tutorial will follow.
+
+### X11 Window Forwarding on OSX
+
+See [this guide](http://joshuamccall.com/articles/docker.html) for the programs to install. Then source the `open-macos-gui-tunnel.sh` with `. open-macos-gui-tunnel`. Afterwards, start the container and run the `change-matplotbib-backend-tkagg.sh` script to set the right `matplotlib`'s output.
+
+### X11 Window Forwarding on Windows
+
+This has to be studied.
+
 ## macOS Native FEniCS Installation
 
 1. Install `miniconda` from [here]([here](https://conda.io/projects/conda/en/latest/user-guide/install/macos.html))
