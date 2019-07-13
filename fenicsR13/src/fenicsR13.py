@@ -93,12 +93,6 @@ deg_sigma = 1
 deg_u = 1
 deg_p = 1
 
-el_s = "Lagrange"
-el_theta = "Lagrange"
-el_sigma = "Lagrange"
-el_u = "Lagrange"
-el_p = "Lagrange"
-
 # Convergence Study Parameters
 max_exponent = 2
 
@@ -131,8 +125,8 @@ def setup_function_spaces_heat(mesh_, deg_theta_, deg_s_):
     "TODO"
     c = mesh_.ufl_cell()
 
-    el_theta_ = df.FiniteElement(el_theta, c, degree=deg_theta_)
-    el_s_ = df.VectorElement(el_s, c, degree=deg_s_)
+    el_theta_ = df.FiniteElement("Lagrange", c, degree=deg_theta_)
+    el_s_ = df.VectorElement("Lagrange", c, degree=deg_s_)
     el_mxd_ = df.MixedElement([el_theta_, el_s_])
 
     v_theta_ = df.FunctionSpace(mesh_, el_theta_)
@@ -145,9 +139,9 @@ def setup_function_spaces_stress(mesh_, deg_p_, deg_u_, deg_sigma_):
     "TODO"
     c = mesh_.ufl_cell()
 
-    el_theta_ = df.FiniteElement(el_theta, c, degree=deg_p_)
-    el_s_ = df.VectorElement(el_s, c, degree=deg_u_)
-    el_sigma_ = df.TensorElement(el_sigma, c, degree=deg_sigma_, symmetry=True)
+    el_theta_ = df.FiniteElement("Lagrange", c, degree=deg_p_)
+    el_s_ = df.VectorElement("Lagrange", c, degree=deg_u_)
+    el_sigma_ = df.TensorElement("Lagrange", c, degree=deg_sigma_, symmetry=True)
     el_mxd_ = df.MixedElement([el_theta_, el_s_, el_sigma_])
 
     v_theta_ = df.FunctionSpace(mesh_, el_theta_)
