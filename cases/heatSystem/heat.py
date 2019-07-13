@@ -43,13 +43,18 @@ import dolfin as df
 import ufl
 import mshr as m
 import numpy as np
-df.set_log_level(1000)  # 1: all logs
+
+import meshes
+from input import Input
 # **************************************************************************** #
 
 
 # **************************************************************************** #
 # SETTINGS
 # **************************************************************************** #
+
+# Dolfin settings
+df.set_log_level(1000)  # 1: all logs
 
 # Problem parameters
 system_ = "1"  # 1=westerkamp2019, 2=coefficientless
@@ -65,10 +70,10 @@ v_t_outer_ = "0.0"  # float
 
 # Model definitions
 system = int(system_)
-# solve_stress = False
-# solve_heat = True
-solve_heat = False
-solve_stress = True
+solve_stress = False
+solve_heat = True
+# solve_heat = False
+# solve_stress = True
 
 # UFL vars
 tau = df.Constant(float(tau_))
@@ -95,7 +100,7 @@ el_u = "Lagrange"
 el_p = "Lagrange"
 
 # Convergence Study Parameters
-max_exponent = 5
+max_exponent = 2
 
 # Continous Interior Penalty (CIP) Stabilization with parameter delta_1:
 stab_cip = True
@@ -780,32 +785,40 @@ def plot_single(data_x_, data_y_, title_, legend_):
 # **************************************************************************** #
 
 
+
+
+
 # **************************************************************************** #
 # SOLVE DECOUPLED HEAT SYSTEM
 # **************************************************************************** #
 def solve_system_heat():
     "TODO"
 
+    settings = Input("input.yml").dict
+    mesh_names = settings["meshes"]
+
     data = []
 
-    for p in range(max_exponent):
+    for p, mesh_name in enumerate(mesh_names):
+
+        mesh_name = mesh_names[p]
 
         # setup and solve problem
-        (mesh, _, mesh_bounds) = create_mesh(p)
-        (w, v_theta, v_s) = setup_function_spaces_heat(mesh, deg_theta, deg_s)
-        (a, l) = setup_variational_form_heat(w, v_theta, mesh, mesh_bounds)
+        current_mesh = meshes.H5Mesh(mesh_name)
+        (w, v_theta, v_s) = setup_function_spaces_heat(current_mesh.mesh, deg_theta, deg_s)
+        (a, l) = setup_variational_form_heat(w, v_theta, current_mesh.mesh, current_mesh.boundaries)
         (s, theta) = solve_variational_formulation_heat(a, l, w, [])
         (s_e, theta_e) = get_exact_solution_heat()
 
         # calc errors
         (f_l2_s, v_linf_s) = calc_vectorfield_errors(
-            s, s_e, v_s, mesh, "s", p)
+            s, s_e, v_s, current_mesh.mesh, "s", p)
         (f_l2_theta, v_linf_theta) = calc_scalarfield_errors(
             theta, theta_e, v_theta, "theta", p)
 
         # store errors
         data.append({
-            "h": mesh.hmax(),
+            "h": current_mesh.mesh.hmax(),
             "theta": {"L_2": f_l2_theta, "l_inf": v_linf_theta},
             "sx": {"L_2": f_l2_s[0], "l_inf": v_linf_s[0]},
             "sy": {"L_2": f_l2_s[1], "l_inf": v_linf_s[1]}

@@ -1,0 +1,11 @@
+# Mesh input files in h5 format.
+# List containing one or more meshes to perform simulation on.
+meshes:
+  - mesh/ring0.h5
+  - mesh/ring1.h5
+  - mesh/ring2.h5
+  - mesh/ring3.h5
+  - mesh/ring4.h5
+
+# Number of spatial dimensions, currently only two-dimensional.
+nsd: 2
