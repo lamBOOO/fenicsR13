@@ -388,6 +388,8 @@ def setup_variational_form_stress(w_, v_scalar_, mesh_, mesh_bounds_):
             )
             + (2/xi_tilde) * sigma_nt * psi_nt
         ) * df.ds
+        # l1 = (- 2 * v_t_inner * df.sin(phi) * psi_nt * df.ds(3000)
+        #       - 2 * v_t_outer * df.sin(phi) * psi_nt * df.ds(3100))
         l1 = (- 2 * v_t_inner * psi_nt * df.ds(3000)
               - 2 * v_t_outer * psi_nt * df.ds(3100))
         a2 = (df.dot(df.div(sigma_), v_) + df.dot(df.grad(p_), v_)) * df.dx
