@@ -14,3 +14,6 @@
 *.xml
 *.msh
 *.h5
+
+# ignore python cache
+*__pycache__*
