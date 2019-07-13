@@ -16,3 +16,4 @@
     - Coupled System
 - Outlook
   - See Roadmap
+- Check if we can simulate a paradoxon that NSF cannot do (PDEs HW)
