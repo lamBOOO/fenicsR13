@@ -556,7 +556,7 @@ def get_exact_solution_heat():
     vector_dummy = df.Expression(("0", "0"), degree=1)
     return (vector_dummy, scalar_dummy)
 
-def get_exact_solution_stress(space0, space1, mesh_):
+def get_exact_solution_stress(space0, space1, space2, mesh_):
     ".."
 
     if system_ == "1":
@@ -566,23 +566,23 @@ def get_exact_solution_stress(space0, space1, mesh_):
 
         exact_solution = df.compile_cpp_code(exact_solution_cpp_code)
 
-        p = df.CompiledExpression(exact_solution.Pressure(), degree=1)
-        p_e_i = df.interpolate(p, space0)
+        p_e = df.CompiledExpression(exact_solution.Pressure(), degree=1)
+        p_e_i = df.interpolate(p_e, space0)
         p_e_i.rename("p_e", "p_e")
         file_p = df.File(output_folder + "p_e.pvd")
         file_p.write(p_e_i)
 
-        u = df.CompiledExpression(exact_solution.Velocity(), degree=1)
-        u_e_i = df.interpolate(u, space1)
+        u_e = df.CompiledExpression(exact_solution.Velocity(), degree=1)
+        u_e_i = df.interpolate(u_e, space1)
         u_e_i.rename("u_e", "u_e")
         file_u = df.File(output_folder + "u_e.pvd")
         file_u.write(u_e_i)
 
-
-
-        p_e = p
-        u_e = u
-        sigma_e = 0
+        sigma_e = df.CompiledExpression(exact_solution.Stress(), degree=1)
+        sigma_e_i = df.interpolate(sigma_e, space2)
+        sigma_e_i.rename("sigma_e", "sigma_e")
+        # file_sigma = df.File(output_folder + "sigma_e.pvd")
+        # file_sigma.write(sigma_e_i)
 
         return (p_e, u_e, sigma_e)
 
@@ -804,9 +804,9 @@ def solve_system_heat():
         # store errors
         data.append({
             "h": mesh.hmax(),
+            "theta": {"L_2": f_l2_theta, "l_inf": v_linf_theta},
             "sx": {"L_2": f_l2_s[0], "l_inf": v_linf_s[0]},
-            "sy": {"L_2": f_l2_s[1], "l_inf": v_linf_s[1]},
-            "theta": {"L_2": f_l2_theta, "l_inf": v_linf_theta}
+            "sy": {"L_2": f_l2_s[1], "l_inf": v_linf_s[1]}
         })
 
     # plot errors
@@ -822,30 +822,30 @@ def solve_system_stress():
 
         # setup and solve problem
         (mesh, _, mesh_bounds) = create_mesh(expo)
-        (w, v_theta, v_u, v_sigma) = setup_function_spaces_stress(
+        (w, v_p, v_u, v_sigma) = setup_function_spaces_stress(
             mesh, deg_p, deg_u, deg_sigma
         )
-        (a, l) = setup_variational_form_stress(w, v_theta, mesh, mesh_bounds)
+        (a, l) = setup_variational_form_stress(w, v_p, mesh, mesh_bounds)
         (p, u, sigma) = solve_variational_formulation_stress(a, l, w, [])
-        (p_e, u_e, sigma_e) = get_exact_solution_stress(v_theta, v_u, mesh)
+        (p_e, u_e, sigma_e) = get_exact_solution_stress(v_p, v_u, v_sigma, mesh)
 
     #     # calc errors
-    #     (f_l2_s, v_linf_s) = calc_vectorfield_errors(
-    #         s, s_e, v_u, mesh, "s", p)
-    #     (f_l2_theta, v_linf_theta) = calc_scalarfield_errors(
-    #         theta, theta_e, v_theta, "theta", p)
+        (f_l2_u, v_linf_u) = calc_vectorfield_errors(
+            u, u_e, v_u, mesh, "u", expo)
+        (f_l2_p, v_linf_p) = calc_scalarfield_errors(
+            p, p_e, v_p, "p", expo)
 
     #     # store errors
-    #     data.append({
-    #         "h": mesh.hmax(),
-    #         "sx": {"L_2": f_l2_s[0], "l_inf": v_linf_s[0]},
-    #         "sy": {"L_2": f_l2_s[1], "l_inf": v_linf_s[1]},
-    #         "theta": {"L_2": f_l2_theta, "l_inf": v_linf_theta}
-    #     })
+        data.append({
+            "h": mesh.hmax(),
+            "p": {"L_2": f_l2_p, "l_inf": v_linf_p},
+            "ux": {"L_2": f_l2_u[0], "l_inf": v_linf_u[0]},
+            "uy": {"L_2": f_l2_u[1], "l_inf": v_linf_u[1]}
+        })
 
-    # # plot errors
-    # if plot_conv_rates:
-    #     plot_errrorsNew(data)
+    # plot errors
+    if plot_conv_rates:
+        plot_errrorsNew(data)
 # **************************************************************************** #
 
 
