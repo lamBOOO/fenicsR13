@@ -70,10 +70,10 @@ v_t_outer_ = "0.0"  # float
 
 # Model definitions
 system = int(system_)
-solve_stress = False
-solve_heat = True
-# solve_heat = False
-# solve_stress = True
+# solve_stress = False
+# solve_heat = True
+solve_heat = False
+solve_stress = True
 
 # UFL vars
 tau = df.Constant(float(tau_))
@@ -765,28 +765,33 @@ def solve_system_heat():
 def solve_system_stress():
     "TODO"
 
+    settings = Input("input.yml").dict
+    mesh_names = settings["meshes"]
+
     data = []
 
-    for expo in range(max_exponent):
+    for p, mesh_name in enumerate(mesh_names):
+
+        mesh_name = mesh_names[p]
 
         # setup and solve problem
-        (mesh, _, mesh_bounds) = create_mesh(expo)
+        current_mesh = meshes.H5Mesh(mesh_name)
         (w, v_p, v_u, v_sigma) = setup_function_spaces_stress(
-            mesh, deg_p, deg_u, deg_sigma
+            current_mesh.mesh, deg_p, deg_u, deg_sigma
         )
-        (a, l) = setup_variational_form_stress(w, v_p, mesh, mesh_bounds)
+        (a, l) = setup_variational_form_stress(w, v_p, current_mesh.mesh, current_mesh.boundaries)
         (p, u, sigma) = solve_variational_formulation_stress(a, l, w, [])
-        (p_e, u_e, sigma_e) = get_exact_solution_stress(v_p, v_u, v_sigma, mesh)
+        (p_e, u_e, sigma_e) = get_exact_solution_stress(v_p, v_u, v_sigma, current_mesh.mesh)
 
     #     # calc errors
         (f_l2_u, v_linf_u) = calc_vectorfield_errors(
-            u, u_e, v_u, mesh, "u", expo)
+            u, u_e, v_u, current_mesh.mesh, "u", p)
         (f_l2_p, v_linf_p) = calc_scalarfield_errors(
-            p, p_e, v_p, "p", expo)
+            p, p_e, v_p, "p", p)
 
     #     # store errors
         data.append({
-            "h": mesh.hmax(),
+            "h": current_mesh.mesh.hmax(),
             "p": {"L_2": f_l2_p, "l_inf": v_linf_p},
             "ux": {"L_2": f_l2_u[0], "l_inf": v_linf_u[0]},
             "uy": {"L_2": f_l2_u[1], "l_inf": v_linf_u[1]}
