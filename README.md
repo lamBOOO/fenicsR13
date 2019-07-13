@@ -77,3 +77,13 @@ _math_header = """
 #include <boost/math/special_functions/bessel.hpp> // Added
 %s
 ```
+
+## Some Notes About Python
+
+Get current work directory:
+
+```python
+import os
+cwd = os.getcwd()
+print(cwd)
+```
