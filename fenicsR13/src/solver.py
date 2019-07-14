@@ -20,9 +20,14 @@ class Solver:
         self.xi_tilde = params["xi_tilde"]
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
         self.delta_1 = self.params["stabilization"]["cip"]["delta_1"]
+        self.delta_2 = self.params["stabilization"]["cip"]["delta_2"]
+        self.delta_3 = self.params["stabilization"]["cip"]["delta_3"]
         self.theta_w_inner = self.params["theta_w_inner"]
         self.theta_w_outer = self.params["theta_w_outer"]
+        self.v_t_inner = self.params["v_t_inner"]
+        self.v_t_outer = self.params["v_t_outer"]
         self.heat_source = df.Expression(self.params["heat_source"], degree=2)
+        self.mass_source = df.Expression(self.params["mass_source"], degree=2)
         self.exact_solution = self.params["convergence_study"]["exact_solution"]
         self.output_folder = self.params["output_folder"]
         self.var_ranks = {
@@ -118,43 +123,73 @@ class Solver:
     def assemble(self):
         "Assemble system"
 
+        # Special tensor functions for 3D problems on 2D domains
+        def dev3d(mat):
+            "2d deviatoric part of actually 3d matrix"
+            return (
+                0.5 * (mat + ufl.transpose(mat))
+                - (1/3) * ufl.tr(mat) * ufl.Identity(2)
+            )
+        def devOfGrad2(rank2):
+            "From Henning's book p232"
+            i, j, k, r = ufl.indices(4)
+            entry_ijk = (
+                (1/3) * (
+                    rank2[i, j].dx(k) + rank2[i, k].dx(j) + rank2[j, k].dx(i)
+                )
+                # ufl.sym(ufl.grad(rank2))
+                - (1/15) * (
+                    + (2 * rank2[i, r].dx(r) + rank2[r, r].dx(i)) * delta[j, k]
+                    + (2 * rank2[j, r].dx(r) + rank2[r, r].dx(j)) * delta[i, k]
+                    + (2 * rank2[k, r].dx(r) + rank2[r, r].dx(k)) * delta[i, j]
+                )
+            )
+            tensor = ufl.as_tensor(entry_ijk, (i, j, k))
+            return tensor
+
+        # Local variables
+        mesh = self.mesh
+        boundaries = self.boundaries
+        tau = self.tau
+        xi_tilde = self.xi_tilde
+        theta_w_inner = self.theta_w_inner
+        theta_w_outer = self.theta_w_outer
+        v_t_inner = self.v_t_inner
+        v_t_outer = self.v_t_outer
+        delta_1 = self.delta_1
+        delta_2 = self.delta_2
+        delta_3 = self.delta_3
+
+        # Normal and tangential components
+        # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
+        n = df.FacetNormal(mesh)
+        t = ufl.perp(n)
+
+        # d x d identiy matrix to use for Kronecker delta
+        delta = df.Identity(2)
+
+        # Define custom measeasure for boundaries
+        df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
+        df.dS = df.Measure("dS", domain=mesh, subdomain_data=boundaries)
+
+        h = df.CellDiameter(mesh)
+        h_avg = (h("+") + h("-"))/2.0  # pylint: disable=not-callable
+
         if self.mode == "heat":
 
             w = self.mxd_fspaces["heat"]
-            mesh = self.mesh
-            boundaries = self.boundaries
-
-            tau = self.tau
-            xi_tilde = self.xi_tilde
-            theta_w_inner = self.theta_w_inner
-            theta_w_outer = self.theta_w_outer
 
             # Define trial and testfunction
             (theta, s) = df.TrialFunctions(w)
             (kappa, r) = df.TestFunctions(w)
 
-            # Define custom measeasure for boundaries
-            df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
-            df.dS = df.Measure("dS", domain=mesh, subdomain_data=boundaries)
-
-            # Normal and tangential components
-            # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
-            n = df.FacetNormal(mesh)
-            t = ufl.perp(n)
             s_n = df.dot(s, n)
             r_n = df.dot(r, n)
             s_t = df.dot(s, t)
             r_t = df.dot(r, t)
 
-            # Define source function
+            # Define heat source function
             f = self.heat_source
-
-            def dev3d(mat):
-                "2d deviatoric part of actually 3d matrix"
-                return (
-                    0.5 * (mat + ufl.transpose(mat))
-                    - (1/3) * ufl.tr(mat) * ufl.Identity(2)
-                )
 
             if self.use_coeffs:
                 a1 = (
@@ -185,9 +220,6 @@ class Solver:
 
             # stabilization
             if self.use_cip:
-                delta_1 = self.delta_1
-                h = df.CellDiameter(mesh)
-                h_avg = (h("+") + h("-"))/2.0  # pylint: disable=not-callable
                 stab = - (delta_1 * h_avg**3 * df.jump(df.grad(theta), n)
                           * df.jump(df.grad(kappa), n)) * df.dS
             else:
@@ -195,6 +227,59 @@ class Solver:
 
             self.form_a = a1 + a2 + stab
             self.form_b = l1 + l2
+
+        elif self.mode == "stress":
+
+            w = self.mxd_fspaces["stress"]
+
+            # Define trial and testfunction
+            (p, u, sigma) = df.TrialFunctions(w)
+            (q, v, psi) = df.TestFunctions(w)
+
+            sigma_nn = df.dot(sigma*n, n)
+            psi_nn = df.dot(psi*n, n)
+            sigma_tt = df.dot(sigma*t, t)
+            psi_tt = df.dot(psi*t, t)
+            sigma_nt = df.dot(sigma*n, t)
+            psi_nt = df.dot(psi*n, t)
+
+            # Define mass source function
+            f = self.mass_source
+
+            if self.use_coeffs:
+                a1 = (
+                    + 2 * tau * df.inner(devOfGrad2(sigma), df.grad(psi))
+                    # + 2 * tau * d.inner(ufl.tr(d.grad(sigma_)), d.grad(psi_))
+                    + (1/tau) * df.inner(sigma, psi)
+                    - 2 * df.dot(u, df.div(df.sym(psi)))
+                ) * df.dx + (
+                    + 21/(10*xi_tilde) * sigma_nn * psi_nn
+                    + 2 * xi_tilde * (
+                        (sigma_tt + (1/2)*sigma_nn)*(psi_tt + (1/2)*psi_nn)
+                    )
+                    + (2/xi_tilde) * sigma_nt * psi_nt
+                ) * df.ds
+                # l1 = (- 2 * v_t_inner * df.sin(phi) * psi_nt * df.ds(3000)
+                #       - 2 * v_t_outer * df.sin(phi) * psi_nt * df.ds(3100))
+                l1 = (- 2 * v_t_inner * psi_nt * df.ds(3000)
+                      - 2 * v_t_outer * psi_nt * df.ds(3100))
+                a2 = (df.dot(df.div(sigma), v) + df.dot(df.grad(p), v)) * df.dx
+                l2 = df.Constant(0) * df.div(v) * df.dx # dummy
+                a3 = df.dot(u, df.grad(q)) * df.dx
+                l3 = - (f * q) * df.dx
+
+            if self.use_cip:
+                stab = (
+                    + delta_2 * h_avg**3
+                    * df.dot(df.jump(df.grad(u), n), df.jump(df.grad(v), n))
+                    - delta_3 * h_avg *
+                    df.jump(df.grad(p), n) * df.jump(df.grad(q), n)
+                    ) * df.dS
+            else:
+                stab = 0
+
+            self.form_a = a1 + a2 + a3 + stab
+            self.form_a = l1 + l2 + l3
 
     def solve(self):
         "Solves the system"
@@ -293,7 +378,9 @@ class Solver:
             self.write_xdmf(field, sols[field])
 
     def write_parameters(self):
-        "Write Parameters: Heat source"
+        "Write Parameters: Heat source or Mass Source"
+
+        # Heat source
         f_heat = df.interpolate(
             self.heat_source,
             df.FunctionSpace(
@@ -302,6 +389,16 @@ class Solver:
             )
         )
         self.write_xdmf("f_heat", f_heat)
+
+        # Mass source
+        f_mass = df.interpolate(
+            self.mass_source,
+            df.FunctionSpace(
+                self.mesh,
+                df.FiniteElement("Lagrange", degree=1, cell=self.cell)
+            )
+        )
+        self.write_xdmf("f_mass", f_mass)
 
 
     def write_xdmf(self, name, field):

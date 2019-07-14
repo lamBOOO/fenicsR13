@@ -52,7 +52,19 @@ class Input:
                 "required": True,
                 "min": 0.000000001
             },
+            "v_t_inner": {
+                "type": "float",
+                "required": True,
+            },
+            "v_t_outer": {
+                "type": "float",
+                "required": True,
+            },
             "heat_source": {
+                "type": "string",
+                "required": True,
+            },
+            "mass_source": {
                 "type": "string",
                 "required": True,
             },
