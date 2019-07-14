@@ -87,27 +87,33 @@ class Solver:
     def setup_function_spaces(self):
         "Setup function spaces"
         cell = self.cell
-        e_type = "Lagrange"
+        e = "Lagrange"
         msh = self.mesh
         for var in self.elems:
             if self.var_ranks[var] == 0:
-                self.elems[var] = df.FiniteElement(e_type, cell, degree=1)
+                self.elems[var] = df.FiniteElement(e, cell, 1)
             elif self.var_ranks[var] == 1:
-                self.elems[var] = df.VectorElement(e_type, cell, degree=1)
+                self.elems[var] = df.VectorElement(e, cell, 1)
             elif self.var_ranks[var] == 2:
-                self.elems[var] = df.TensorElement(e_type, cell, degree=1, symmetry=True)
+                self.elems[var] = df.TensorElement(e, cell, 1, symmetry=True)
             self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
 
         heat_elems = [self.elems["theta"], self.elems["s"]]
-        self.mxd_elems["heat"] = df.MixedElement([self.elems["theta"], self.elems["s"]])
-        self.mxd_fspaces["heat"] = df.FunctionSpace(msh, self.mxd_elems["heat"])
+        self.mxd_elems["heat"] = df.MixedElement(heat_elems)
+        self.mxd_fspaces["heat"] = df.FunctionSpace(
+            msh, self.mxd_elems["heat"]
+        )
 
         stress_elems = [self.elems["p"], self.elems["u"], self.elems["sigma"]]
         self.mxd_elems["stress"] = df.MixedElement(stress_elems)
-        self.mxd_fspaces["stress"] = df.FunctionSpace(msh, self.mxd_elems["stress"])
+        self.mxd_fspaces["stress"] = df.FunctionSpace(
+            msh, self.mxd_elems["stress"]
+        )
 
         self.mxd_elems["coupled"] = df.MixedElement(heat_elems, stress_elems)
-        self.mxd_fspaces["coupled"] = df.FunctionSpace(msh, self.mxd_elems["coupled"])
+        self.mxd_fspaces["coupled"] = df.FunctionSpace(
+            msh, self.mxd_elems["coupled"]
+        )
 
     def assemble(self):
         "Assemble system"
@@ -196,7 +202,10 @@ class Solver:
 
             w = self.mxd_fspaces["heat"]
             sol = df.Function(w)
-            df.solve(self.form_a == self.form_b, sol, [], solver_parameters={"linear_solver": "direct"})
+            df.solve(
+                self.form_a == self.form_b, sol, [],
+                solver_parameters={"linear_solver": "direct"}
+            )
 
             (self.sol["theta"], self.sol["s"]) = sol.split()
 
@@ -207,11 +216,15 @@ class Solver:
             with open(self.exact_solution, "r") as file:
                 exact_solution_cpp_code = file.read()
 
-            exact_solution = df.compile_cpp_code(exact_solution_cpp_code)
+            esol = df.compile_cpp_code(exact_solution_cpp_code)
 
-            self.esol["theta"] = df.CompiledExpression(exact_solution.Temperature(), degree=2)
+            self.esol["theta"] = df.CompiledExpression(
+                esol.Temperature(), degree=2
+            )
 
-            self.esol["s"] = df.CompiledExpression(exact_solution.Heatflux(), degree=2)
+            self.esol["s"] = df.CompiledExpression(
+                esol.Heatflux(), degree=2
+            )
 
     def calc_errors(self):
         "Calculate errors"
@@ -249,7 +262,8 @@ class Solver:
                 field_e_i.split()[i], field_i.split()[i], "L2"
             ) for i in range(dim)] # ignore warning
             errs_v_linf = [df.norm(
-                field_e_i.split()[i].vector()-field_i.split()[i].vector(), "linf"
+                field_e_i.split()[i].vector()
+                -field_i.split()[i].vector(), "linf"
             ) for i in range(dim)]
             print("L_2 error:", errs_f_L2)
             print("l_inf error:", errs_v_linf)
@@ -259,13 +273,18 @@ class Solver:
             return (errs_f_L2, errs_v_linf)
 
         if self.mode == "heat":
-            (self.errors["f"]["l2"]["s"], self.errors["v"]["linf"]["s"]) = calc_vectorfield_errors(
-                self.sol["s"], self.esol["s"], self.fspaces["s"], "s"
+            ve = calc_vectorfield_errors(
+                self.sol["s"], self.esol["s"],
+                self.fspaces["s"], "s"
             )
-            (self.errors["f"]["l2"]["theta"], self.errors["v"]["linf"]["theta"]) = calc_scalarfield_errors(
-                self.sol["theta"], self.esol["theta"], self.fspaces["theta"],
-                "theta"
+            se = calc_scalarfield_errors(
+                self.sol["theta"], self.esol["theta"],
+                self.fspaces["theta"], "theta"
             )
+            f_l2 = self.errors["f"]["l2"]
+            v_linf = self.errors["v"]["linf"]
+            (f_l2["s"], v_linf["s"]) = ve
+            (f_l2["theta"], v_linf["theta"]) = se
 
     def write_solutions(self):
         "Write Solutions"
@@ -287,11 +306,9 @@ class Solver:
 
     def write_xdmf(self, name, field):
         "Writes a renamed field to XDMF format"
+        filename = self.output_folder + name + "_" + str(self.time) + ".xdmf"
         field.rename(name, name)
-        with df.XDMFFile(
-            self.mesh.mpi_comm(),
-            self.output_folder + name + "_" + str(self.time) + ".xdmf"
-        ) as file:
+        with df.XDMFFile(self.mesh.mpi_comm(), filename) as file:
             file.write(field, self.time)
 
     def extract_matrix(self):
