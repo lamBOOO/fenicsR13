@@ -1,11 +1,8 @@
 "Class to handle input file"
 
+from json import dumps
 import yaml
 from cerberus import Validator
-
-from schema import Schema, And, Use, Or
-
-
 
 class Input:
     "Class to store input data as dict"
@@ -14,7 +11,7 @@ class Input:
         with open(yaml_file, "r") as stream:
             self.dict = yaml.safe_load(stream)
 
-        v = Validator()
+        val = Validator()
         input_schema = {
             "meshes": {
                 "type": "list",
@@ -54,8 +51,10 @@ class Input:
             }
         }
 
-        if not v.validate(self.dict, input_schema):
-            print(v.errors)
+        if not val.validate(self.dict, input_schema):
+            print(val.errors)
             raise Exception("Parsing error")
+
+        print("Input:\n" + dumps(self.dict, indent=4))
 
 # test = Input("input.yml")

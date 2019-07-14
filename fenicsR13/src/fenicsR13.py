@@ -93,12 +93,6 @@ deg_sigma = 1
 deg_u = 1
 deg_p = 1
 
-# Continous Interior Penalty (CIP) Stabilization with parameter delta_1:
-# stab_cip = True
-# delta_1 = df.Constant(1)
-# delta_2 = df.Constant(1)
-# delta_3 = df.Constant(0.01)
-
 # Meshing parameters
 use_gmsh = True
 
