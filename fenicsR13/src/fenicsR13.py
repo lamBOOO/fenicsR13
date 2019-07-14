@@ -31,6 +31,7 @@ linearized R13 equations
 # IMPORTS
 # **************************************************************************** #
 import os
+import sys
 import warnings
 import csv
 import matplotlib.pyplot as plt
@@ -343,9 +344,10 @@ def solve_system_stress():
 
 
 if __name__ == '__main__':
-    "The main program"
 
-    params = Input("input.yml").dict
+    inputfile = sys.argv[1] if len(sys.argv) == 2 else "input.yml"
+
+    params = Input(inputfile).dict
     mesh_names = params["meshes"]
 
     convergence_study = params["convergence_study"]["enable"]
