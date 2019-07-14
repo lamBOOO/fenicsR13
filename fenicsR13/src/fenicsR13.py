@@ -23,11 +23,6 @@ linearized R13 equations
 # pylint: disable=invalid-name
 # ------------------------------------------------------------------------ #
 
-# ------------------------------------------------------------------------ #
-# TODOs
-# ------------------------------------------------------------------------ #
-# - Export series of meshes
-# ------------------------------------------------------------------------ #
 
 # **************************************************************************** #
 
@@ -56,52 +51,7 @@ from postprocessor import Postprocessor
 # **************************************************************************** #
 
 # Dolfin settings
-df.set_log_level(1000)  # 1: all logs
-
-# Problem parameters
-system_ = "1"  # 1=westerkamp2019, 2=coefficientless
-tau_ = "0.1"  # float
-A0_ = "2"  # int
-A1_ = "0"  # int
-A2_ = "-1"  # int
-xi_tilde_ = "1.0"  # float
-theta_w_inner_ = "1.0"  # float
-theta_w_outer_ = "0.5"  # float
-v_t_inner_ = "10.0"  # float
-v_t_outer_ = "0.0"  # float
-
-# Model definitions
-system = int(system_)
-solve_stress = False
-solve_heat = True
-# solve_heat = False
-# solve_stress = True
-
-# UFL vars
-tau = df.Constant(float(tau_))
-A0 = df.Constant(float(A0_))
-A1 = df.Constant(float(A1_))
-A2 = df.Constant(float(A2_))
-xi_tilde = df.Constant(float(xi_tilde_))
-theta_w_inner = df.Constant(float(theta_w_inner_))
-theta_w_outer = df.Constant(float(theta_w_outer_))
-v_t_inner = df.Constant(float(v_t_inner_))
-v_t_outer = df.Constant(float(v_t_outer_))
-
-# FEM parameters
-deg_s = 1
-deg_theta = 1
-deg_sigma = 1
-deg_u = 1
-deg_p = 1
-
-# Meshing parameters
-use_gmsh = True
-
-# Etc
-save_matrix = False
-plot_conv_rates = True
-output_folder = "results/"
+df.set_log_level(100)  # 1: all logs
 
 # Parallel MPI Settings
 # -> parameters["ghost_mode"] = "shared_vertex"
@@ -785,8 +735,9 @@ def solve_system_heat_new():
 # MAIN
 # **************************************************************************** #
 if __name__ == '__main__':
-    if solve_heat:
-        solve_system_heat_new()
-    if solve_stress:
+    solve_system_heat_new()
+
+    if False:
+        solve_system_heat()
         solve_system_stress()
 # **************************************************************************** #

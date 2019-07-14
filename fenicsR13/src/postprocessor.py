@@ -39,8 +39,6 @@ class Postprocessor:
         with open(filename, mode='w') as file:
             writer = csv.writer(file, delimiter=',', quotechar='"')
 
-            print(data)
-
             # header
             writer.writerow(
                 ["h"] + list(
@@ -53,6 +51,7 @@ class Postprocessor:
                 )
             )
 
+            # data of all runs
             for run in data:
                 writer.writerow(
                     [run["h"]] + list(chain.from_iterable([

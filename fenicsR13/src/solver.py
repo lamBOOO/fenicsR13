@@ -208,28 +208,28 @@ class Solver:
 
             exact_solution = df.compile_cpp_code(exact_solution_cpp_code)
 
-            self.esol["theta"] = df.CompiledExpression(exact_solution.Temperature(), degree=1)
+            self.esol["theta"] = df.CompiledExpression(exact_solution.Temperature(), degree=2)
 
-            self.esol["s"] = df.CompiledExpression(exact_solution.Heatflux(), degree=1)
+            self.esol["s"] = df.CompiledExpression(exact_solution.Heatflux(), degree=2)
 
     def calc_errors(self):
         "Calculate errors"
 
-        def calc_scalarfield_errors(theta_, theta_e_, v_theta_, name_, p_):
+        def calc_scalarfield_errors(sol_, sol_e_, v_theta_, name_, p_):
             "TODO"
 
             of = self.output_folder
 
-            field_e_i = df.interpolate(theta_e_, v_theta_)
-            field_i = df.interpolate(theta_, v_theta_)
+            field_e_i = df.interpolate(sol_e_, v_theta_)
+            field_i = df.interpolate(sol_, v_theta_)
 
-            difference = df.project(theta_e_ - theta_, v_theta_)
+            difference = df.project(sol_e_ - sol_, v_theta_)
             difference.rename("difference_{}".format(name_),
                               "difference_{}".format(name_))
             file_difference = df.File(of + "difference_{}_{}.pvd".format(name_, p_))
             file_difference.write(difference)
 
-            err_f_L2 = df.errornorm(theta_e_, theta_, 'L2')
+            err_f_L2 = df.errornorm(sol_e_, sol_, 'L2')
             err_v_linf = df.norm(field_e_i.vector()-field_i.vector(), 'linf')
             print("L_2 error:", err_f_L2)
             print("l_inf error:", err_v_linf)
@@ -259,10 +259,11 @@ class Solver:
             file_difference = df.File(of + "difference_{}_{}.pvd".format(name_, p_))
             file_difference.write(difference)
 
+
             dim = field_i.geometric_dimension()
             errs_f_L2 = [df.errornorm(
-                field_e_i.split()[i], field_i.split()[i], 'L2', mesh=mesh_
-            ) for i in range(dim)]
+                field_e_i.split()[i], field_i.split()[i], 'L2'
+            ) for i in range(dim)] # ignore warning
             errs_v_linf = [df.norm(
                 field_e_i.split()[i].vector()-field_i.split()[i].vector(), 'linf'
             ) for i in range(dim)]
