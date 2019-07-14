@@ -1,65 +1,25 @@
 #!/usr/bin/env python3
 
+# pylint: disable=invalid-name
 
-# **************************************************************************** #
-# DOCUMENTATION
-# **************************************************************************** #
 """
 Program to solve the decoupled (removed coupling term) heat system of the
 linearized R13 equations
 """
-# **************************************************************************** #
 
-
-# **************************************************************************** #
-# SETTINGS
-# **************************************************************************** #
-
-# ------------------------------------------------------------------------ #
-# PYLINT SETTINGS
-# ------------------------------------------------------------------------ #
-# pylint: disable=unsubscriptable-object
-# pylint: disable=unused-import
-# pylint: disable=invalid-name
-# ------------------------------------------------------------------------ #
-
-
-# **************************************************************************** #
-
-
-# **************************************************************************** #
-# IMPORTS
-# **************************************************************************** #
-import os
 import sys
 import warnings
-import csv
 import matplotlib.pyplot as plt
 import dolfin as df
 import ufl
-import mshr as m
 import numpy as np
 
 import meshes
 from input import Input
 from solver import Solver
 from postprocessor import Postprocessor
-# **************************************************************************** #
 
 
-# **************************************************************************** #
-# SETTINGS
-# **************************************************************************** #
-
-# Dolfin settings
-df.set_log_level(100)  # 1: all logs
-
-# Parallel MPI Settings
-# -> parameters["ghost_mode"] = "shared_vertex"
-# -> parameters["ghost_mode"] = "shared_facet"
-df.parameters["ghost_mode"] = "shared_vertex"
-
-# **************************************************************************** #
 
 
 # **************************************************************************** #
@@ -344,6 +304,10 @@ def solve_system_stress():
 
 
 if __name__ == '__main__':
+
+    # Dolfin settings
+    df.set_log_level(100) # 1: all logs
+    df.parameters["ghost_mode"] = "shared_vertex"
 
     inputfile = sys.argv[1] if len(sys.argv) == 2 else "input.yml"
 
