@@ -547,7 +547,8 @@ def solve_system_heat_new():
         solver.setup_function_spaces()
         solver.assemble()
         solver.solve()
-        solver.write()
+        solver.write_solutions()
+        solver.write_parameters()
 
         if convergence_study:
 

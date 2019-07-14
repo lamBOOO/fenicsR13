@@ -10,10 +10,11 @@
 *.vscode
 *.ipynb_checkpoints
 
-# ignore mesh data
+# ignore mesh and output data
 *.xml
 *.msh
 *.h5
+*.xdmf
 
 # ignore python cache
 *__pycache__*

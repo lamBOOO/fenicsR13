@@ -21,7 +21,7 @@ class Solver:
         self.delta_1 = self.params["stabilization"]["cip"]["delta_1"]
         self.theta_w_inner = self.params["theta_w_inner"]
         self.theta_w_outer = self.params["theta_w_outer"]
-        self.heat_source = self.params["heat_source"]
+        self.heat_source = df.Expression(self.params["heat_source"], degree=2)
         self.exact_solution = self.params["convergence_study"]["exact_solution"]
         self.output_folder = self.params["output_folder"]
         self.var_ranks = {
@@ -140,7 +140,7 @@ class Solver:
             r_t = df.dot(r, t)
 
             # Define source function
-            f = df.Expression(self.heat_source, degree=2)
+            f = self.heat_source
 
             def dev3d(mat):
                 "2d deviatoric part of actually 3d matrix"
@@ -290,12 +290,35 @@ class Solver:
                 "theta", 1
             )
 
+    def write_solutions(self):
+        "Write Solutions"
+        sols = self.sol
+        for field in sols:
+            sols[field].rename(field, field)
+            file = df.File(self.output_folder + field + ".pvd")
+            file.write(sols[field])
+
+    def write_parameters(self):
+        "Write Parameters: Heat source"
+        f_heat = df.interpolate(
+            self.heat_source,
+            df.FunctionSpace(
+                self.mesh,
+                df.FiniteElement("Lagrange", degree=1, cell=self.cell)
+            )
+        )
+        f_heat.rename("f_heat", "f_heat")
+        with df.XDMFFile(self.output_folder + 'f_heat.xdmf') as file:
+            file.write(f_heat)
+
     def write(self):
         "Writes to Paraview format"
-        # f_i = df.interpolate(f, v_scalar_)
-        # f_i.rename('f_i', 'f_i')
-        # file_f = df.File(output_folder + "f.pvd")
-        # file_f.write(f_i)
+
+
+
+
+
+
 
     def todo(self):
         "todos"
