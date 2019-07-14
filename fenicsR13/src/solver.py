@@ -7,16 +7,17 @@ import ufl
 
 class Solver:
     "Solver class"
-    def __init__(self, p, mesh):
+    def __init__(self, params, mesh, time):
         "Initializes solver"
-        self.params = p
+        self.params = params
         self.mesh = mesh.mesh
         self.boundaries = mesh.boundaries
         self.cell = self.mesh.ufl_cell()
-        self.mode = p["mode"]
-        self.use_coeffs = p["use_coeffs"]
-        self.tau = p["tau"]
-        self.xi_tilde = p["xi_tilde"]
+        self.time = time
+        self.mode = params["mode"]
+        self.use_coeffs = params["use_coeffs"]
+        self.tau = params["tau"]
+        self.xi_tilde = params["xi_tilde"]
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
         self.delta_1 = self.params["stabilization"]["cip"]["delta_1"]
         self.theta_w_inner = self.params["theta_w_inner"]
@@ -127,8 +128,8 @@ class Solver:
             (kappa, r) = df.TestFunctions(w)
 
             # Define custom measeasure for boundaries
-            df.ds = df.Measure('ds', domain=mesh, subdomain_data=boundaries)
-            df.dS = df.Measure('dS', domain=mesh, subdomain_data=boundaries)
+            df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
+            df.dS = df.Measure("dS", domain=mesh, subdomain_data=boundaries)
 
             # Normal and tangential components
             # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
@@ -180,7 +181,7 @@ class Solver:
             if self.use_cip:
                 delta_1 = self.delta_1
                 h = df.CellDiameter(mesh)
-                h_avg = (h('+') + h('-'))/2.0  # pylint: disable=not-callable
+                h_avg = (h("+") + h("-"))/2.0  # pylint: disable=not-callable
                 stab = - (delta_1 * h_avg**3 * df.jump(df.grad(theta), n)
                           * df.jump(df.grad(kappa), n)) * df.dS
             else:
@@ -195,7 +196,7 @@ class Solver:
 
             w = self.mxd_fspaces["heat"]
             sol = df.Function(w)
-            df.solve(self.form_a == self.form_b, sol, [], solver_parameters={'linear_solver': 'direct'})
+            df.solve(self.form_a == self.form_b, sol, [], solver_parameters={"linear_solver": "direct"})
 
             (self.sol["theta"], self.sol["s"]) = sol.split()
 
@@ -203,7 +204,7 @@ class Solver:
         "Writes exact solution"
         if self.mode == "heat":
 
-            with open(self.exact_solution, 'r') as file:
+            with open(self.exact_solution, "r") as file:
                 exact_solution_cpp_code = file.read()
 
             exact_solution = df.compile_cpp_code(exact_solution_cpp_code)
@@ -215,88 +216,62 @@ class Solver:
     def calc_errors(self):
         "Calculate errors"
 
-        def calc_scalarfield_errors(sol_, sol_e_, v_theta_, name_, p_):
+        def calc_scalarfield_errors(sol_, sol_e_, v_theta_, name_):
             "TODO"
-
-            of = self.output_folder
 
             field_e_i = df.interpolate(sol_e_, v_theta_)
             field_i = df.interpolate(sol_, v_theta_)
 
             difference = df.project(sol_e_ - sol_, v_theta_)
-            difference.rename("difference_{}".format(name_),
-                              "difference_{}".format(name_))
-            file_difference = df.File(of + "difference_{}_{}.pvd".format(name_, p_))
-            file_difference.write(difference)
+            self.write_xdmf("difference_{}".format(name_), difference)
 
-            err_f_L2 = df.errornorm(sol_e_, sol_, 'L2')
-            err_v_linf = df.norm(field_e_i.vector()-field_i.vector(), 'linf')
+            err_f_L2 = df.errornorm(sol_e_, sol_, "L2")
+            err_v_linf = df.norm(field_e_i.vector()-field_i.vector(), "linf")
             print("L_2 error:", err_f_L2)
             print("l_inf error:", err_v_linf)
 
-            field_e_i.rename("{}_e_i".format(name_), "{}_e_i".format(name_))
-            file_field_e = df.File(of + "{}_e.pvd".format(name_))
-            file_field_e.write(field_e_i)
-
-            field_i.rename("{}_i".format(name_), "{}_i".format(name_))
-            file_field = df.File(of + "{}_i.pvd".format(name_))
-            file_field.write(field_i)
+            self.write_xdmf(name_ + "_e", field_e_i)
 
             return (err_f_L2, err_v_linf)
 
-        def calc_vectorfield_errors(sol_, sol_e_, v_sol, mesh_, name_, p_):
+        def calc_vectorfield_errors(sol_, sol_e_, v_sol, name_):
             "TODO"
-
-            of = self.output_folder
 
             # Vector values functions interpolated
             field_e_i = df.interpolate(sol_e_, v_sol)
             field_i = df.interpolate(sol_, v_sol)
 
             difference = df.project(sol_e_ - sol_, v_sol)
-            difference.rename("difference_{}".format(name_),
-                              "difference_{}".format(name_))
-            file_difference = df.File(of + "difference_{}_{}.pvd".format(name_, p_))
-            file_difference.write(difference)
-
+            self.write_xdmf("difference_{}".format(name_), difference)
 
             dim = field_i.geometric_dimension()
             errs_f_L2 = [df.errornorm(
-                field_e_i.split()[i], field_i.split()[i], 'L2'
+                field_e_i.split()[i], field_i.split()[i], "L2"
             ) for i in range(dim)] # ignore warning
             errs_v_linf = [df.norm(
-                field_e_i.split()[i].vector()-field_i.split()[i].vector(), 'linf'
+                field_e_i.split()[i].vector()-field_i.split()[i].vector(), "linf"
             ) for i in range(dim)]
             print("L_2 error:", errs_f_L2)
             print("l_inf error:", errs_v_linf)
 
-            field_e_i.rename("{}_e_i".format(name_), "{}_e_i".format(name_))
-            file_field_e = df.File(of + "{}_e.pvd".format(name_))
-            file_field_e.write(field_e_i)
-
-            field_i.rename("{}_i".format(name_), "{}_i".format(name_))
-            file_field = df.File(of + "{}_i.pvd".format(name_))
-            file_field.write(field_i)
+            self.write_xdmf(name_ + "_e", field_e_i)
 
             return (errs_f_L2, errs_v_linf)
 
         if self.mode == "heat":
             (self.errors["f"]["l2"]["s"], self.errors["v"]["linf"]["s"]) = calc_vectorfield_errors(
-                self.sol["s"], self.esol["s"], self.fspaces["s"], self.mesh,
-                "s", 1
+                self.sol["s"], self.esol["s"], self.fspaces["s"], "s"
             )
             (self.errors["f"]["l2"]["theta"], self.errors["v"]["linf"]["theta"]) = calc_scalarfield_errors(
                 self.sol["theta"], self.esol["theta"], self.fspaces["theta"],
-                "theta", 1
+                "theta"
             )
 
     def write_solutions(self):
         "Write Solutions"
         sols = self.sol
         for field in sols:
-            sols[field].rename(field, field)
-            file = df.File(self.output_folder + field + ".pvd")
-            file.write(sols[field])
+            self.write_xdmf(field, sols[field])
 
     def write_parameters(self):
         "Write Parameters: Heat source"
@@ -307,9 +282,17 @@ class Solver:
                 df.FiniteElement("Lagrange", degree=1, cell=self.cell)
             )
         )
-        f_heat.rename("f_heat", "f_heat")
-        with df.XDMFFile(self.output_folder + 'f_heat.xdmf') as file:
-            file.write(f_heat)
+        self.write_xdmf("f_heat", f_heat)
+
+
+    def write_xdmf(self, name, field):
+        "Writes a renamed field to XDMF format"
+        field.rename(name, name)
+        with df.XDMFFile(
+            self.mesh.mpi_comm(),
+            self.output_folder + name + "_" + str(self.time) + ".xdmf"
+        ) as file:
+            file.write(field, self.time)
 
     def extract_matrix(self):
         """

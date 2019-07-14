@@ -542,7 +542,7 @@ def solve_system_heat_new():
         mesh_name = mesh_names[p]
 
         current_mesh = meshes.H5Mesh(mesh_name)
-        solver = Solver(params, current_mesh)
+        solver = Solver(params, current_mesh, p)
 
         solver.setup_function_spaces()
         solver.assemble()
