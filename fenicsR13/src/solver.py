@@ -311,23 +311,11 @@ class Solver:
         with df.XDMFFile(self.output_folder + 'f_heat.xdmf') as file:
             file.write(f_heat)
 
-    def write(self):
-        "Writes to Paraview format"
-
-
-
-
-
-
-
-    def todo(self):
-        "todos"
-        # if save_matrix:
-        #     np.savetxt("A.mat", df.assemble(a_).array())
-        #     # Use in matrix with:
-        #     # >> T = readtable("a.txt");
-        #     # >> M=table2array(T);
-        #     # >> spy(M);
-        #     # >> cond(M);
-        #     # >> det(M);
-        #     # >> svd(M);
+    def extract_matrix(self):
+        """
+        Extract system matrix after assemble.
+        Import to Matlab with:
+        $ T = readtable("a.txt");
+        $ M=table2array(T);
+        """
+        raise NotImplementedError()
