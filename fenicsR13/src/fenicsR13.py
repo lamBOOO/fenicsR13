@@ -405,38 +405,6 @@ def solve_variational_formulation_stress(a_, l_, w, bcs_, plot_=False):
 # CREATE EXACT SOLUTION
 # => Exact solution and L_2/L_inf errors, high degree for good quadr.
 # **************************************************************************** #
-def get_exact_solution_heat():
-    """
-    s_e = (s_R, s_phi)
-    """
-
-    data = open("exact_solutions_heat.csv")
-    csv_dict = csv.DictReader(data, delimiter=",", quotechar="\"")
-    for item in csv_dict:
-        entry_available = (
-            item.get("system") == system_ and
-            item.get("tau") == tau_ and
-            item.get("A0") == A0_ and
-            item.get("A1") == A1_ and
-            item.get("A2") == A2_ and
-            item.get("theta_w_inner") == theta_w_inner_ and
-            item.get("theta_w_outer") == theta_w_outer_
-        )
-        if entry_available:
-            R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
-            phi = df.Expression("atan2(x[1],x[0])", degree=2)
-            theta_e = df.Expression(item.get("theta_e"), degree=2, R=R, tau=tau)
-            s_R = df.Expression(item.get("s_R"), degree=2, R=R, tau=tau)
-            s_e = df.Expression(("s_R * cos(phi)", "s_R * sin(phi)"),
-                                degree=2, phi=phi, s_R=s_R)
-            return (s_e, theta_e)
-
-    # no exact solution is csv file
-    warnings.warn("No exact solution avail for given tau3")
-    scalar_dummy = df.Expression("0", degree=1)
-    vector_dummy = df.Expression(("0", "0"), degree=1)
-    return (vector_dummy, scalar_dummy)
-
 def get_exact_solution_stress(space0, space1, space2, mesh_):
     ".."
 
@@ -474,40 +442,6 @@ def get_exact_solution_stress(space0, space1, space2, mesh_):
         return (vector_dummy, scalar_dummy)
 # **************************************************************************** #
 
-
-# **************************************************************************** #
-# CALCULATE VARIOUS ERRORS BETWEEN NUMERICAL AND EXACT SOLUTION
-# **************************************************************************** #
-def calc_scalarfield_errors(theta_, theta_e_, v_theta_, name_, p_):
-    "TODO"
-
-    of = output_folder
-
-    # Theta
-    field_e_i = df.interpolate(theta_e_, v_theta_)
-    field_i = df.interpolate(theta_, v_theta_)
-
-    difference = df.project(theta_e_ - theta_, v_theta_)
-    difference.rename("difference_{}".format(name_),
-                      "difference_{}".format(name_))
-    file_difference = df.File(of + "difference_{}_{}.pvd".format(name_, p_))
-    file_difference.write(difference)
-
-    err_f_L2 = df.errornorm(theta_e_, theta_, 'L2')
-    err_v_linf = df.norm(field_e_i.vector()-field_i.vector(), 'linf')
-    print("L_2 error:", err_f_L2)
-    print("l_inf error:", err_v_linf)
-
-    field_e_i.rename("{}_e_i".format(name_), "{}_e_i".format(name_))
-    file_field_e = df.File(of + "{}_e.pvd".format(name_))
-    file_field_e.write(field_e_i)
-
-    field_i.rename("{}_i".format(name_), "{}_i".format(name_))
-    file_field = df.File(of + "{}_i.pvd".format(name_))
-    file_field.write(field_i)
-
-    return (err_f_L2, err_v_linf)
-# **************************************************************************** #
 
 
 # **************************************************************************** #
