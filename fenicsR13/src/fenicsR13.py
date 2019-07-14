@@ -46,6 +46,8 @@ import numpy as np
 
 import meshes
 from input import Input
+from solver import Solver
+from postprocessor import Postprocessor
 # **************************************************************************** #
 
 
@@ -198,9 +200,11 @@ def setup_variational_form_heat(params, w_, v_scalar_, mesh_, mesh_bounds_):
             + 11/10 * xi_tilde * s_t * r_t
         ) * df.ds
         a2 = - (df.div(s_) * kappa_) * df.dx
+        # a2 = - (df.Constant(0) * kappa_) * df.dx
         l1 = (- 5.0/2.0 * r_n * theta_w_outer * df.ds(3100)
               - 5.0/2.0 * r_n * theta_w_inner * df.ds(3000))
         l2 = - (f * kappa_) * df.dx
+        # l2 = - (df.Constant(0) * kappa_) * df.dx
     elif system == 2:
         a1 = (
             tau * df.inner(dev3d(df.grad(s_)), df.grad(r_))
@@ -373,7 +377,7 @@ def solve_variational_formulation_heat(a_, l_, w, bcs_, plot_=False):
     """
 
     sol_ = df.Function(w)
-    df.solve(a_ == l_, sol_, bcs_, solver_parameters={'linear_solver': 'mumps'})
+    df.solve(a_ == l_, sol_, bcs_, solver_parameters={'linear_solver': 'direct'})
 
     (theta_, s_) = sol_.split()
 
@@ -667,11 +671,6 @@ def plot_errrorsNew(data_):
     for key in data_[0]:
         if key != "h":
 
-            # LaTeX text fonts:
-            # Use with raw strings: r"$\mathcal{O}(h^1)$"
-            # plt.rc('text', usetex=True)
-            # plt.rc('font', family='serif')
-
             field = [df[key] for df in data_]
             for etype in field[0]:
                 values = [df[etype] for df in field]
@@ -708,6 +707,8 @@ def plot_single(data_x_, data_y_, title_, legend_):
 
 
 
+
+
 # **************************************************************************** #
 # SOLVE DECOUPLED HEAT SYSTEM
 # **************************************************************************** #
@@ -716,9 +717,6 @@ def solve_system_heat():
 
     params = Input("input.yml").dict
     mesh_names = params["meshes"]
-
-    # print(params)
-    # print(params["stabilization"]["cip"]["enable"])
 
     data = []
 
@@ -793,12 +791,63 @@ def solve_system_stress():
 
 
 
+def solve_system_heat_new():
+    "Solves the heat system"
+
+    params = Input("input.yml").dict
+    mesh_names = params["meshes"]
+
+    convergence_study = params["convergence_study"]["enable"]
+    plot = params["convergence_study"]["plot"]
+
+    data = []
+
+    for p, mesh_name in enumerate(mesh_names):
+
+        mesh_name = mesh_names[p]
+
+        current_mesh = meshes.H5Mesh(mesh_name)
+        solver = Solver(params, current_mesh)
+
+        solver.setup_function_spaces()
+        solver.assemble()
+        solver.solve()
+        solver.write()
+
+        if convergence_study:
+
+            solver.load_exact_solution()
+            solver.calc_errors()
+
+            errors = solver.errors
+            data.append({
+                "h": current_mesh.mesh.hmax(),
+                "theta": {
+                    "L_2": errors["f"]["l2"]["theta"],
+                    "l_inf": errors["v"]["linf"]["theta"],
+                },
+                "sx": {
+                    "L_2": errors["f"]["l2"]["s"][0],
+                    "l_inf": errors["v"]["linf"]["s"][0],
+                },
+                "sy": {
+                    "L_2": errors["f"]["l2"]["s"][1],
+                    "l_inf": errors["v"]["linf"]["s"][1],
+                }
+            })
+
+    if convergence_study:
+        postp = Postprocessor(data)
+        postp.write_errors()
+        if plot:
+            postp.plot_errors()
+
 # **************************************************************************** #
 # MAIN
 # **************************************************************************** #
 if __name__ == '__main__':
     if solve_heat:
-        solve_system_heat()
+        solve_system_heat_new()
     if solve_stress:
         solve_system_stress()
 # **************************************************************************** #

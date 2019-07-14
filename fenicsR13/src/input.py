@@ -23,6 +23,61 @@ class Input:
                 "required": True,
                 "allowed": [2]
             },
+            "mode": {
+                "type": "string",
+                "required": True,
+                "allowed": ["heat", "stress", "coupled"]
+            },
+            "use_coeffs": {
+                "type": "boolean",
+                "required": True,
+            },
+            "tau": {
+                "type": "float",
+                "required": True,
+                "min": 0.000000001
+            },
+            "xi_tilde": {
+                "type": "float",
+                "required": True,
+                "min": 0.000000001
+            },
+            "theta_w_inner": {
+                "type": "float",
+                "required": True,
+                "min": 0.000000001
+            },
+            "theta_w_outer": {
+                "type": "float",
+                "required": True,
+                "min": 0.000000001
+            },
+            "heat_source": {
+                "type": "string",
+                "required": True,
+            },
+            "convergence_study": {
+                "type": "dict",
+                "required": True,
+                "schema": {
+                    "enable": {
+                        "type": "boolean",
+                        "required": True
+                    },
+                    "exact_solution": {
+                        "type": "string",
+                        "required": True
+                    },
+                    "plot": {
+                        "type": "boolean",
+                        "required": True
+                    },
+                }
+            },
+            "output_folder": {
+                "type": "string",
+                "required": True,
+            },
             "stabilization": {
                 "type": "dict",
                 "required": True,

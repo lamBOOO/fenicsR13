@@ -7,7 +7,6 @@ meshes:
   - mesh/ring1.h5
   - mesh/ring2.h5
   - mesh/ring3.h5
-  - mesh/ring4.h5
 
 # Stabilization
 # =============
@@ -21,5 +20,34 @@ stabilization:
 
 # Formulation Parameters
 # ======================
+
 # Number of spatial dimensions, currently only two-dimensional.
 nsd: 2
+
+# heat, stress, coupled
+mode: "heat"
+
+# Coefficients as in westerkamp2019 or without as in torrilhon2017
+use_coeffs: True
+
+# Knudsen number
+tau: 0.1
+
+# Refaction coefficient
+xi_tilde: 1.0
+
+# Wall temperatures
+theta_w_inner: 1.0
+theta_w_outer: 0.5
+
+# heat source
+heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
+
+# Perform convergence study on given set of meshes with exact solution
+convergence_study:
+  enable: True
+  exact_solution: exact_solution_heat.cpp
+  plot: True
+
+# Output folder for vtu files
+output_folder: results/

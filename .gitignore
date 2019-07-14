@@ -17,3 +17,6 @@
 
 # ignore python cache
 *__pycache__*
+
+# ignore errors from convergence study
+*errors.csv
