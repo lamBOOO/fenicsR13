@@ -70,10 +70,10 @@ v_t_outer_ = "0.0"  # float
 
 # Model definitions
 system = int(system_)
-# solve_stress = False
-# solve_heat = True
-solve_heat = False
-solve_stress = True
+solve_stress = False
+solve_heat = True
+# solve_heat = False
+# solve_stress = True
 
 # UFL vars
 tau = df.Constant(float(tau_))
@@ -93,14 +93,11 @@ deg_sigma = 1
 deg_u = 1
 deg_p = 1
 
-# Convergence Study Parameters
-max_exponent = 2
-
 # Continous Interior Penalty (CIP) Stabilization with parameter delta_1:
-stab_cip = True
-delta_1 = df.Constant(1)
-delta_2 = df.Constant(1)
-delta_3 = df.Constant(0.01)
+# stab_cip = True
+# delta_1 = df.Constant(1)
+# delta_2 = df.Constant(1)
+# delta_3 = df.Constant(0.01)
 
 # Meshing parameters
 use_gmsh = True
@@ -156,7 +153,7 @@ def setup_function_spaces_stress(mesh_, deg_p_, deg_u_, deg_sigma_):
 # **************************************************************************** #
 # Setup problem
 # **************************************************************************** #
-def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
+def setup_variational_form_heat(params, w_, v_scalar_, mesh_, mesh_bounds_):
     """
     xi_tilde normally d.sqrt(2/d.pi), but we use 1 that looks right
     Note: Sign of a2 and l2 are correlated to sign of cip stabilization!!
@@ -226,7 +223,8 @@ def setup_variational_form_heat(w_, v_scalar_, mesh_, mesh_bounds_):
     else:
         raise Exception('system={} is undefined'.format(system))
 
-    if stab_cip:
+    if params["stabilization"]["cip"]["enable"]:
+        delta_1 = params["stabilization"]["cip"]["delta_1"]
         # 1)
         # h_avg = mesh_.hmax()
         # 2)
@@ -722,8 +720,11 @@ def plot_single(data_x_, data_y_, title_, legend_):
 def solve_system_heat():
     "TODO"
 
-    settings = Input("input.yml").dict
-    mesh_names = settings["meshes"]
+    params = Input("input.yml").dict
+    mesh_names = params["meshes"]
+
+    # print(params)
+    # print(params["stabilization"]["cip"]["enable"])
 
     data = []
 
@@ -734,7 +735,7 @@ def solve_system_heat():
         # setup and solve problem
         current_mesh = meshes.H5Mesh(mesh_name)
         (w, v_theta, v_s) = setup_function_spaces_heat(current_mesh.mesh, deg_theta, deg_s)
-        (a, l) = setup_variational_form_heat(w, v_theta, current_mesh.mesh, current_mesh.boundaries)
+        (a, l) = setup_variational_form_heat(params, w, v_theta, current_mesh.mesh, current_mesh.boundaries)
         (s, theta) = solve_variational_formulation_heat(a, l, w, [])
         (s_e, theta_e) = get_exact_solution_heat()
 
@@ -759,8 +760,8 @@ def solve_system_heat():
 def solve_system_stress():
     "TODO"
 
-    settings = Input("input.yml").dict
-    mesh_names = settings["meshes"]
+    params = Input("input.yml").dict
+    mesh_names = params["meshes"]
 
     data = []
 

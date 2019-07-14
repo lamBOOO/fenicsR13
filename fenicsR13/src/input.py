@@ -1,19 +1,61 @@
 "Class to handle input file"
 
 import yaml
-import schema
+from cerberus import Validator
+
+from schema import Schema, And, Use, Or
+
+
 
 class Input:
     "Class to store input data as dict"
 
     def __init__(self, yaml_file):
-        with open(yaml_file, 'r') as stream:
+        with open(yaml_file, "r") as stream:
             self.dict = yaml.safe_load(stream)
 
-        conf_schema = schema.Schema({
-            'meshes': [str],
-            'nsd': schema.And(int, lambda n: n == 2, error='nsd must be 2')
-        })
+        v = Validator()
+        input_schema = {
+            "meshes": {
+                "type": "list",
+                "required": True,
+                "schema": {"type": "string"}
+            },
+            "nsd": {
+                "type": "integer",
+                "required": True,
+                "allowed": [2]
+            },
+            "stabilization": {
+                "type": "dict",
+                "required": True,
+                "keysrules": {"type": "string", "regex": "cip"},
+                "valueschema": {
+                    "type": "dict",
+                    "schema": {
+                        "enable": {
+                            "type": "boolean",
+                            "required": True
+                        },
+                        "delta_1": {
+                            "type": "float",
+                            "required": True
+                        },
+                        "delta_2": {
+                            "type": "float",
+                            "required": True
+                        },
+                        "delta_3": {
+                            "type": "float",
+                            "required": True
+                        },
+                    }
+                }
+            }
+        }
 
-        # Validate
-        conf_schema.validate(self.dict)
+        if not v.validate(self.dict, input_schema):
+            print(v.errors)
+            raise Exception("Parsing error")
+
+# test = Input("input.yml")
