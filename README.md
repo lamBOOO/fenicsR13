@@ -80,10 +80,19 @@ _math_header = """
 
 ## Some Notes About Python
 
-Get current work directory:
+- Get current work directory:
 
 ```python
 import os
 cwd = os.getcwd()
 print(cwd)
+```
+
+- Latex font for matplotlib
+
+```python
+# LaTeX text fonts:
+# Use with raw strings: r"$\mathcal{O}(h^1)$"
+# plt.rc('text', usetex=True)
+# plt.rc('font', family='serif')
 ```
