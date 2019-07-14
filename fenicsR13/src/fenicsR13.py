@@ -64,20 +64,6 @@ df.parameters["ghost_mode"] = "shared_vertex"
 # **************************************************************************** #
 # Setup function spaces and shape functions
 # **************************************************************************** #
-def setup_function_spaces_heat(mesh_, deg_theta_, deg_s_):
-    "TODO"
-    c = mesh_.ufl_cell()
-
-    el_theta_ = df.FiniteElement("Lagrange", c, degree=deg_theta_)
-    el_s_ = df.VectorElement("Lagrange", c, degree=deg_s_)
-    el_mxd_ = df.MixedElement([el_theta_, el_s_])
-
-    v_theta_ = df.FunctionSpace(mesh_, el_theta_)
-    v_s_ = df.FunctionSpace(mesh_, el_s_)
-
-    w_ = df.FunctionSpace(mesh_, el_mxd_)
-    return (w_, v_theta_, v_s_)
-
 def setup_function_spaces_stress(mesh_, deg_p_, deg_u_, deg_sigma_):
     "TODO"
     c = mesh_.ufl_cell()
@@ -99,105 +85,6 @@ def setup_function_spaces_stress(mesh_, deg_p_, deg_u_, deg_sigma_):
 # **************************************************************************** #
 # Setup problem
 # **************************************************************************** #
-def setup_variational_form_heat(params, w_, v_scalar_, mesh_, mesh_bounds_):
-    """
-    xi_tilde normally d.sqrt(2/d.pi), but we use 1 that looks right
-    Note: Sign of a2 and l2 are correlated to sign of cip stabilization!!
-    Attention: We actually solve a 3D problem! Therefore adjust dev part
-    """
-
-    # Define trial and testfunction
-    (theta_, s_) = df.TrialFunctions(w_)
-    (kappa_, r_) = df.TestFunctions(w_)
-
-    # Define custom measeasure for boundaries
-    df.ds = df.Measure('ds', domain=mesh_, subdomain_data=mesh_bounds_)
-    df.dS = df.Measure('dS', domain=mesh_, subdomain_data=mesh_bounds_)
-
-    # Normal and tangential components
-    # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
-    n = df.FacetNormal(mesh_)
-    t = ufl.perp(n)
-    s_n = df.dot(s_, n)
-    r_n = df.dot(r_, n)
-    s_t = df.dot(s_, t)
-    r_t = df.dot(r_, t)
-
-    # Define source function
-    R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
-    phi = df.Expression("atan2(x[1],x[0])", degree=2)
-    f_str = "A0 + A2 * pow(R,2) + A1 * cos(phi)"
-    f = df.Expression(f_str, degree=2, R=R, phi=phi, A0=A0, A1=A1, A2=A2)
-    f_i = df.interpolate(f, v_scalar_)
-    f_i.rename('f_i', 'f_i')
-    file_f = df.File(output_folder + "f.pvd")
-    file_f.write(f_i)
-
-    def dev3d(mat):
-        "2d deviatoric part of actually 3d matrix"
-        return (
-            0.5 * (mat + ufl.transpose(mat))
-            - (1/3) * ufl.tr(mat) * ufl.Identity(2)
-        )
-
-    if system == 1:
-        a1 = (
-            + 12/5 * tau * df.inner(dev3d(df.grad(s_)), df.grad(r_))
-            + 2/3 * (1/tau) * df.inner(s_, r_)
-            - (5/2) * theta_ * df.div(r_)
-        ) * df.dx + (
-            + 5/(4*xi_tilde) * s_n * r_n
-            + 11/10 * xi_tilde * s_t * r_t
-        ) * df.ds
-        a2 = - (df.div(s_) * kappa_) * df.dx
-        # a2 = - (df.Constant(0) * kappa_) * df.dx
-        l1 = (- 5.0/2.0 * r_n * theta_w_outer * df.ds(3100)
-              - 5.0/2.0 * r_n * theta_w_inner * df.ds(3000))
-        l2 = - (f * kappa_) * df.dx
-        # l2 = - (df.Constant(0) * kappa_) * df.dx
-    elif system == 2:
-        a1 = (
-            tau * df.inner(dev3d(df.grad(s_)), df.grad(r_))
-            + (1/tau) * df.inner(s_, r_)
-            - theta_ * df.div(r_)
-        ) * df.dx + (
-            + 1/(xi_tilde) * s_n * r_n
-            + xi_tilde * s_t * r_t
-        ) * df.ds
-        a2 = - (df.div(s_) * kappa_) * df.dx
-        l1 = (-1 * r_n * theta_w_inner * df.ds(3000)
-              -1 * r_n * theta_w_outer * df.ds(3100))
-        l2 = - (f * kappa_) * df.dx
-    else:
-        raise Exception('system={} is undefined'.format(system))
-
-    if params["stabilization"]["cip"]["enable"]:
-        delta_1 = params["stabilization"]["cip"]["delta_1"]
-        # 1)
-        # h_avg = mesh_.hmax()
-        # 2)
-        h = df.CellDiameter(mesh_)
-        h_avg = (h('+') + h('-'))/2.0  # pylint: disable=not-callable
-        stab = - (delta_1 * h_avg**3 * df.jump(df.grad(theta_), n)
-                  * df.jump(df.grad(kappa_), n)) * df.dS
-    else:
-        stab = 0
-
-    a_ = a1 + a2 + stab
-    l_ = l1 + l2
-
-    if save_matrix:
-        np.savetxt("A.mat", df.assemble(a_).array())
-        # Use in matrix with:
-        # >> T = readtable("a.txt");
-        # >> M=table2array(T);
-        # >> spy(M);
-        # >> cond(M);
-        # >> det(M);
-        # >> svd(M);
-
-    return (a_, l_)
-
 def setup_variational_form_stress(w_, v_scalar_, mesh_, mesh_bounds_):
     """
     xi_tilde normally d.sqrt(2/d.pi), but we use 1 that looks right
@@ -315,39 +202,6 @@ def setup_variational_form_stress(w_, v_scalar_, mesh_, mesh_bounds_):
 # **************************************************************************** #
 # SOLVE THE SYSTEM
 # **************************************************************************** #
-# - d.solve(a == l, sol, bcs): PETSc is default but RAM limited in conda
-# **************************************************************************** #
-def solve_variational_formulation_heat(a_, l_, w, bcs_, plot_=False):
-    """
-    Available solvers:
-    solver_parameters={'linear_solver': 'gmres', 'preconditioner': 'ilu'}
-    solver_parameters={'linear_solver': 'petsc', 'preconditioner': 'ilu'}
-    solver_parameters={'linear_solver': 'direct'}
-    solver_parameters={'linear_solver': 'mumps'}
-    """
-
-    sol_ = df.Function(w)
-    df.solve(a_ == l_, sol_, bcs_, solver_parameters={'linear_solver': 'direct'})
-
-    (theta_, s_) = sol_.split()
-
-    # Write files
-    s_.rename('s', 's')
-    file_s = df.File(output_folder + "s.pvd")
-    file_s.write(s_)
-    theta_.rename('theta', 'theta')
-    file_theta = df.File(output_folder + "theta.pvd")
-    file_theta.write(theta_)
-
-    if plot_:
-        plt.figure()
-        df.plot(s_, title="s")
-        plt.figure()
-        df.plot(theta_, title="theta")
-        plt.show()
-
-    return (s_, theta_)
-
 def solve_variational_formulation_stress(a_, l_, w, bcs_, plot_=False):
     """
     Available solvers:
@@ -447,43 +301,6 @@ def get_exact_solution_stress(space0, space1, space2, mesh_):
 # **************************************************************************** #
 # SOLVE DECOUPLED HEAT SYSTEM
 # **************************************************************************** #
-def solve_system_heat():
-    "TODO"
-
-    params = Input("input.yml").dict
-    mesh_names = params["meshes"]
-
-    data = []
-
-    for p, mesh_name in enumerate(mesh_names):
-
-        mesh_name = mesh_names[p]
-
-        # setup and solve problem
-        current_mesh = meshes.H5Mesh(mesh_name)
-        (w, v_theta, v_s) = setup_function_spaces_heat(current_mesh.mesh, deg_theta, deg_s)
-        (a, l) = setup_variational_form_heat(params, w, v_theta, current_mesh.mesh, current_mesh.boundaries)
-        (s, theta) = solve_variational_formulation_heat(a, l, w, [])
-        (s_e, theta_e) = get_exact_solution_heat()
-
-        # calc errors
-        (f_l2_s, v_linf_s) = calc_vectorfield_errors(
-            s, s_e, v_s, current_mesh.mesh, "s", p)
-        (f_l2_theta, v_linf_theta) = calc_scalarfield_errors(
-            theta, theta_e, v_theta, "theta", p)
-
-        # store errors
-        data.append({
-            "h": current_mesh.mesh.hmax(),
-            "theta": {"L_2": f_l2_theta, "l_inf": v_linf_theta},
-            "sx": {"L_2": f_l2_s[0], "l_inf": v_linf_s[0]},
-            "sy": {"L_2": f_l2_s[1], "l_inf": v_linf_s[1]}
-        })
-
-    # plot errors
-    if plot_conv_rates:
-        plot_errrorsNew(data)
-# ------------------------------------------------------------------------------
 def solve_system_stress():
     "TODO"
 
@@ -525,9 +342,8 @@ def solve_system_stress():
 # **************************************************************************** #
 
 
-
-def solve_system_heat_new():
-    "Solves the heat system"
+if __name__ == '__main__':
+    "The main program"
 
     params = Input("input.yml").dict
     mesh_names = params["meshes"]
@@ -577,14 +393,3 @@ def solve_system_heat_new():
         postp.write_errors()
         if plot:
             postp.plot_errors()
-
-# **************************************************************************** #
-# MAIN
-# **************************************************************************** #
-if __name__ == '__main__':
-    solve_system_heat_new()
-
-    if False:
-        solve_system_heat()
-        solve_system_stress()
-# **************************************************************************** #
