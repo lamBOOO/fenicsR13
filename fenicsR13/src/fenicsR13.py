@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # pylint: disable=invalid-name
+# pylint: disable=unsubscriptable-object
 
 """
 Program to solve the decoupled (removed coupling term) heat system of the
@@ -18,8 +19,6 @@ import meshes
 from input import Input
 from solver import Solver
 from postprocessor import Postprocessor
-
-
 
 
 # **************************************************************************** #
@@ -337,27 +336,58 @@ if __name__ == '__main__':
         if convergence_study:
 
             solver.load_exact_solution()
-            # solver.calc_errors()
+            solver.calc_errors()
 
-            # errors = solver.errors
-            # data.append({
-            #     "h": current_mesh.mesh.hmax(),
-            #     "theta": {
-            #         "L_2": errors["f"]["l2"]["theta"],
-            #         "l_inf": errors["v"]["linf"]["theta"],
-            #     },
-            #     "sx": {
-            #         "L_2": errors["f"]["l2"]["s"][0],
-            #         "l_inf": errors["v"]["linf"]["s"][0],
-            #     },
-            #     "sy": {
-            #         "L_2": errors["f"]["l2"]["s"][1],
-            #         "l_inf": errors["v"]["linf"]["s"][1],
-            #     }
-            # })
+            errors = solver.errors
 
-            # if p == len(mesh_names)-1:
-            #     postp = Postprocessor(data)
-            #     postp.write_errors()
-            #     if plot:
-            #         postp.plot_errors()
+            if params["mode"] == "heat":
+                # FIXME: Resolve this if statement proberly
+                data.append({
+                    "h": current_mesh.mesh.hmax(),
+                    "theta": {
+                        "L_2": errors["f"]["l2"]["theta"],
+                        "l_inf": errors["v"]["linf"]["theta"],
+                    },
+                    "sx": {
+                        "L_2": errors["f"]["l2"]["s"][0],
+                        "l_inf": errors["v"]["linf"]["s"][0],
+                    },
+                    "sy": {
+                        "L_2": errors["f"]["l2"]["s"][1],
+                        "l_inf": errors["v"]["linf"]["s"][1],
+                    },
+                })
+            elif params["mode"] == "stress":
+                data.append({
+                    "h": current_mesh.mesh.hmax(),
+                    "p": {
+                        "L_2": errors["f"]["l2"]["p"],
+                        "l_inf": errors["v"]["linf"]["p"],
+                    },
+                    "ux": {
+                        "L_2": errors["f"]["l2"]["u"][0],
+                        "l_inf": errors["v"]["linf"]["u"][0],
+                    },
+                    "uy": {
+                        "L_2": errors["f"]["l2"]["u"][1],
+                        "l_inf": errors["v"]["linf"]["u"][1],
+                    },
+                    "sigmaxx": {
+                        "L_2": errors["f"]["l2"]["sigma"][0],
+                        "l_inf": errors["v"]["linf"]["sigma"][0],
+                    },
+                    "sigmaxy": {
+                        "L_2": errors["f"]["l2"]["sigma"][1],
+                        "l_inf": errors["v"]["linf"]["sigma"][1],
+                    },
+                    "sigmayy": {
+                        "L_2": errors["f"]["l2"]["sigma"][2],
+                        "l_inf": errors["v"]["linf"]["sigma"][2],
+                    }
+                })
+
+            if p == len(mesh_names)-1: # after last mesh
+                postp = Postprocessor(data)
+                postp.write_errors()
+                if plot:
+                    postp.plot_errors()

@@ -345,13 +345,13 @@ class Solver:
     def calc_errors(self):
         "Calculate errors"
 
-        def calc_scalarfield_errors(sol_, sol_e_, v_theta_, name_):
+        def calc_scalarfield_errors(sol_, sol_e_, v_sol, name_):
             "TODO"
 
-            field_e_i = df.interpolate(sol_e_, v_theta_)
-            field_i = df.interpolate(sol_, v_theta_)
+            field_e_i = df.interpolate(sol_e_, v_sol)
+            field_i = df.interpolate(sol_, v_sol)
 
-            difference = df.project(sol_e_ - sol_, v_theta_)
+            difference = df.project(sol_e_ - sol_, v_sol)
             self.write_xdmf("difference_{}".format(name_), difference)
 
             err_f_L2 = df.errornorm(sol_e_, sol_, "L2")
@@ -366,21 +366,45 @@ class Solver:
         def calc_vectorfield_errors(sol_, sol_e_, v_sol, name_):
             "TODO"
 
-            # Vector values functions interpolated
             field_e_i = df.interpolate(sol_e_, v_sol)
             field_i = df.interpolate(sol_, v_sol)
 
             difference = df.project(sol_e_ - sol_, v_sol)
             self.write_xdmf("difference_{}".format(name_), difference)
 
-            dim = field_i.geometric_dimension()
+            dofs = len(field_e_i.split())
             errs_f_L2 = [df.errornorm(
                 field_e_i.split()[i], field_i.split()[i], "L2"
-            ) for i in range(dim)] # ignore warning
+            ) for i in range(dofs)] # ignore warning
             errs_v_linf = [df.norm(
                 field_e_i.split()[i].vector()
                 -field_i.split()[i].vector(), "linf"
-            ) for i in range(dim)]
+            ) for i in range(dofs)]
+            print("L_2 error:", errs_f_L2)
+            print("l_inf error:", errs_v_linf)
+
+            self.write_xdmf(name_ + "_e", field_e_i)
+
+            return (errs_f_L2, errs_v_linf)
+
+        def calc_tensorfield_errors(sol_, sol_e_, v_sol, name_):
+            "TODO"
+
+            field_e_i = df.interpolate(sol_e_, v_sol)
+            field_i = df.interpolate(sol_, v_sol)
+
+            difference = df.project(sol_e_ - sol_, v_sol)
+            self.write_xdmf("difference_{}".format(name_), difference)
+
+            dofs = len(field_e_i.split())
+            errs_f_L2 = [df.errornorm(
+                field_e_i.split()[i], field_i.split()[i], "L2"
+            ) for i in range(dofs)] # ignore warning
+            errs_v_linf = [df.norm(
+                # FIXME: Is the same for all components 0_0
+                field_e_i.split()[i].vector()
+                -field_i.split()[i].vector(), "linf"
+            ) for i in range(dofs)]
             print("L_2 error:", errs_f_L2)
             print("l_inf error:", errs_v_linf)
 
@@ -389,42 +413,42 @@ class Solver:
             return (errs_f_L2, errs_v_linf)
 
         if self.mode == "heat":
-            ve = calc_vectorfield_errors(
-                self.sol["s"], self.esol["s"],
-                self.fspaces["s"], "s"
-            )
             se = calc_scalarfield_errors(
                 self.sol["theta"], self.esol["theta"],
                 self.fspaces["theta"], "theta"
             )
+            ve = calc_vectorfield_errors(
+                self.sol["s"], self.esol["s"],
+                self.fspaces["s"], "s"
+            )
             f_l2 = self.errors["f"]["l2"]
             v_linf = self.errors["v"]["linf"]
-            (f_l2["s"], v_linf["s"]) = ve
             (f_l2["theta"], v_linf["theta"]) = se
+            (f_l2["s"], v_linf["s"]) = ve
+        if self.mode == "stress":
+            se = calc_scalarfield_errors(
+                self.sol["p"], self.esol["p"],
+                self.fspaces["p"], "p"
+            )
+            ve = calc_vectorfield_errors(
+                self.sol["u"], self.esol["u"],
+                self.fspaces["u"], "u"
+            )
+            te = calc_tensorfield_errors(
+                self.sol["sigma"], self.esol["sigma"],
+                self.fspaces["sigma"], "sigma"
+            )
+            f_l2 = self.errors["f"]["l2"]
+            v_linf = self.errors["v"]["linf"]
+            (f_l2["p"], v_linf["p"]) = se
+            (f_l2["u"], v_linf["u"]) = ve
+            (f_l2["sigma"], v_linf["sigma"]) = te
 
     def write_solutions(self):
         "Write Solutions"
         sols = self.sol
         for field in sols:
             if sols[field] is not None:
-
-                # Writing symmetric tensors crashes.
-                # Therefore project symmetric tensor in nonsymmetric space
-                # This is only a temporary fix, see:
-                # https://fenicsproject.discourse.group/t/...
-                # ...writing-symmetric-tensor-function-fails/1136
-                el_symm = df.TensorElement(
-                    df.FiniteElement('Lagrange', df.triangle, 1), symmetry=True
-                ) # check for symmetric tensors
-                el_sol = sols[field].ufl_function_space().ufl_element()
-                if el_sol == el_symm:
-                    # Remove symmetry with projection
-                    sols[field] = df.project(
-                        sols[field], df.TensorFunctionSpace(
-                            self.mesh, "Lagrange", 1
-                        )
-                    )
-
                 self.write_xdmf(field, sols[field])
 
     def write_parameters(self):
@@ -454,8 +478,26 @@ class Solver:
     def write_xdmf(self, name, field):
         "Writes a renamed field to XDMF format"
         filename = self.output_folder + name + "_" + str(self.time) + ".xdmf"
-        field.rename(name, name)
         with df.XDMFFile(self.mesh.mpi_comm(), filename) as file:
+
+            # Writing symmetric tensors crashes.
+            # Therefore project symmetric tensor in nonsymmetric space
+            # This is only a temporary fix, see:
+            # https://fenicsproject.discourse.group/t/...
+            # ...writing-symmetric-tensor-function-fails/1136
+            el_symm = df.TensorElement(
+                df.FiniteElement('Lagrange', df.triangle, 1), symmetry=True
+            ) # symmetric tensor element
+            el_sol = field.ufl_function_space().ufl_element()
+            if el_sol == el_symm:
+                # Remove symmetry with projection
+                field = df.project(
+                    field, df.TensorFunctionSpace(
+                        self.mesh, "Lagrange", 1
+                    )
+                )
+
+            field.rename(name, name)
             file.write(field, self.time)
 
     def extract_matrix(self):
