@@ -7,6 +7,10 @@ meshes:
   - ../mesh/ring1.h5
   - ../mesh/ring2.h5
   - ../mesh/ring3.h5
+  - ../mesh/ring4.h5
+  - ../mesh/ring5.h5
+  - ../mesh/ring6.h5
+  # - ../mesh/ring7.h5 # over 8GB memory usage
 
 # Stabilization
 # =============

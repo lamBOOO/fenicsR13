@@ -4,6 +4,7 @@
 
 import dolfin as df
 import ufl
+import numpy as np
 
 class Solver:
     "Solver class"
@@ -376,10 +377,15 @@ class Solver:
             errs_f_L2 = [df.errornorm(
                 field_e_i.split()[i], field_i.split()[i], "L2"
             ) for i in range(dofs)] # ignore warning
-            errs_v_linf = [df.norm(
-                field_e_i.split()[i].vector()
-                -field_i.split()[i].vector(), "linf"
-            ) for i in range(dofs)]
+            errs_v_linf = [
+                np.max(
+                    np.abs(
+                        field_e_i.split()[i].compute_vertex_values()
+                        - field_i.split()[i].compute_vertex_values()
+                    )
+                )
+                for i in range(dofs)
+            ]
             print("L_2 error:", errs_f_L2)
             print("l_inf error:", errs_v_linf)
 
@@ -400,11 +406,15 @@ class Solver:
             errs_f_L2 = [df.errornorm(
                 field_e_i.split()[i], field_i.split()[i], "L2"
             ) for i in range(dofs)] # ignore warning
-            errs_v_linf = [df.norm(
-                # FIXME: Is the same for all components 0_0
-                field_e_i.split()[i].vector()
-                -field_i.split()[i].vector(), "linf"
-            ) for i in range(dofs)]
+            errs_v_linf = [
+                np.max(
+                    np.abs(
+                        field_e_i.split()[i].compute_vertex_values()
+                        - field_i.split()[i].compute_vertex_values()
+                    )
+                )
+                for i in range(dofs)
+            ]
             print("L_2 error:", errs_f_L2)
             print("l_inf error:", errs_v_linf)
 
