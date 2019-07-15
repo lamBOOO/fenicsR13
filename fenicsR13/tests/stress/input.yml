@@ -52,8 +52,8 @@ mass_source: 2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(1
 
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
-  enable: False
-  exact_solution: exact_solution_heat.cpp
+  enable: True
+  exact_solution: exact_solution_stress.cpp
   plot: True
 
 # Output folder for vtu files

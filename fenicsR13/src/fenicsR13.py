@@ -321,6 +321,8 @@ if __name__ == '__main__':
 
     for p, mesh_name in enumerate(mesh_names):
 
+        print("Mesh: " + mesh_name)
+
         mesh_name = mesh_names[p]
 
         current_mesh = meshes.H5Mesh(mesh_name)
@@ -335,27 +337,27 @@ if __name__ == '__main__':
         if convergence_study:
 
             solver.load_exact_solution()
-            solver.calc_errors()
+            # solver.calc_errors()
 
-            errors = solver.errors
-            data.append({
-                "h": current_mesh.mesh.hmax(),
-                "theta": {
-                    "L_2": errors["f"]["l2"]["theta"],
-                    "l_inf": errors["v"]["linf"]["theta"],
-                },
-                "sx": {
-                    "L_2": errors["f"]["l2"]["s"][0],
-                    "l_inf": errors["v"]["linf"]["s"][0],
-                },
-                "sy": {
-                    "L_2": errors["f"]["l2"]["s"][1],
-                    "l_inf": errors["v"]["linf"]["s"][1],
-                }
-            })
+            # errors = solver.errors
+            # data.append({
+            #     "h": current_mesh.mesh.hmax(),
+            #     "theta": {
+            #         "L_2": errors["f"]["l2"]["theta"],
+            #         "l_inf": errors["v"]["linf"]["theta"],
+            #     },
+            #     "sx": {
+            #         "L_2": errors["f"]["l2"]["s"][0],
+            #         "l_inf": errors["v"]["linf"]["s"][0],
+            #     },
+            #     "sy": {
+            #         "L_2": errors["f"]["l2"]["s"][1],
+            #         "l_inf": errors["v"]["linf"]["s"][1],
+            #     }
+            # })
 
-    if convergence_study:
-        postp = Postprocessor(data)
-        postp.write_errors()
-        if plot:
-            postp.plot_errors()
+            # if p == len(mesh_names)-1:
+            #     postp = Postprocessor(data)
+            #     postp.write_errors()
+            #     if plot:
+            #         postp.plot_errors()

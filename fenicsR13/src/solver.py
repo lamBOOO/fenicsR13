@@ -66,6 +66,9 @@ class Solver:
         self.sol = {
             "theta": None,
             "s": None,
+            "p": None,
+            "u": None,
+            "sigma": None,
         }
         self.esol = {
             "theta": None,
@@ -319,6 +322,24 @@ class Solver:
 
             self.esol["s"] = df.CompiledExpression(
                 esol.Heatflux(), degree=2
+            )
+        if self.mode == "stress":
+
+            with open(self.exact_solution, "r") as file:
+                exact_solution_cpp_code = file.read()
+
+            esol = df.compile_cpp_code(exact_solution_cpp_code)
+
+            self.esol["p"] = df.CompiledExpression(
+                esol.Pressure(), degree=2
+            )
+
+            self.esol["u"] = df.CompiledExpression(
+                esol.Velocity(), degree=2
+            )
+
+            self.esol["sigma"] = df.CompiledExpression(
+                esol.Stress(), degree=2
             )
 
     def calc_errors(self):
