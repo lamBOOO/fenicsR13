@@ -293,6 +293,16 @@ class Solver:
             )
 
             (self.sol["theta"], self.sol["s"]) = sol.split()
+        elif self.mode == "stress":
+
+            w = self.mxd_fspaces["stress"]
+            sol = df.Function(w)
+            df.solve(
+                self.form_a == self.form_b, sol, [],
+                solver_parameters={"linear_solver": "direct"}
+            )
+
+            (self.sol["p"], self.sol["u"], self.sol["sigma"]) = sol.split()
 
     def load_exact_solution(self):
         "Writes exact solution"
@@ -375,7 +385,26 @@ class Solver:
         "Write Solutions"
         sols = self.sol
         for field in sols:
-            self.write_xdmf(field, sols[field])
+            if sols[field] is not None:
+
+                # Writing symmetric tensors crashes.
+                # Therefore project symmetric tensor in nonsymmetric space
+                # This is only a temporary fix, see:
+                # https://fenicsproject.discourse.group/t/...
+                # ...writing-symmetric-tensor-function-fails/1136
+                el_symm = df.TensorElement(
+                    df.FiniteElement('Lagrange', df.triangle, 1), symmetry=True
+                ) # check for symmetric tensors
+                el_sol = sols[field].ufl_function_space().ufl_element()
+                if el_sol == el_symm:
+                    # Remove symmetry with projection
+                    sols[field] = df.project(
+                        sols[field], df.TensorFunctionSpace(
+                            self.mesh, "Lagrange", 1
+                        )
+                    )
+
+                self.write_xdmf(field, sols[field])
 
     def write_parameters(self):
         "Write Parameters: Heat source or Mass Source"
