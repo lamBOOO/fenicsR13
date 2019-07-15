@@ -1,1 +1,1 @@
-# Decoupled Stress System Convergence Testcase
+# Decoupled Heat System Convergence Testcase

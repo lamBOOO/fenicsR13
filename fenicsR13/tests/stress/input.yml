@@ -1,0 +1,60 @@
+# Meshes
+# ======
+# Input files in h5 format.
+# List containing one or more meshes to perform simulation on.
+meshes:
+  - ../mesh/ring0.h5
+  - ../mesh/ring1.h5
+  - ../mesh/ring2.h5
+  - ../mesh/ring3.h5
+
+# Stabilization
+# =============
+# - continous interior penalty (cip) with three parameters delta_i
+stabilization:
+  cip:
+    enable: True
+    delta_1: 1.0
+    delta_2: 1.0
+    delta_3: 0.1
+
+# Formulation Parameters
+# ======================
+
+# Number of spatial dimensions, currently only two-dimensional.
+nsd: 2
+
+# heat, stress, coupled
+mode: "stress"
+
+# Coefficients as in westerkamp2019 or without as in torrilhon2017
+use_coeffs: True
+
+# Knudsen number
+tau: 0.1
+
+# Refaction coefficient
+xi_tilde: 1.0
+
+# Wall temperatures
+theta_w_inner: 1.0
+theta_w_outer: 0.5
+
+# Wall slip (tangential) velocities
+v_t_inner: 10.0
+v_t_outer: 0.0
+
+# heat source
+heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
+
+# mass source
+mass_source: 2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(18.0*0.1)) * std::cos(atan2(x[1],x[0]))
+
+# Perform convergence study on given set of meshes with exact solution
+convergence_study:
+  enable: False
+  exact_solution: exact_solution_heat.cpp
+  plot: True
+
+# Output folder for vtu files
+output_folder: results/
