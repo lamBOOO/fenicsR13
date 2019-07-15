@@ -279,7 +279,7 @@ class Solver:
                 stab = 0
 
             self.form_a = a1 + a2 + a3 + stab
-            self.form_a = l1 + l2 + l3
+            self.form_b = l1 + l2 + l3
 
     def solve(self):
         "Solves the system"
