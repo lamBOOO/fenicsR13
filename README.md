@@ -101,5 +101,8 @@ print(cwd)
 ```
 
 ## Gitlab CI
-- In `~/.gitlab-runner/config.toml~, change priviliges to ~true~
+- In `~/.gitlab-runner/config.toml`(for the runner):
+  - change priviliges to ~true~
+  - Use local images: `pull_policy = "if-not-present"`
 - Run local: `gitlab-runner exec docker --docker-privileged build` or with `build` replaced by job name
+  - maybe local vars have to be change to use local Docker images because `CI_REGISTRY`,... are not set
