@@ -1,28 +1,34 @@
- image: docker:stable
+build:
+  stage: build
+  image: docker:stable
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+  services:
+    - docker:dind # docker in docker
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:latest || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE:latest
+  when: manual # skip 15min, but has to be done manually if Dockerfile changes
 
- variables:
+.test: # dot means "hidden"
+  stage: test
+  image:
+    name: $CI_REGISTRY_IMAGE:latest # use prebuilt image in Gitlab's registry
+    entrypoint: [""] # == Repo. Has to be done if Dockerfile has own entrypoint
 
- services:
-   - docker:dind
+test:convergence:heat:
+  extends: .test
+  script:
+    - cd ${TEST_DIRECTORY}/heat
+    - ./run.sh
 
- before_script:
-   - docker info
-
- build:
-   stage: build
-   script:
-     - docker build -t fenics .
-     
- test_convergence_heat:
-    stage: test
-    script:
-     - docker run fenics
-     - cd fenicsR13/tests/heat
-     - ls
-          
- test_convergence_stress:
-    stage: test
-    script:
-     - docker run fenics
-     - cd fenicsR13/tests/stress
-     - ls
+test:convergence:stress:
+  extends: .test
+  script:
+    - cd ${TEST_DIRECTORY}/stress
+    - ./run.sh

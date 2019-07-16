@@ -96,3 +96,7 @@ print(cwd)
 # plt.rc('text', usetex=True)
 # plt.rc('font', family='serif')
 ```
+
+## Gitlab CI
+- In `~/.gitlab-runner/config.toml~, change priviliges to ~true~
+- Run local: `gitlab-runner exec docker --docker-privileged build` or with `build` replaced by job name
