@@ -1,3 +1,7 @@
+# **************************************************************************** #
+# build
+# **************************************************************************** #
+
 build:
   stage: build
   image: docker:stable
@@ -15,7 +19,11 @@ build:
     - docker push $CI_REGISTRY_IMAGE:latest
   when: manual # skip 15min, but has to be done manually if Dockerfile changes
 
-.test: # dot means "hidden"
+# **************************************************************************** #
+# test
+# **************************************************************************** #
+
+.test: # dot means "hidden", acts as base class
   stage: test
   image:
     name: $CI_REGISTRY_IMAGE:latest # use prebuilt image in Gitlab's registry
@@ -25,10 +33,4 @@ test:convergence:heat:
   extends: .test
   script:
     - cd ${TEST_DIRECTORY}/heat
-    - ./run.sh
-
-test:convergence:stress:
-  extends: .test
-  script:
-    - cd ${TEST_DIRECTORY}/stress
-    - ./run.sh
+    - ./run_test.sh
