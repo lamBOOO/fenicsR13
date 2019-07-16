@@ -58,7 +58,7 @@ mass_source: 2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(1
 convergence_study:
   enable: True
   exact_solution: exact_solution_heat.cpp
-  plot: True
+  plot: False # to avoid error exit code due to $DISPLAY
 
 # Output folder for vtu files
 output_folder: results/
