@@ -1,0 +1,26 @@
+ image: docker:stable
+
+ variables:
+
+ services:
+   - docker:dind
+
+ before_script:
+   - docker info
+
+ build:
+   stage: build
+   script:
+     - docker build -t fenics .
+     
+ test_convergence_heat:
+    stage: test
+     - docker run fenics
+     - cd fenicsR13/tests/heat
+     - ls
+          
+ test_convergence_stress:
+    stage: test
+     - docker run fenics
+     - cd fenicsR13/tests/stress
+     - ls
