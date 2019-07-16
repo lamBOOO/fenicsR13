@@ -15,12 +15,14 @@
      
  test_convergence_heat:
     stage: test
+    script:
      - docker run fenics
      - cd fenicsR13/tests/heat
      - ls
           
  test_convergence_stress:
     stage: test
+    script:
      - docker run fenics
      - cd fenicsR13/tests/stress
      - ls
