@@ -7,7 +7,15 @@ import ufl
 import numpy as np
 
 class Solver:
-    "Solver class"
+    """
+    Solver class
+
+    Assembles and solves the linear system
+
+    .. math::
+        \mathbf{A} \mathbf{x} = \mathbf{b}
+
+    """
     def __init__(self, params, mesh, time):
         "Initializes solver"
         self.params = params

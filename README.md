@@ -5,7 +5,20 @@
 [![pipeline status](https://git.rwth-aachen.de/lambert.theisen/gasdynamicsfem/badges/master/pipeline.svg)](https://git.rwth-aachen.de/lambert.theisen/gasdynamicsfem/commits/master)
 [![coverage report](https://git.rwth-aachen.de/lambert.theisen/gasdynamicsfem/badges/master/coverage.svg)](https://git.rwth-aachen.de/lambert.theisen/gasdynamicsfem/commits/master)<center></center>
 
+`#extendedGasDynamics` `#using` `#FEniCS`
+
 Repository for Master thesis project regarding FEM simulations for non-equilibrium gas dynamics.
+
+## Documentation
+
+1. Generate the documentation files manually:
+```
+cd docs
+sphinx-apidoc -o source/ ../src
+make html
+# open _build/html/index.html
+````
+2. Download artifacts from Gitlab's CI doc stage
 
 ## Usage with Docker
 
@@ -115,3 +128,4 @@ print(sys.path)
   - Use local images: `pull_policy = "if-not-present"`
 - Run local: `gitlab-runner exec docker --docker-privileged build` or with `build` replaced by job name
   - maybe local vars have to be change to use local Docker images because `CI_REGISTRY`,... are not set
+

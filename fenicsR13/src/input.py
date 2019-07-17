@@ -5,7 +5,7 @@ import yaml
 from cerberus import Validator
 
 class Input:
-    "Class to store input data as dict"
+    "Class to handle the input YAML file."
 
     def __init__(self, yaml_file):
         with open(yaml_file, "r") as stream:

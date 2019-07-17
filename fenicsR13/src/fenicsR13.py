@@ -16,7 +16,8 @@ from input import Input
 from solver import Solver
 from postprocessor import Postprocessor
 
-if __name__ == '__main__':
+def main():
+    "Main Program"
 
     # Dolfin settings
     df.set_log_level(100) # 1: all logs
@@ -105,3 +106,6 @@ if __name__ == '__main__':
                 postp.write_errors()
                 if plot:
                     postp.plot_errors()
+
+if __name__ == '__main__':
+    main()
