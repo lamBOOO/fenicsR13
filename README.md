@@ -1,4 +1,4 @@
-<p align="center"><img src="logo.svg" height=200px ></p>
+<p align="center"><img src="media/logo.png" height=200px ></p>
 
 <div align="center">
 [![pipeline status](https://git.rwth-aachen.de/lambert.theisen/gasdynamicsfem/badges/master/pipeline.svg)](https://git.rwth-aachen.de/lambert.theisen/gasdynamicsfem/commits/master)
