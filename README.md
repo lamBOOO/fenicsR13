@@ -17,8 +17,12 @@ cd docs
 sphinx-apidoc -o source/ ../src
 make html
 # open _build/html/index.html
-````
-2. Download artifacts from Gitlab's CI doc stage
+```
+2. Download pre-created artifacts from Gitlab's CI doc stage
+
+## Installation
+
+TODO
 
 ## Usage with Docker
 
