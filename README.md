@@ -1,4 +1,4 @@
-<img src="logo.png" align="right">
+<p align="left"><img src="logo.png" height=100px ></p>
 
 # gasDynamicsFEM
 
