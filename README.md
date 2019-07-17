@@ -1,7 +1,9 @@
+<img src="logo.png" align="right">
+
 # gasDynamicsFEM
 
 [![pipeline status](https://git.rwth-aachen.de/lambert.theisen/gasdynamicsfem/badges/master/pipeline.svg)](https://git.rwth-aachen.de/lambert.theisen/gasdynamicsfem/commits/master)
-[![coverage report](https://git.rwth-aachen.de/lambert.theisen/gasdynamicsfem/badges/master/coverage.svg)](https://git.rwth-aachen.de/lambert.theisen/gasdynamicsfem/commits/master)
+[![coverage report](https://git.rwth-aachen.de/lambert.theisen/gasdynamicsfem/badges/master/coverage.svg)](https://git.rwth-aachen.de/lambert.theisen/gasdynamicsfem/commits/master)<center></center>
 
 Repository for Master thesis project regarding FEM simulations for non-equilibrium gas dynamics.
 
