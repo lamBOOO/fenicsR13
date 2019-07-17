@@ -14,5 +14,5 @@ def test_heat_convergence():
 
     # Check against reference errors, return exception if diff returns with !=0
     subprocess.check_call([
-        "diff", "-u", "errors.csv", "errors_ref.csv"
+        "diff", "-u", "--strip-trailing-cr", "errors.csv", "errors_ref.csv"
     ], cwd="tests/heat")
