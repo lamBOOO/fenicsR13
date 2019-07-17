@@ -15,6 +15,10 @@ class Solver:
     .. math::
         \mathbf{A} \mathbf{x} = \mathbf{b}
 
+    :ivar params: parameter dict
+    :ivar mesh: Dolfin mesh
+    :ivar cell: ufl_cell() for internal usage
+
     """
     def __init__(self, params, mesh, time):
         "Initializes solver"

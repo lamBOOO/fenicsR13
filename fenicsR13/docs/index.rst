@@ -1,3 +1,4 @@
+=============================================
 fenicsR13: Extended gas dynamics using FEniCS
 =============================================
 
@@ -11,8 +12,11 @@ Release v\ |release|.
 
 .. note:: This is still work in progress.
 
+.. include::
+    ../../CHANGELOG.rst
+
 Sourcecode
-----------
+==========
 .. toctree::
     :maxdepth: 3
     :numbered:
@@ -20,7 +24,7 @@ Sourcecode
     source/modules.rst
 
 Indices and Tables
-------------------
+==========
 .. toctree::
     :maxdepth: 2
     :numbered:
