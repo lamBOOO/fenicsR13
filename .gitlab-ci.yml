@@ -3,11 +3,13 @@ variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
   APP_DIRECTORY: fenicsR13
+  DOCS_DIRECTORY: ${APP_DIRECTORY}/doc
 services:
 - docker:dind # docker in docker
 stages:
 - build
 - test
+- deploy
 
 # **************************************************************************** #
 # build
@@ -43,3 +45,21 @@ test:convergence:heat:
   script:
   - cd ${APP_DIRECTORY}
   - pytest --cov= --cov-report=term --cov-report=html
+
+# **************************************************************************** #
+# build
+# **************************************************************************** #
+
+doc:
+  stage: deploy
+  image:
+    name: $CI_REGISTRY_IMAGE:latest
+    entrypoint: [""]
+  script:
+  - cd ${DOCS_DIRECTORY}
+  - sphinx-apidoc -o source/ ../src
+  - make html
+  artifacts:
+    paths:
+    - ${DOCS_DIRECTORY}/_build
+    expire_in: 6 month
