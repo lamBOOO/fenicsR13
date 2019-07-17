@@ -25,3 +25,6 @@
 # ignore covergae internal files and output
 *.coverage
 *htmlcov
+
+# ignore Sphinx documentation output
+*_build
