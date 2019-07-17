@@ -2,9 +2,12 @@ image: docker:stable
 variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
-  TEST_DIRECTORY: fenicsR13/test
+  APP_DIRECTORY: fenicsR13
 services:
-  - docker:dind # docker in docker
+- docker:dind # docker in docker
+stages:
+- build
+- test
 
 # **************************************************************************** #
 # build
@@ -13,13 +16,13 @@ services:
 build:
   stage: build
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker pull $CI_REGISTRY_IMAGE:latest || true
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE:latest
-  when: manual # skip 15min, but has to be done manually if Dockerfile changes
+  - docker pull $CI_REGISTRY_IMAGE:latest || true
+  - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
+  # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA # no need
+  - docker push $CI_REGISTRY_IMAGE:latest
+  when: manual # skips 15min, but has to be done manually if Dockerfile changes
 
 # **************************************************************************** #
 # test
@@ -30,9 +33,13 @@ build:
   image:
     name: $CI_REGISTRY_IMAGE:latest # use prebuilt image in Gitlab's registry
     entrypoint: [""] # == Repo. Has to be done if Dockerfile has own entrypoint
+  artifacts:
+    paths:
+    - ${APP_DIRECTORY}/htmlcov
+    expire_in: 1 week
 
 test:convergence:heat:
   extends: .test
   script:
-    - cd ${TEST_DIRECTORY}/heat
-    - ./run_test.sh
+  - cd ${APP_DIRECTORY}
+  - pytest --cov= --cov-report=term --cov-report=html
