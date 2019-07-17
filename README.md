@@ -23,7 +23,7 @@ It is convenient to use a Jupyter sever or a X11 forwarding.
 ### Interactive Jupyter Notebooks with Microsoft's Visual Studio Code
 
 This is the most convenient solution. A tutorial will follow.
-Run a file with `%run ../../src/fenicsR13.py`
+Run a file with `%run ../../src/fenicsr13.py`
 
 ### X11 Window Forwarding on OSX
 
@@ -98,6 +98,13 @@ print(cwd)
 # Use with raw strings: r"$\mathcal{O}(h^1)$"
 # plt.rc('text', usetex=True)
 # plt.rc('font', family='serif')
+```
+
+- Get system path where modules are searched:
+
+```
+import sys
+print(sys.path)
 ```
 
 ## Gitlab CI
