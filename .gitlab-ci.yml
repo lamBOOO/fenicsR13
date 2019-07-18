@@ -57,7 +57,9 @@ pages:
     entrypoint: [""]
   script:
   - cd ${DOCS_DIRECTORY}
-  - sphinx-apidoc -o source/ ../src
+  - sphinx-apidoc -o source/src ../src
+  - sphinx-apidoc -o source/tests/heat ../tests/heat
+  - sphinx-apidoc -o source/tests/stress ../tests/stress
   - make html
   - mv _build/html/ ${CI_PROJECT_DIR}/public/
   artifacts:

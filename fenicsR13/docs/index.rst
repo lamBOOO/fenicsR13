@@ -15,4 +15,6 @@ Contents
 
 .. toctree::
 
-    source/modules.rst
+    source/src/modules.rst
+    source/tests/heat/modules.rst
+    source/tests/stress/modules.rst
