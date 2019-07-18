@@ -161,7 +161,8 @@ Contact
 
 .. image:: ./media/mathcces.png
     :width: 400px
-    :alt: logo
+    :alt: mathcces
+    :target: http://www.mathcces.rwth-aachen.de
 
 :Author:
     | Lambert Theisen

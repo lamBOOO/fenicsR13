@@ -65,5 +65,8 @@ latex_logo = "../../logo.png"
 html_theme_options = {
     'sidebar_collapse': False,
     'description': "Release v{}<br>Extended gas dynamics using FEniCS platform.".format(release),
-    "touch_icon": "../../logo.png"
+    "touch_icon": "../../../logo.png",
+    "fixed_sidebar": True,
+    "note_bg": "#FFF59C",
+    "show_relbars": False,
 }
