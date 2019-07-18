@@ -60,3 +60,8 @@ html_static_path = ['_static']
 
 html_logo = "../../logo.png"
 latex_logo = "../../logo.png"
+
+html_theme_options = {
+    'sidebar_collapse': False,
+    'description': "Extended gas dynamics using FEniCS platform.",
+}
