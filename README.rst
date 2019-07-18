@@ -4,9 +4,8 @@
 
 .. inclusion-marker
 
-==============
 gasDynamicsFEM
-==============
+================================================================================
 
 |pipeline| |coverage|
 
@@ -16,22 +15,23 @@ gasDynamicsFEM
   non-equilibrium gas dynamics.
 
 Installation
-============
+--------------------------------------------------------------------------------
 
 It is recommended to use the program within a Docker container.
 
 Docker
-------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Install `Docker Desktop`_ for your OS.
 
 .. _`Docker Desktop`: https://www.docker.com/products/docker-desktop
 
-.. code-block:: bash
+.. code-block:: console
 
     # build and run fenics service
     docker-compose build fenics
     docker-compose run fenics
+
     # Execute some examples
     cd fenicsR13/examples/heat
     python3 ../../src/fenicsR13.py
@@ -46,7 +46,7 @@ The whole repository is mounted as a volume under ``/home/fenics/shared`` in the
 It is convenient to use a Jupyter sever or a X11 forwarding.
 
 macOS Native FEniCS Installation (not recommended)
---------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #. Install ``miniconda`` from `here <https://conda.io/projects/conda/en/latest/user-guide/install/macos.html>`_
     #. If using ``zsh``, add miniconda bins to PATH: ``export PATH="$HOME/ miniconda3/bin:$PATH"`` to ``~/.zshrc``
@@ -64,7 +64,7 @@ macOS Native FEniCS Installation (not recommended)
     #. Optional: ``conda install -c anaconda sympy``
 
 Further Installation Tips
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Interactive Jupyter Notebooks with Microsoft's Visual Studio Code**
 
@@ -82,22 +82,22 @@ See guide_ for the programs to install. Then source the ``open-macos-gui-tunnel.
 This has to be studied.
 
 Documentation
-==============
+--------------------------------------------------------------------------------
 
 Documentation using Sphinx is available.
 
 Manual Generation
------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: bash
+.. code-block:: console
 
     cd docs
     sphinx-apidoc -o source/ ../src
     make html
     # open _build/html/index.html
 
-Download Pre-Build Version
------------------------------
+Pre-Build Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download pre-created artifacts from Gitlab's CI pipeline page. Or visit the
 hosted version on `Gitlab Pages`_.
@@ -107,7 +107,7 @@ hosted version on `Gitlab Pages`_.
 .. _`Gitlab Pages`: https://lamboo.pages.rwth-aachen.de/gasdynamicsfem/
 
 Developer Notes
----------------
+--------------------------------------------------------------------------------
 
 - Matplotbib fails when having wrong backend on macOS
     - Fix: Add ``backend: TkAgg`` to ``~/.matplotlib/matplotlibrc`` file
