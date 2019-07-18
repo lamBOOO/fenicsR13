@@ -159,7 +159,7 @@ Developer Notes
 Contact
 -------
 
-.. image:: media/mathcces.png
+.. image:: ./media/mathcces.png
     :width: 400px
     :alt: logo
 
