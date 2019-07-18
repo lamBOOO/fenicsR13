@@ -7,17 +7,30 @@ import ufl
 import numpy as np
 
 class Solver:
-    """
+    r"""
     Solver class
 
-    Assembles and solves the linear system
+    ::
+
+        # Example usage:
+        params = Input("input.yml").dict
+        msh = meshes.H5Mesh("mesh.h5")
+        solver = Solver(params, msh, "0") # "0" means time=0
+
+    Assembles and solves the linear system.
 
     .. math::
         \mathbf{A} \mathbf{x} = \mathbf{b}
 
+    The system results from the two dimensional, linearized R13 equations
+    [TOR2003]_.
+
+    .. [TOR2003] H Struchtrup, M Torrilhon (2003). Regularization of Grad’s 13
+       moment equations: derivation and linear analysis.
+
     :ivar params: parameter dict
     :ivar mesh: Dolfin mesh
-    :ivar cell: ufl_cell() for internal usage
+    :ivar cell: ``ufl_cell()`` for internal usage
 
     """
     def __init__(self, params, mesh, time):
