@@ -59,3 +59,4 @@ html_theme = 'alabaster'
 html_static_path = ['_static']
 
 html_logo = "../../logo.png"
+latex_logo = "../../logo.png"
