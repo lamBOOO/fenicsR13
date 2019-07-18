@@ -156,6 +156,26 @@ Developer Notes
     - Run local: ``gitlab-runner exec docker --docker-privileged build`` or with ``build`` replaced by job name
         - maybe local vars have to be change to use local Docker images because ``CI_REGISTRY``,... are not set
 
+Contact
+-------
+
+.. image:: media/mathcces.png
+    :width: 400px
+    :alt: logo
+
+:Author:
+    | Lambert Theisen
+    | lambert.theisen@rwth-aachen.de
+:Supervisor:
+    | Prof. Dr. Manuel Torrilhon
+    | Lehrstuhl fur Mathematik (MathCCES)
+    | RWTH Aachen University
+    | mt@mathcces.rwth-aachen.de
+:Context:
+    | Masterthesis Computational Engineering Science
+    | RWTH Aachen University
+    | *Simulation of Non-Equilibrium Gas Flows Using the FEniCS Computing Platform*
+
 .. |pipeline| image:: https://git.rwth-aachen.de/lamboo/gasdynamicsfem/badges/master/pipeline.svg
     :target: https://git.rwth-aachen.de/lamboo/gasdynamicsfem/commits/master
     :alt: Pipeline status
