@@ -50,7 +50,7 @@ test:convergence:heat:
 # build
 # **************************************************************************** #
 
-doc:
+pages:
   stage: deploy
   image:
     name: $CI_REGISTRY_IMAGE:latest
@@ -59,7 +59,7 @@ doc:
   - cd ${DOCS_DIRECTORY}
   - sphinx-apidoc -o source/ ../src
   - make html
+  - mv _build/html/ public/
   artifacts:
     paths:
-    - ${DOCS_DIRECTORY}/_build
-    expire_in: 6 month
+    - public
