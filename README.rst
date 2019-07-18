@@ -104,7 +104,7 @@ hosted version on `Gitlab Pages`_.
 
 .. note:: Currently, there's a bug regarding Gitlab Pages with internal repositories. The access control fails and the page cannot be accessed. This may be fixed in the future.
 
-.. _`Gitlab Pages`: https://lamboo.pages.rwth-aachen.de/gasDynamicsFEM
+.. _`Gitlab Pages`: https://lamboo.pages.rwth-aachen.de/gasdynamicsfem/
 
 Developer Notes
 ---------------
