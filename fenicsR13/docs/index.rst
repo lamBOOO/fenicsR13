@@ -1,7 +1,3 @@
-Release v\ |release|.
-
-.. note:: This is still work in progress.
-
 .. include:: ../../README.rst
     :start-after: inclusion-marker
 

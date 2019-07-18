@@ -59,9 +59,10 @@ html_theme = 'alabaster'
 html_static_path = ['_static']
 
 html_logo = "../../logo.png"
+html_favicon = "../../logo.png"
 latex_logo = "../../logo.png"
 
 html_theme_options = {
     'sidebar_collapse': False,
-    'description': "Extended gas dynamics using FEniCS platform.",
+    'description': "Release v{}<br>Extended gas dynamics using FEniCS platform.".format(release),
 }
