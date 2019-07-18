@@ -1,5 +1,5 @@
 .. image:: logo.png
-    :width: 2100:height: 100px
+    :width: 200px
     :alt: logo
 
 .. inclusion-marker
@@ -14,7 +14,6 @@ gasDynamicsFEM
 
   Repository for Master thesis project regarding FEM simulations for
   non-equilibrium gas dynamics.
-
 
 Installation
 ============
