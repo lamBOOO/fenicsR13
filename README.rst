@@ -18,7 +18,7 @@ gasDynamicsFEM
 .. contents::
 
 Installation
-===========
+============
 
 It is recommended to use the program within a Docker container.
 
@@ -29,7 +29,7 @@ Install `Docker Desktop`_ for your OS.
 
 .. _`Docker Desktop`: https://www.docker.com/products/docker-desktop
 
-::
+.. code-block:: bash
 
     # build and run fenics service
     docker-compose build fenics
@@ -91,12 +91,12 @@ Documentation using Sphinx is available.
 Manual Generation
 -----------------
 
-::
+.. code-block:: bash
 
-  cd docs
-  sphinx-apidoc -o source/ ../src
-  make html
-  # open _build/html/index.html
+    cd docs
+    sphinx-apidoc -o source/ ../src
+    make html
+    # open _build/html/index.html
 
 Download Pre-Build Version
 -----------------------------
@@ -116,13 +116,15 @@ Developer Notes
 - Performance in Docker is way better than conda build, especially JIT compilation is faster
 - Get C++ inlcude paths: ``echo | gcc -E -Wp,-v -``
 - Bessel functions in DOLFIN:
-    - C++17 functions cannpot be used. Boost functions also not per default. ``Expression("boost::math::cyl_bessel_i(0,atan2(x[1], x[0]))", degree=2)`` is allowed if one changes in file ``/usr/local/lib/python3.6/dist-packages/dolfin/jit/jit.py``::
+    - C++17 functions cannpot be used. Boost functions also not per default. ``Expression("boost::math::cyl_bessel_i(0,atan2(x[1], x[0]))", degree=2)`` is allowed if one changes in file ``/usr/local/lib/python3.6/dist-packages/dolfin/jit/jit.py``
 
-        _math_header = """
-        // cmath functions
-        #include <boost/math/special_functions/bessel.hpp> // Added
-        %s
-        """
+        .. code-block:: python
+
+            _math_header = """
+            // cmath functions
+            #include <boost/math/special_functions/bessel.hpp> // Added
+            %s
+            """
 
 - Python notes:
     - Get current work directory
