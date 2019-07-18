@@ -17,7 +17,7 @@ gasDynamicsFEM
 
 .. contents::
 
-Instalation
+Installation
 ===========
 
 It is recommended to use the program within a Docker container.
@@ -125,23 +125,29 @@ Developer Notes
         """
 
 - Python notes:
-    - Get current work directory::
+    - Get current work directory
 
-        import os
-        cwd = os.getcwd()
-        print(cwd)
+        .. code-block:: python
 
-    - Latex font for matplotlib::
+            import os
+            cwd = os.getcwd()
+            print(cwd)
 
-        # LaTeX text fonts:
-        # Use with raw strings: r"$\mathcal{O}(h^1)$"
-        # plt.rc('text', usetex=True)
-        # plt.rc('font', family='serif')
+    - Latex font for matplotlib
 
-    - Get system path where modules are searched::
+        .. code-block:: python
 
-        import sys
-        print(sys.path)
+            # LaTeX text fonts:
+            # Use with raw strings: r"$\mathcal{O}(h^1)$"
+            # plt.rc('text', usetex=True)
+            # plt.rc('font', family='serif')
+
+    - Get system path where modules are searched
+
+        .. code-block:: python
+
+            import sys
+            print(sys.path)
 
 - Gitlab CI Setup:
     - In ``~/.gitlab-runner/config.toml`` (for the runner):
