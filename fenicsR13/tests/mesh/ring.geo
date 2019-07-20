@@ -29,7 +29,4 @@ Circle(2101) = {1101,1,1100};
 Line Loop(3000) = {2000,2001}; Physical Curve("inner",3000) = {2001, 2000};
 Line Loop(3100) = {2100,2101}; Physical Curve("outer",3100) = {2101, 2100};
 
-
-
 Plane Surface(4000) = {3100,3000}; Physical Surface("mesh",4000) = {4000};
-

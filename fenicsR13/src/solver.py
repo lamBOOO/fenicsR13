@@ -146,8 +146,21 @@ class Solver:
             msh, self.mxd_elems["coupled"]
         )
 
+    def check_bcs(self):
+        """Checks if all mesh boundaries have bcs prescribed. Raises an exception if something is wrong.
+        """
+        boundary_ids = self.boundaries.array()
+        bcs_specified = list(self.bcs.keys())
+
+        for edge_id in boundary_ids:
+            if not edge_id in ([0] + bcs_specified): # inner zero allowed
+                raise Exception("Mesh edge id {} has no bcs!".format(edge_id))
+
     def assemble(self):
         "Assemble system"
+
+        # Check if all mesh boundaries have bcs presibed frm input
+        self.check_bcs()
 
         # Special tensor functions for 3D problems on 2D domains
         def dev3d(mat):
