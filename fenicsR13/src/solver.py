@@ -546,11 +546,22 @@ class Solver:
             field.rename(name, name)
             file.write(field, self.time)
 
-    def extract_matrix(self):
+    def write_systemmatrix(self):
         """
-        Extract system matrix after assemble.
+        Writes system matrix. Can be used to analyze e.g. condition number with
+        decreasing mesh sizes.
+
         Import to Matlab with:
-        $ T = readtable("a.txt");
-        $ M=table2array(T);
+
+        .. code-block:: matlab
+
+            # First adapt to filename...
+            T = readtable("a.txt");
+            M = table2array(T);
+
         """
-        raise NotImplementedError()
+
+        np.savetxt(
+            self.output_folder + "A_{}.txt".format(self.time),
+            df.assemble(self.form_a).array()
+        )

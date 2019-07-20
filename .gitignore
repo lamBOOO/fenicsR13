@@ -28,3 +28,6 @@
 
 # ignore Sphinx documentation output
 *_build
+
+# ignore system matrices
+*A_*.txt

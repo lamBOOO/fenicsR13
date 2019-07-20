@@ -22,7 +22,7 @@ It is recommended to use the program within a Docker container.
 Docker
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Install `Docker Desktop`_ for your OS.
+First install `Docker Desktop`_ for your OS. Then:
 
 .. _`Docker Desktop`: https://www.docker.com/products/docker-desktop
 

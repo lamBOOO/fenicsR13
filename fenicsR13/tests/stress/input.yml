@@ -57,6 +57,7 @@ convergence_study:
   enable: True
   exact_solution: exact_solution_stress.cpp
   plot: True
+  write_systemmatrix: False
 
 # Output folder for vtu files
 output_folder: results/

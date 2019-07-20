@@ -50,6 +50,9 @@ def main():
 
         if convergence_study:
 
+            if params["convergence_study"]["write_systemmatrix"]:
+                solver.write_systemmatrix()
+
             solver.load_exact_solution()
             solver.calc_errors()
 

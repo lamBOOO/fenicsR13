@@ -89,6 +89,10 @@ class Input:
                         "type": "boolean",
                         "required": True
                     },
+                    "write_systemmatrix": {
+                        "type": "boolean",
+                        "required": True
+                    },
                 }
             },
             "output_folder": {
