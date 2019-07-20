@@ -48,10 +48,7 @@ class Solver:
         self.delta_1 = self.params["stabilization"]["cip"]["delta_1"]
         self.delta_2 = self.params["stabilization"]["cip"]["delta_2"]
         self.delta_3 = self.params["stabilization"]["cip"]["delta_3"]
-        self.theta_w_inner = self.params["theta_w_inner"]
-        self.theta_w_outer = self.params["theta_w_outer"]
-        self.v_t_inner = self.params["v_t_inner"]
-        self.v_t_outer = self.params["v_t_outer"]
+        self.bcs = self.params["bcs"]
         self.heat_source = df.Expression(self.params["heat_source"], degree=2)
         self.mass_source = df.Expression(self.params["mass_source"], degree=2)
         self.exact_solution = self.params["convergence_study"]["exact_solution"]
@@ -179,12 +176,9 @@ class Solver:
         # Local variables
         mesh = self.mesh
         boundaries = self.boundaries
+        bcs = self.bcs
         tau = self.tau
         xi_tilde = self.xi_tilde
-        theta_w_inner = self.theta_w_inner
-        theta_w_outer = self.theta_w_outer
-        v_t_inner = self.v_t_inner
-        v_t_outer = self.v_t_outer
         delta_1 = self.delta_1
         delta_2 = self.delta_2
         delta_3 = self.delta_3
@@ -230,8 +224,10 @@ class Solver:
                     + 11/10 * xi_tilde * s_t * r_t
                 ) * df.ds
                 a2 = - (df.div(s) * kappa) * df.dx
-                l1 = (- 5.0/2.0 * r_n * theta_w_outer * df.ds(3100)
-                      - 5.0/2.0 * r_n * theta_w_inner * df.ds(3000))
+                l1 = sum([
+                    - 5.0/2.0 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
+                    for bc in bcs.keys()
+                ])
                 l2 = - (f * kappa) * df.dx
             else:
                 a1 = (
@@ -243,8 +239,10 @@ class Solver:
                     + xi_tilde * s_t * r_t
                 ) * df.ds
                 a2 = - (df.div(s) * kappa) * df.dx
-                l1 = (-1 * r_n * theta_w_inner * df.ds(3000)
-                      -1 * r_n * theta_w_outer * df.ds(3100))
+                l1 = sum([
+                    - 1 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
+                    for bc in bcs.keys()
+                ])
                 l2 = - (f * kappa) * df.dx
 
             # stabilization
@@ -288,10 +286,10 @@ class Solver:
                     )
                     + (2/xi_tilde) * sigma_nt * psi_nt
                 ) * df.ds
-                # l1 = (- 2 * v_t_inner * df.sin(phi) * psi_nt * df.ds(3000)
-                #       - 2 * v_t_outer * df.sin(phi) * psi_nt * df.ds(3100))
-                l1 = (- 2 * v_t_inner * psi_nt * df.ds(3000)
-                      - 2 * v_t_outer * psi_nt * df.ds(3100))
+                l1 = sum([
+                    - 2.0 * psi_nt * bcs[bc]["v_t"] * df.ds(bc)
+                    for bc in bcs.keys()
+                ])
                 a2 = (df.dot(df.div(sigma), v) + df.dot(df.grad(p), v)) * df.dx
                 l2 = df.Constant(0) * df.div(v) * df.dx # dummy
                 a3 = df.dot(u, df.grad(q)) * df.dx

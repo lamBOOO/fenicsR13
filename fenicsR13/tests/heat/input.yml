@@ -40,13 +40,15 @@ tau: 0.1
 # Refaction coefficient
 xi_tilde: 1.0
 
-# Wall temperatures
-theta_w_inner: 1.0
-theta_w_outer: 0.5
-
-# Wall slip (tangential) velocities
-v_t_inner: 10.0
-v_t_outer: 0.0
+bcs:
+  3000:
+    "name": "inner"
+    "theta_w": 1.0
+    "v_t": 10.0
+  3100:
+    "name": "outer"
+    "theta_w": 0.5
+    "v_t": 0.0
 
 # heat source
 heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)

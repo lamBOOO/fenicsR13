@@ -42,23 +42,28 @@ class Input:
                 "required": True,
                 "min": 0.000000001
             },
-            "theta_w_inner": {
-                "type": "float",
+            "bcs": {
+                "type": "dict",
                 "required": True,
-                "min": 0.000000001
-            },
-            "theta_w_outer": {
-                "type": "float",
-                "required": True,
-                "min": 0.000000001
-            },
-            "v_t_inner": {
-                "type": "float",
-                "required": True,
-            },
-            "v_t_outer": {
-                "type": "float",
-                "required": True,
+                "keysrules": {"type": "integer", "regex": "cip"},
+                "valueschema": {
+                    "type": "dict",
+                    "schema": {
+                        "name": {
+                            "type": "string",
+                            "required": True
+                        },
+                        "theta_w": {
+                            "type": "float",
+                            "required": True,
+                            "min": 0.000000001
+                        },
+                        "v_t": {
+                            "type": "float",
+                            "required": True
+                        },
+                    }
+                }
             },
             "heat_source": {
                 "type": "string",
