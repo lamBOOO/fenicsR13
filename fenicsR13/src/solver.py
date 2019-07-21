@@ -49,8 +49,20 @@ class Solver:
         self.delta_2 = self.params["stabilization"]["cip"]["delta_2"]
         self.delta_3 = self.params["stabilization"]["cip"]["delta_3"]
         self.bcs = self.params["bcs"]
-        self.heat_source = df.Expression(self.params["heat_source"], degree=2)
-        self.mass_source = df.Expression(self.params["mass_source"], degree=2)
+
+        self.R = df.Expression(
+            "sqrt(pow(x[0],2)+pow(x[1],2))", degree=2
+        )
+        self.phi = df.Expression("atan2(x[1],x[0])", degree=2)
+        self.heat_source = df.Expression(
+            self.params["heat_source"], degree=2,
+            tau=self.tau, phi=self.phi, R=self.R
+        )
+        self.mass_source = df.Expression(
+            self.params["mass_source"], degree=2,
+            tau=self.tau, phi=self.phi, R=self.R
+        )
+
         self.exact_solution = self.params["convergence_study"]["exact_solution"]
         self.output_folder = self.params["output_folder"]
         self.var_ranks = {
@@ -147,13 +159,15 @@ class Solver:
         )
 
     def check_bcs(self):
-        """Checks if all mesh boundaries have bcs prescribed. Raises an exception if something is wrong.
+        """
+        Checks if all mesh boundaries have bcs prescribed.
+        Raises an exception if something is wrong.
         """
         boundary_ids = self.boundaries.array()
         bcs_specified = list(self.bcs.keys())
 
         for edge_id in boundary_ids:
-            if not edge_id in ([0] + bcs_specified): # inner zero allowed
+            if not edge_id in [0] + bcs_specified: # inner zero allowed
                 raise Exception("Mesh edge id {} has no bcs!".format(edge_id))
 
     def assemble(self):
@@ -310,8 +324,8 @@ class Solver:
 
             if self.use_cip:
                 stab = (
-                    + delta_2 * h_avg**3
-                    * df.dot(df.jump(df.grad(u), n), df.jump(df.grad(v), n))
+                    + delta_2 * h_avg**3 *
+                    df.dot(df.jump(df.grad(u), n), df.jump(df.grad(v), n))
                     - delta_3 * h_avg *
                     df.jump(df.grad(p), n) * df.jump(df.grad(q), n)
                     ) * df.dS
@@ -555,7 +569,7 @@ class Solver:
 
         .. code-block:: matlab
 
-            # First adapt to filename...
+            % First adapt to filename...
             T = readtable("a.txt");
             M = table2array(T);
 

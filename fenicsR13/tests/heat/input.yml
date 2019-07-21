@@ -51,10 +51,10 @@ bcs:
     "v_t": 0.0
 
 # heat source
-heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
+heat_source: "2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)"
 
 # mass source
-mass_source: 2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(18.0*0.1)) * std::cos(atan2(x[1],x[0]))
+mass_source: "2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(18.0*pow(tau,2))) * std::cos(phi)"
 
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:

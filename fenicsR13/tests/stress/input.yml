@@ -7,6 +7,9 @@ meshes:
   - ../mesh/ring1.h5
   - ../mesh/ring2.h5
   - ../mesh/ring3.h5
+  - ../mesh/ring4.h5
+  - ../mesh/ring5.h5
+  # - ../mesh/ring6.h5 # too less ram on macbook
 
 # Stabilization
 # =============
@@ -40,17 +43,18 @@ bcs:
   3000:
     "name": "inner"
     "theta_w": 1.0
-    "v_t": 10.0
+    "v_t": -10.0
   3100:
     "name": "outer"
     "theta_w": 0.5
     "v_t": 0.0
 
 # heat source
-heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
+heat_source: "2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)"
 
 # mass source
-mass_source: 2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(18.0*0.1)) * std::cos(atan2(x[1],x[0]))
+mass_source: "2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(18.0*pow(tau,2))) * std::cos(phi)"
+# mass_source: "0.0"
 
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:

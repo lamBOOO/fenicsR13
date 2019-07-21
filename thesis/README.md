@@ -18,3 +18,4 @@
   - See Roadmap
 - Check if we can simulate a paradoxon that NSF cannot do (PDEs HW)
 - Include LaTeX Sphinx as appendix
+- Check runtimes and ram usage, especially with tensor variable
