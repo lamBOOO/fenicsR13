@@ -26,7 +26,7 @@ First install `Docker Desktop`_ for your OS. Then:
 
 .. _`Docker Desktop`: https://www.docker.com/products/docker-desktop
 
-.. code-block:: console
+.. code-block:: bash
 
     # build and run fenics service
     docker-compose build fenics
@@ -87,18 +87,19 @@ The steps can be summarized as:
 
 1. Install the package manager `Chocolatey`_.
 
-    .. code-block:: console
+    .. code-block:: dosbatch
 
-        # open cmd.exe as admin
+        REM open cmd.exe as admin
         @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+
 2. Open ``cmd.exe`` as admin and install `VcXsrv Windows X Server`_.
 
-    .. code-block:: console
+    .. code-block:: bash
 
         choco install vcxsrv
 3. Open a X11 server and set the ``ip`` variable (that is used in the ``docker-compose.yml`` when starting the Docker container to set ``export DISPLAY=${ip}:0``).
 
-    .. code-block:: console
+    .. code-block:: bash
 
         # home of this repo
         source sripts/open-windows-gui-tunnel.sh
@@ -114,7 +115,7 @@ Documentation using Sphinx is available.
 Manual Generation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: console
+.. code-block:: bash
 
     cd docs
     sphinx-apidoc -o source/ ../src
