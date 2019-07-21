@@ -95,7 +95,7 @@ The steps can be summarized as:
 
     .. code-block:: dosbatch
 
-        REM open cmd.exe as admin
+        REM comment: open cmd.exe as admin
         @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
 
 2. Open ``cmd.exe`` as admin and install `VcXsrv Windows X Server`_.
@@ -171,8 +171,8 @@ Developer Notes
 
             # LaTeX text fonts:
             # Use with raw strings: r"$\mathcal{O}(h^1)$"
-            # plt.rc('text', usetex=True)
-            # plt.rc('font', family='serif')
+            plt.rc('text', usetex=True)
+            plt.rc('font', family='serif')
 
     - Get system path where modules are searched
 
