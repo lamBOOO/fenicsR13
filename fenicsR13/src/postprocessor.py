@@ -5,6 +5,7 @@
 from itertools import chain
 
 import csv
+from math import sqrt, ceil
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -14,11 +15,26 @@ class Postprocessor:
         self.data = data
 
     def plot_errors(self):
-        "Plot the stored errors"
+        """
+        Use ``matplotlib`` to plot all erros in a figure.
+        """
+
+        plt.figure(num=None, figsize=(16, 9), dpi=100)
+
         data = self.data
         h = [df["h"] for df in data]
-        for key in [key for key in data[0] if key != "h"]:
+
+        raw_data = [key for key in data[0] if key != "h"]
+        num_fields = len(raw_data)
+
+        plt_sidelength_x = ceil(sqrt(num_fields))
+        plt_sidelength_y = plt_sidelength_x
+        while plt_sidelength_y * (plt_sidelength_x-1) >= num_fields:
+            plt_sidelength_x -= 1
+
+        for i, key in enumerate(raw_data):
             field = [df[key] for df in data]
+            plt.subplot(plt_sidelength_x, plt_sidelength_y, (i+1))
             for etype in field[0]:
                 values = [df[etype] for df in field]
                 plt.loglog(h, values, "-o", label=etype)
@@ -28,8 +44,10 @@ class Postprocessor:
             plt.xlabel("max(h)")
             plt.ylabel("Error")
             plt.title(key)
-            plt.legend()
-            plt.show()
+            plt.legend(loc='lower right')
+
+        plt.tight_layout()
+        plt.show()
 
     def write_errors(self):
         "Writes errors to csv file"
