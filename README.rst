@@ -34,7 +34,13 @@ First install `Docker Desktop`_ for your OS. Then:
 
     # Execute some examples
     cd fenicsR13/examples/heat
+
+    # in serial...
     python3 ../../src/fenicsR13.py
+
+    # in parallel...
+    mpirun -n 4 python3 ../../src/fenicsR13.py
+
 
 
 The main folder of this repository contains a ``Dockerfile`` defining the used environment. Here, we used the optimized and official FEniCS Docker image and include ``Gmsh`` and install some requirements from the ``requirements.txt``. This can take a while, especially the ``Gmsh`` mirror can be quite slow. To avoid very long execution commands (``docker run <..> -v <volume share> <etc..>``), a ``docker-compose.yml`` is used to store all these parameters. ``docker-compose`` acts as an wrapper for the Docker execution.
