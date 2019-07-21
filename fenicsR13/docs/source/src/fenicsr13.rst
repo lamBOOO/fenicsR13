@@ -1,7 +1,7 @@
-fenicsr13 module
+fenicsR13 module
 ================
 
-.. automodule:: fenicsr13
+.. automodule:: fenicsR13
    :members:
    :undoc-members:
    :show-inheritance:

@@ -4,7 +4,7 @@ src
 .. toctree::
    :maxdepth: 4
 
-   fenicsr13
+   fenicsR13
    input
    meshes
    postprocessor

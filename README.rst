@@ -79,7 +79,32 @@ See guide_ for the programs to install. Then source the ``open-macos-gui-tunnel.
 
 **X11 Window Forwarding on Windows**
 
-This has to be studied.
+A nice guide can be found `here on Dev.to`_.
+
+.. _`here on Dev.to`: https://dev.to/darksmile92/run-gui-app-in-linux-docker-container-on-windows-host-4kde
+
+The steps can be summarized as:
+
+1. Install the package manager `Chocolatey`_.
+
+    .. code-block:: console
+
+        # open cmd.exe as admin
+        @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+2. Open ``cmd.exe`` as admin and install `VcXsrv Windows X Server`_.
+
+    .. code-block:: console
+
+        choco install vcxsrv
+3. Open a X11 server and set the ``ip`` variable (that is used in the ``docker-compose.yml`` when starting the Docker container to set ``export DISPLAY=${ip}:0``).
+
+    .. code-block:: console
+
+        # home of this repo
+        source sripts/open-windows-gui-tunnel.sh
+
+.. _`Chocolatey`: https://chocolatey.org/
+.. _`VcXsrv Windows X Server`: https://sourceforge.net/projects/vcxsrv/
 
 Documentation
 --------------------------------------------------------------------------------
