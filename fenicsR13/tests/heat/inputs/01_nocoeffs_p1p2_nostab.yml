@@ -49,7 +49,7 @@ nsd: 2
 mode: "heat"
 
 # Coefficients as in westerkamp2019 or without as in torrilhon2017
-use_coeffs: True
+use_coeffs: False
 
 # Knudsen number
 tau: 0.1
@@ -76,7 +76,7 @@ mass_source: "2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: esols/01_coeffs.cpp
+  exact_solution: esols/01_nocoeffs.cpp
   plot: False # to avoid error exit code due to $DISPLAY
   write_systemmatrix: False
 

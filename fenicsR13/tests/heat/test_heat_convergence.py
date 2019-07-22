@@ -3,7 +3,6 @@
 import subprocess
 import pytest
 
-
 class TestHeatConvergence(object):
     """
     Class to bundle all heat convergence tests.
@@ -49,6 +48,7 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
+
         self.run_solver("inputs/01_coeffs_p1p1_stab.yml")
         self.compare_errors("errors.csv", "referrors/01_coeffs_p1p1_stab.csv")
 
@@ -66,6 +66,7 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
+
         self.run_solver("inputs/10_coeffs_p2p2_stab.yml")
         self.compare_errors("errors.csv", "referrors/10_coeffs_p2p2_stab.csv")
 
@@ -82,14 +83,12 @@ class TestHeatConvergence(object):
         Elements      :math:`P_2P_2`
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
-
-        Use P2P2 elements with CIP stabilization.
         """
+
         self.run_solver("inputs/01_coeffs_p2p2_stab.yml")
         self.compare_errors("errors.csv", "referrors/01_coeffs_p2p2_stab.csv")
 
-    # @pytest.mark.skip(reason="Not implemented")
-    def test_01_coeffs_p2p1_nostab(self):
+    def test_01_coeffs_p1p2_nostab(self):
         r"""
         Executes westerkamp2019 decoupled heat system test and check with
         reference errors.
@@ -103,8 +102,34 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
+
         self.run_solver("inputs/01_coeffs_p1p2_nostab.yml")
         self.compare_errors("errors.csv", "referrors/01_coeffs_p1p2_nostab.csv")
 
-# TestHeatConvergence().test_coeffs_p2p1_nostab()
-# TestHeatConvergence().test_10_coeffs_p2p2_stab()
+    def test_01_nocoeffs_p1p2_nostab(self):
+        r"""
+        Executes westerkamp2019 decoupled heat system test and check with
+        reference errors.
+
+        ============= =======================
+        Parameter     Value
+        ============= =======================
+        :math:`\tau`  :math:`0.1`
+        Formulation   No Coefficients
+        Elements      :math:`P_2P_1`
+        Stabilization CIP, :math:`\delta_1=1`
+        ============= =======================
+        """
+
+        self.run_solver("inputs/01_nocoeffs_p1p2_nostab.yml")
+        self.compare_errors(
+            "errors.csv",
+            "referrors/01_nocoeffs_p1p2_nostab.csv"
+        )
+
+        @pytest.mark.skip(reason="Not implemented")
+        def test_01_nocoeffs_p1p1_stab(self):
+            pass
+
+# TestHeatConvergence().test_01_nocoeffs_p1p2_nostab()
+# TestHeatConvergence().test_01_coeffs_p1p2_nostab()
