@@ -38,6 +38,7 @@ tau: 0.1
 
 # Refaction coefficient
 xi_tilde: 1.0
+# xi_tilde: 0.797884561 # sqrt(2/pi)
 
 bcs:
   3000:
