@@ -394,6 +394,16 @@ class Solver:
                 esol.Stress(), degree=2
             )
 
+    def shift_scalar_function_to_zero_mean(self, scalar_function):
+        """
+        Shift a function to have zero mean
+        """
+        mean = np.mean(scalar_function.vector()[:])
+        scalar_function.vector()[:] -= mean
+
+        return scalar_function
+
+
     def calc_errors(self):
         "Calculate errors"
 
