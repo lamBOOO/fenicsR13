@@ -3,4 +3,4 @@
 file=".ip"
 ip=$(cat "$file")
 
-export DISPLAY=ip:0
+export DISPLAY="$ip":0
