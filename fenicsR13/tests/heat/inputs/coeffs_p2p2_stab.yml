@@ -8,17 +8,17 @@ meshes:
   - ../mesh/ring2.h5
   - ../mesh/ring3.h5
   - ../mesh/ring4.h5
-  - ../mesh/ring5.h5
+  # - ../mesh/ring5.h5
   # - ../mesh/ring6.h5 # fails at 8GB with P2P2
   # - ../mesh/ring7.h5 # fails at 8GB with P1P1
 
 elements:
   "theta":
     "shape": "Lagrange"
-    "degree": 1
+    "degree": 2
   "s":
     "shape": "Lagrange"
-    "degree": 1
+    "degree": 2
   "p":
     "shape": "Lagrange"
     "degree": 1
@@ -76,7 +76,7 @@ mass_source: "2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: exact_solution_heat.cpp
+  exact_solution: esols/coeffs.cpp
   plot: False # to avoid error exit code due to $DISPLAY
   write_systemmatrix: False
 

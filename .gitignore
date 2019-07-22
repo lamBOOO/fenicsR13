@@ -23,6 +23,7 @@
 *errors.csv
 
 # ignore covergae internal files and output
+*.coverage.*
 *.coverage
 *htmlcov
 
