@@ -18,7 +18,7 @@ elements:
     "degree": 1
   "s":
     "shape": "Lagrange"
-    "degree": 2
+    "degree": 1
   "p":
     "shape": "Lagrange"
     "degree": 1
@@ -52,7 +52,7 @@ mode: "heat"
 use_coeffs: True
 
 # Knudsen number
-tau: 0.1
+tau: 10.0
 
 # Refaction coefficient
 xi_tilde: 1.0
@@ -76,8 +76,8 @@ mass_source: "2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: esols/coeffs.cpp
-  plot: True # to avoid error exit code due to $DISPLAY
+  exact_solution: esols/10_coeffs.cpp
+  plot: False # to avoid error exit code due to $DISPLAY
   write_systemmatrix: False
 
 # Output folder for vtu files

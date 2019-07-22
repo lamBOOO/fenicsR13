@@ -12,17 +12,8 @@ namespace py = pybind11;
 #include <dolfin/function/Expression.h>
 
 double tau = 0.1;
-
 double C_1 = -0.40855716127979214;
 double C_2 = 2.4471587630476663;
-
-// if (tau==0.1) {
-//     C_1 = -0.40855716127979214;
-//     C_2 = 2.4471587630476663;
-// } else if (tau==10.0) {
-//     C_1 = -0.23487596350870713;
-//     C_2 = 13.827308558560057;
-// }
 
 class Temperature : public dolfin::Expression {
     public:

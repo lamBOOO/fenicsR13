@@ -15,10 +15,10 @@ meshes:
 elements:
   "theta":
     "shape": "Lagrange"
-    "degree": 2
+    "degree": 1
   "s":
     "shape": "Lagrange"
-    "degree": 2
+    "degree": 1
   "p":
     "shape": "Lagrange"
     "degree": 1
@@ -76,7 +76,7 @@ mass_source: "2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: esols/coeffs.cpp
+  exact_solution: esols/01_coeffs.cpp
   plot: False # to avoid error exit code due to $DISPLAY
   write_systemmatrix: False
 
