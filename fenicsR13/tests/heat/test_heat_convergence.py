@@ -7,16 +7,17 @@ import pytest
 class TestHeatConvergence(object):
     """
     Class to bundle all heat convergence tests.
+    All tests are compared against reference errors.
     """
 
-    cwd= "tests/heat"
+    working_dir = "tests/heat"
     solver_path = "../../src/fenicsR13.py"
 
     def run_solver(self, inputfile):
         """
         Runs the solver as subprocess with the given input file.
         """
-        subprocess.check_call(["python3", self.solver_path, inputfile], cwd=self.cwd)
+        subprocess.check_call(["python3", self.solver_path, inputfile], cwd=self.working_dir)
 
     def compare_errors(self, errorsfile, ref_errorsfile):
         """
@@ -25,7 +26,7 @@ class TestHeatConvergence(object):
         """
         subprocess.check_call([
             "diff", "-u", "--strip-trailing-cr", errorsfile, ref_errorsfile
-        ], cwd=self.cwd)
+        ], cwd=self.working_dir)
 
     @pytest.fixture(scope="module", autouse=True)
     def create_meshes(self):
