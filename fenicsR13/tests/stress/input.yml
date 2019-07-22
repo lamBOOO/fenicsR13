@@ -11,7 +11,7 @@ meshes:
   - ../mesh/ring5.h5
   # - ../mesh/ring6.h5 # too less ram on macbook
 
-  elements:
+elements:
   "theta":
     "shape": "Lagrange"
     "degree": 1
