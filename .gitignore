@@ -31,3 +31,6 @@
 
 # ignore system matrices
 *A_*.txt
+
+# ignore .ip helper file (X11)
+*.ip
