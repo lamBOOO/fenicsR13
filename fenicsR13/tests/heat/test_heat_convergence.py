@@ -16,7 +16,9 @@ class TestHeatConvergence(object):
         """
         Runs the solver as subprocess with the given input file.
         """
-        subprocess.check_call(["python3", self.solver_path, inputfile], cwd=self.working_dir)
+        subprocess.check_call([
+            "python3", self.solver_path, inputfile
+        ], cwd=self.working_dir)
 
     def compare_errors(self, errorsfile, ref_errorsfile):
         """
