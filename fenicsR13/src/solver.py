@@ -130,15 +130,16 @@ class Solver:
     def setup_function_spaces(self):
         "Setup function spaces"
         cell = self.cell
-        e = "Lagrange"
         msh = self.mesh
         for var in self.elems:
+            e = self.params["elements"][var]["shape"]
+            deg = self.params["elements"][var]["degree"]
             if self.var_ranks[var] == 0:
-                self.elems[var] = df.FiniteElement(e, cell, 1)
+                self.elems[var] = df.FiniteElement(e, cell, deg)
             elif self.var_ranks[var] == 1:
-                self.elems[var] = df.VectorElement(e, cell, 1)
+                self.elems[var] = df.VectorElement(e, cell, deg)
             elif self.var_ranks[var] == 2:
-                self.elems[var] = df.TensorElement(e, cell, 1, symmetry=True)
+                self.elems[var] = df.TensorElement(e, cell, deg, symmetry=True)
             self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
 
         heat_elems = [self.elems["theta"], self.elems["s"]]
@@ -514,12 +515,15 @@ class Solver:
     def write_parameters(self):
         "Write Parameters: Heat source or Mass Source"
 
+        el = "Lagrange"
+        deg = 1
+
         # Heat source
         f_heat = df.interpolate(
             self.heat_source,
             df.FunctionSpace(
                 self.mesh,
-                df.FiniteElement("Lagrange", degree=1, cell=self.cell)
+                df.FiniteElement(el, degree=deg, cell=self.cell)
             )
         )
         self.write_xdmf("f_heat", f_heat)
@@ -529,7 +533,7 @@ class Solver:
             self.mass_source,
             df.FunctionSpace(
                 self.mesh,
-                df.FiniteElement("Lagrange", degree=1, cell=self.cell)
+                df.FiniteElement(el, degree=deg, cell=self.cell)
             )
         )
         self.write_xdmf("f_mass", f_mass)
@@ -540,22 +544,26 @@ class Solver:
         filename = self.output_folder + name + "_" + str(self.time) + ".xdmf"
         with df.XDMFFile(self.mesh.mpi_comm(), filename) as file:
 
-            # Writing symmetric tensors crashes.
-            # Therefore project symmetric tensor in nonsymmetric space
-            # This is only a temporary fix, see:
-            # https://fenicsproject.discourse.group/t/...
-            # ...writing-symmetric-tensor-function-fails/1136
-            el_symm = df.TensorElement(
-                df.FiniteElement('Lagrange', df.triangle, 1), symmetry=True
-            ) # symmetric tensor element
-            el_sol = field.ufl_function_space().ufl_element()
-            if el_sol == el_symm:
-                # Remove symmetry with projection
-                field = df.project(
-                    field, df.TensorFunctionSpace(
-                        self.mesh, "Lagrange", 1
+            for degree in range(5): # test until degree five
+                # Writing symmetric tensors crashes.
+                # Therefore project symmetric tensor in nonsymmetric space
+                # This is only a temporary fix, see:
+                # https://fenicsproject.discourse.group/t/...
+                # ...writing-symmetric-tensor-function-fails/1136
+                el_symm = df.TensorElement(
+                    df.FiniteElement(
+                        "Lagrange", df.triangle, degree+1
+                    ), symmetry=True
+                ) # symmetric tensor element
+                el_sol = field.ufl_function_space().ufl_element()
+                if el_sol == el_symm:
+                    # Remove symmetry with projection
+                    field = df.project(
+                        field, df.TensorFunctionSpace(
+                            self.mesh, "Lagrange", degree+1
+                        )
                     )
-                )
+                    break
 
             field.rename(name, name)
             file.write(field, self.time)

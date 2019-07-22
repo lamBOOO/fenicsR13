@@ -11,6 +11,23 @@ meshes:
   - ../mesh/ring5.h5
   # - ../mesh/ring6.h5 # too less ram on macbook
 
+  elements:
+  "theta":
+    "shape": "Lagrange"
+    "degree": 1
+  "s":
+    "shape": "Lagrange"
+    "degree": 1
+  "p":
+    "shape": "Lagrange"
+    "degree": 1
+  "u":
+    "shape": "Lagrange"
+    "degree": 1
+  "sigma":
+    "shape": "Lagrange"
+    "degree": 1
+
 # Stabilization
 # =============
 # - continous interior penalty (cip) with three parameters delta_i

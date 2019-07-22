@@ -124,6 +124,87 @@ class Input:
                         },
                     }
                 }
+            },
+            "elements": {
+                "type": "dict",
+                "required": True,
+                "schema": {
+                    "theta": {
+                        "type": "dict",
+                        "required": True,
+                        "schema": {
+                            "shape": {
+                                "type": "string",
+                                "required": True
+                            },
+                            "degree": {
+                                "type": "integer",
+                                "required": True,
+                                "min": 0
+                            }
+                        }
+                    },
+                    "s": {
+                        "type": "dict",
+                        "required": True,
+                        "schema": {
+                            "shape": {
+                                "type": "string",
+                                "required": True
+                            },
+                            "degree": {
+                                "type": "integer",
+                                "required": True,
+                                "min": 0
+                            }
+                        }
+                    },
+                    "p": {
+                        "type": "dict",
+                        "required": True,
+                        "schema": {
+                            "shape": {
+                                "type": "string",
+                                "required": True
+                            },
+                            "degree": {
+                                "type": "integer",
+                                "required": True,
+                                "min": 0
+                            }
+                        }
+                    },
+                    "u": {
+                        "type": "dict",
+                        "required": True,
+                        "schema": {
+                            "shape": {
+                                "type": "string",
+                                "required": True
+                            },
+                            "degree": {
+                                "type": "integer",
+                                "required": True,
+                                "min": 0
+                            }
+                        }
+                    },
+                    "sigma": {
+                        "type": "dict",
+                        "required": True,
+                        "schema": {
+                            "shape": {
+                                "type": "string",
+                                "required": True
+                            },
+                            "degree": {
+                                "type": "integer",
+                                "required": True,
+                                "min": 0
+                            }
+                        }
+                    },
+                }
             }
         }
 

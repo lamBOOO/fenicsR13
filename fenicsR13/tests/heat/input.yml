@@ -9,8 +9,25 @@ meshes:
   - ../mesh/ring3.h5
   - ../mesh/ring4.h5
   - ../mesh/ring5.h5
-  - ../mesh/ring6.h5
-  # - ../mesh/ring7.h5 # over 8GB memory usage
+  # - ../mesh/ring6.h5 # fails at 8GB with P2P2
+  # - ../mesh/ring7.h5 # fails at 8GB with P1P1
+
+elements:
+  "theta":
+    "shape": "Lagrange"
+    "degree": 1
+  "s":
+    "shape": "Lagrange"
+    "degree": 1
+  "p":
+    "shape": "Lagrange"
+    "degree": 1
+  "u":
+    "shape": "Lagrange"
+    "degree": 1
+  "sigma":
+    "shape": "Lagrange"
+    "degree": 1
 
 # Stabilization
 # =============
