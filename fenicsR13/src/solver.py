@@ -374,6 +374,14 @@ class Solver:
 
             (self.sol["p"], self.sol["u"], self.sol["sigma"]) = sol.split()
 
+            # Scale pressure to have zero mean
+            p_i = df.interpolate(self.sol["p"], self.fspaces["p"])
+            mean_p_value = self.calc_sf_mean(p_i)
+            mean_p_fct = df.Function(self.fspaces["p"])
+            mean_p_fct.assign(df.Constant(mean_p_value))
+            p_i.assign(p_i - mean_p_fct)
+            self.sol["p"] = p_i
+
     def load_exact_solution(self):
         "Writes exact solution"
         if self.mode == "heat":
@@ -409,14 +417,18 @@ class Solver:
                 esol.Stress(), degree=2
             )
 
-    def shift_scalar_function_to_zero_mean(self, scalar_function):
+    def calc_sf_mean(self, scalar_function):
         """
-        Shift a function to have zero mean
-        """
-        mean = np.mean(scalar_function.vector()[:])
-        scalar_function.vector()[:] -= mean
+        Calculates the mean of a scalar function.
 
-        return scalar_function
+        .. code-block:: python
+
+            np.set_printoptions(precision=16)
+            print(mean) # precision is not soo nice, only 9 digits
+            print(self.calc_sf_mean(self.sol["p"])) # in solve() has m. prec. hm
+        """
+        mean = np.mean(scalar_function.vector()[:], dtype=np.float64)
+        return mean
 
 
     def calc_errors(self):
