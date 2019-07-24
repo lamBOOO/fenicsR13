@@ -11,23 +11,22 @@ namespace py = pybind11;
 
 #include <dolfin/function/Expression.h>
 
-double C_0 = -50.80230139855979;
-double C_1 = 0.6015037593984962;
-double C_2 = 0;
-double C_3 = -444.7738727200452;
-double C_4 = -0.12443443849461801;
-double C_5 = 39.38867688999618;
-double C_6 = -0.6917293233082705;
-double C_7 = 0;
-double C_8 = 0;
-double C_9 = 0;
+double C_0  = -50.80230139855979;
+double C_1  = 0.6015037593984962;
+double C_2  = 0;
+double C_3  = -444.7738727200452;
+double C_4  = -0.12443443849461801;
+double C_5  = 39.38867688999618;
+double C_6  = -0.6917293233082705;
+double C_7  = 0;
+double C_8  = 0;
+double C_9  = 0;
 double C_10 = 0;
 double C_11 = 0;
 double C_12 = 2.255312046238658E-11;
 double C_13 = 407.2248457002586;
 double C_14 = -104.89346597195336;
 double C_15 = 4.870715709115059E-7;
-
 double tau = 0.1;
 // double A_1 = 0.4;
 double A_1 = 0.0;
@@ -118,7 +117,7 @@ class Stress : public dolfin::Expression {
         // Heinz Schade p377: Assume symmetry of tensor <=> a_Rphi = a_phiR
         double sigma_xx = sigma_RR * pow(cos(phi),2) - (sigma_Rphi) * sin(2*phi) + sigma_phiphi * pow(sin(phi),2);
         double sigma_xy = sigma_Rphi * cos(2*phi) + 0.5*(sigma_RR-sigma_phiphi) * sin(2*phi); // same as in MomentsDG System_xy
-        double sigma_yy = sigma_phiphi * pow(cos(phi),2) - (sigma_Rphi) * sin(2*phi) + sigma_RR * pow(sin(phi),2);
+        double sigma_yy = sigma_phiphi * pow(cos(phi),2) + (sigma_Rphi) * sin(2*phi) + sigma_RR * pow(sin(phi),2);
 
         values[0] = sigma_xx ;
         values[1] = sigma_xy ;
