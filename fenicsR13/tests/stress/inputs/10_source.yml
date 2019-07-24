@@ -38,7 +38,7 @@ stabilization:
     enable: True
     delta_1: 1.0
     delta_2: 1.0
-    delta_3: 0.01 #FIXME
+    delta_3: 0.01
 
 # Formulation Parameters
 # ======================
@@ -53,7 +53,7 @@ mode: "stress"
 use_coeffs: True
 
 # Knudsen number
-tau: 0.1
+tau: 10.0
 
 # Refaction coefficient
 xi_tilde: 1.0
@@ -79,7 +79,7 @@ mass_source: "2.0/5.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)"
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: exact_solution_stress.cpp
+  exact_solution: esols/10_source.cpp
   # exact_solution: exact_solution_stress_no_source.cpp
   plot: True
   write_systemmatrix: False

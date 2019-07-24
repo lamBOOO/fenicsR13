@@ -11,45 +11,25 @@ namespace py = pybind11;
 
 #include <dolfin/function/Expression.h>
 
-double C_0  = -50.80230139855979;
-double C_1  = 0.6015037593984962;
+double C_0  = -0.8130302127508655;
+double C_1  = 0.030968740927126683;
 double C_2  = 0;
-double C_3  = -444.7738727200452;
-double C_4  = -0.12443443849461801;
-double C_5  = 39.38867688999618;
-double C_6  = -0.6917293233082705;
+double C_3  = -0.0033101840439549446;
+double C_4  = 11.951284064027568;
+double C_5  = -0.0007889627602236462;
+double C_6  = -0.07393786896351495;
 double C_7  = 0;
 double C_8  = 0;
 double C_9  = 0;
 double C_10 = 0;
 double C_11 = 0;
-double C_12 = 2.255312046238658E-11;
-double C_13 = 407.2248457002586;
-double C_14 = -104.89346597195336;
-double C_15 = 4.870715709115059E-7;
-double tau = 0.1;
+double C_12 = -36.89750663953326;
+double C_13 = 0.0005434319695837286;
+double C_14 = 0.00012205444731786555;
+double C_15 = -100.04741976448386;
+double tau = 10.0;
 double A_1 = 0.4;
-// // double A_1 = 0.0;
-
-// double C_0  = -0.8130302127508655;
-// double C_1  = 0.030968740927126683;
-// double C_2  = 0;
-// double C_3  = -0.0033101840439549446;
-// double C_4  = 11.951284064027568;
-// double C_5  = -0.0007889627602236462;
-// double C_6  = -0.07393786896351495;
-// double C_7  = 0;
-// double C_8  = 0;
-// double C_9  = 0;
-// double C_10 = 0;
-// double C_11 = 0;
-// double C_12 = -36.89750663953326;
-// double C_13 = 0.0005434319695837286;
-// double C_14 = 0.00012205444731786555;
-// double C_15 = -100.04741976448386;
-// double tau = 10.0;
-// double A_1 = 0.4;
-// // double A_1 = 0.0;
+// double A_1 = 0.0;
 
 double lambda_1 = sqrt(5.0/9.0);
 double lambda_2 = sqrt(5.0/6.0);

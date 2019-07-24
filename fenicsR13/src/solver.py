@@ -318,10 +318,10 @@ class Solver:
                     - 2.0 * psi_nt * bcs[bc]["v_t"] * df.ds(bc)
                     for bc in bcs.keys()
                 ])
-                a2 = + (df.dot(df.div(sigma), v) + df.dot(df.grad(p), v)) * df.dx
-                l2 = + df.Constant(0) * df.div(v) * df.dx # dummy
-                a3 = + df.dot(u, df.grad(q)) * df.dx
-                l3 = - (f * q) * df.dx
+                a2 = +(df.dot(df.div(sigma), v) + df.dot(df.grad(p), v)) * df.dx
+                l2 = +df.Constant(0) * df.div(v) * df.dx # dummy
+                a3 = +df.dot(u, df.grad(q)) * df.dx
+                l3 = -(f * q) * df.dx
 
             if self.use_cip:
                 stab = (
