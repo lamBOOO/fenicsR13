@@ -337,14 +337,29 @@ class Solver:
             self.form_b = l1 + l2 + l3
 
     def solve(self):
-        "Solves the system"
+        """
+        Solves the system.
+        Some available solver options:
+
+        .. code-block:: python
+
+            solver_parameters={
+                'linear_solver': 'gmres', 'preconditioner': 'ilu'
+            }
+            solver_parameters={
+                'linear_solver': 'petsc', 'preconditioner': 'ilu'
+            }
+            solver_parameters={'linear_solver': 'direct'}
+            solver_parameters={'linear_solver': 'mumps'}
+
+        """
         if self.mode == "heat":
 
             w = self.mxd_fspaces["heat"]
             sol = df.Function(w)
             df.solve(
                 self.form_a == self.form_b, sol, [],
-                solver_parameters={"linear_solver": "direct"}
+                solver_parameters={"linear_solver": "mumps"}
             )
 
             (self.sol["theta"], self.sol["s"]) = sol.split()
