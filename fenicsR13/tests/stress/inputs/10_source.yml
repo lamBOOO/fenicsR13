@@ -8,7 +8,7 @@ meshes:
   - ../mesh/ring2.h5
   - ../mesh/ring3.h5
   - ../mesh/ring4.h5
-  - ../mesh/ring5.h5
+  # - ../mesh/ring5.h5
   # - ../mesh/ring6.h5 # fails on Macbook 8GB
   # - ../mesh/ring7.h5 # fails on iMac 24GB, works on iMac 48GB
   # - ../mesh/ring6.h5
@@ -74,13 +74,12 @@ heat_source: "2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)"
 
 # mass source
 mass_source: "2.0/5.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)"
-# mass_source: "0.0"
 
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
   exact_solution: esols/10_source.cpp
-  # exact_solution: exact_solution_stress_no_source.cpp
+
   plot: True
   write_systemmatrix: False
 

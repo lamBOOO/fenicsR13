@@ -29,7 +29,8 @@ class TestHeatConvergence(object):
             "diff", "-u", "--strip-trailing-cr", errorsfile, ref_errorsfile
         ], cwd=self.working_dir)
 
-    @pytest.fixture(scope="module", autouse=True)
+    # @pytest.fixture(scope="module", autouse=True)
+    @pytest.mark.skip(reason="Not needed because meshes are in repo")
     def create_meshes(self):
         """
         Creates the test meshes. Executed before any test of the class.
