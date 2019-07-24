@@ -9,7 +9,9 @@ meshes:
   - ../mesh/ring3.h5
   - ../mesh/ring4.h5
   - ../mesh/ring5.h5
-  # - ../mesh/ring6.h5 # too less ram on macbook
+  # - ../mesh/ring6.h5 # fails on Macbook 8GB
+  # - ../mesh/ring7.h5 # fails on iMac 24GB, works on iMac 48GB
+  # - ../mesh/ring6.h5
 
 elements:
   "theta":
@@ -55,7 +57,7 @@ tau: 0.1
 
 # Refaction coefficient
 xi_tilde: 1.0
-# xi_tilde: 0.797884561 # sqrt(2/pi)
+# xi_tilde: 0.7978845608 sqrt(2/pi)
 
 bcs:
   3000:

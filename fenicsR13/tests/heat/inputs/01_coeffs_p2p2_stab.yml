@@ -8,9 +8,11 @@ meshes:
   - ../mesh/ring2.h5
   - ../mesh/ring3.h5
   - ../mesh/ring4.h5
-  # - ../mesh/ring5.h5
-  # - ../mesh/ring6.h5 # fails at 8GB with P2P2
-  # - ../mesh/ring7.h5 # fails at 8GB with P1P1
+  - ../mesh/ring5.h5
+  - ../mesh/ring6.h5
+  - ../mesh/ring7.h5 # fails on acbook 8GB
+  - ../mesh/ring8.h5 # fails on iMac 24GB, works on iMac 48GB
+  # - ../mesh/ring9.h5
 
 elements:
   "theta":
@@ -28,6 +30,7 @@ elements:
   "sigma":
     "shape": "Lagrange"
     "degree": 1
+
 
 # Stabilization
 # =============
