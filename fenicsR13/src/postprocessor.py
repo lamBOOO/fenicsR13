@@ -6,8 +6,8 @@ from itertools import chain
 
 import csv
 from math import sqrt, ceil
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Postprocessor:
     "Postprocessor class"
@@ -17,6 +17,13 @@ class Postprocessor:
     def plot_errors(self):
         """
         Use ``matplotlib`` to plot all erros in a figure.
+
+        Exporting PDFs with
+
+        ..code-block:: python
+
+            matplotlib.use('pdf')
+            import matplotlib.pyplot as plt # pylint: disable=C0413
         """
 
         plt.figure(num=None, figsize=(16, 9), dpi=100)
@@ -47,7 +54,8 @@ class Postprocessor:
             plt.legend(loc='lower right')
 
         plt.tight_layout()
-        plt.show()
+        # plt.show()
+        plt.savefig("convergence_plot.pdf", dpi=150)
 
     def write_errors(self):
         "Writes errors to csv file"
