@@ -9,6 +9,7 @@ linearized R13 equations
 """
 
 import sys
+import gc
 import dolfin as df
 
 import meshes
@@ -109,6 +110,9 @@ def main():
                 postp.write_errors()
                 if plot:
                     postp.plot_errors()
+
+        solver = None
+        gc.collect()
 
 if __name__ == '__main__':
     main()
