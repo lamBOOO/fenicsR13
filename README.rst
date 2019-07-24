@@ -38,8 +38,8 @@ First install `Docker Desktop`_ for your OS. Then:
     # in serial...
     python3 ../../src/fenicsR13.py
 
-    # in parallel...
-    mpirun -n 4 python3 ../../src/fenicsR13.py
+    # in parallel... ("-u" to flash stdout)
+    mpirun -n 4 python3 -u ../../src/fenicsR13.py
 
 
 
