@@ -487,7 +487,8 @@ class Solver:
             field_e_i = df.interpolate(sol_e_, v_sol)
             field_i = df.interpolate(sol_, v_sol)
 
-            difference = df.project(sol_e_ - sol_, v_sol)
+            # difference = df.project(sol_e_ - sol_, v_sol) # different outpu
+            difference = df.project(field_e_i - field_i, v_sol)
             self.write_xdmf("difference_{}".format(name_), difference)
 
             dofs = len(field_e_i.split())
