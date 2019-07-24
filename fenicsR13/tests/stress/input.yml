@@ -38,7 +38,7 @@ stabilization:
     enable: True
     delta_1: 1.0
     delta_2: 1.0
-    delta_3: 0.1
+    delta_3: 0.01 #FIXME
 
 # Formulation Parameters
 # ======================
