@@ -8,3 +8,4 @@ Sphinx>=2.1.2
 sphinx_rtd_theme>=0.4.3
 sphinxcontrib-napoleon>=0.7
 doc8>=0.8.0
+autopep8>=1.4.4
