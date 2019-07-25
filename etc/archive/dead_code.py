@@ -72,3 +72,62 @@
 # x = df.SpatialCoordinate(mesh_)
 # # p_e_i = df.project(ufl.atan_2(x[1], x[0]), space)
 
+
+
+# 190725
+# # Not needed anymore
+# def devOfGrad2(rank2):
+#     "From Henning's book p232"
+#     i, j, k, r = ufl.indices(4)
+#     t = ufl.Index(4)
+#     # d x d identiy matrix to use for Kronecker delta
+#     delta = df.Identity(2)
+#     entry_ijk = (
+#         (1/3) * (
+#             rank2[i, j].dx(k) + rank2[i, k].dx(j) + rank2[j, k].dx(i)
+#         )
+#         # ufl.sym(ufl.grad(rank2))
+#         - (1/15) * (
+#             + (2 * rank2[i, r].dx(r) + rank2[r, r].dx(i)) * delta[j, k]
+#             + (2 * rank2[j, r].dx(r) + rank2[r, r].dx(j)) * delta[i, k]
+#             + (2 * rank2[k, r].dx(r) + rank2[r, r].dx(k)) * delta[i, j]
+#         )
+#     )
+#     tensor = ufl.as_tensor(entry_ijk, (i, j, k))
+#     # print(rank2[0,0].dx(2))
+#     # print(tensor)
+#     return tensor
+
+
+
+# 190725
+# e = self.params["elements"]["sigma"]["shape"]
+# deg = self.params["elements"]["sigma"]["degree"]
+# elem = df.TensorElement(e, self.cell, deg)
+# fspace = df.FunctionSpace(self.mesh, elem)
+# sigma_3x3 = df.Function(fspace)
+# sigma_3x3 = df.as_tensor([
+#     [sigma[0, 0], sigma[0, 1], 0],
+#     [sigma[1, 0], sigma[0, 0], 0],
+#     [0, 0, -sigma[0, 0]-sigma[1, 1]]
+# ])
+# print(devOfGrad2(sigma_3x3))
+# print(sigma_3x3.ufl_shape)
+# print(sigma_3x3)
+# return df.inner(dev3(grad3dOf2(gen3dTracefreeTensor(sigma))), grad3dOf2(gen3dTracefreeTensor(psi)))
+
+
+
+# 190725
+# return df.as_tensor([
+#     [
+#         [rank2[0, 0].dx(0), rank2[0, 1].dx(0), rank2[0, 2].dx(0)],
+#         [rank2[0, 1].dx(0), rank2[1, 1].dx(0), rank2[1, 2].dx(0)],
+#         [rank2[2, 0].dx(0), rank2[2, 1].dx(0), rank2[2, 2].dx(0)],
+#     ],
+#     [
+#         [rank2[0, 0].dx(1), rank2[0, 1].dx(1), rank2[0, 2].dx(1)],
+#         [rank2[0, 1].dx(1), rank2[1, 1].dx(1), rank2[1, 2].dx(1)],
+#         [rank2[2, 0].dx(1), rank2[2, 1].dx(1), rank2[2, 2].dx(1)],
+#     ]
+# ])
