@@ -35,3 +35,6 @@
 
 # ignore .ip helper file (X11)
 *.ip
+
+# ignore convergence plots
+*convergence_plot.pdf

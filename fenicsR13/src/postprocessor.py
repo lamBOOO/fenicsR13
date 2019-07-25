@@ -54,8 +54,8 @@ class Postprocessor:
             plt.legend(loc='lower right')
 
         plt.tight_layout()
-        # plt.show()
         plt.savefig("convergence_plot.pdf", dpi=150)
+        plt.show()
 
     def write_errors(self):
         "Writes errors to csv file"
