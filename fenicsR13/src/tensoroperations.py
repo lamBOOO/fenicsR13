@@ -94,14 +94,14 @@ def gen3dTracefreeTensor(rank2):
     .. math::
 
         B = \begin{pmatrix}
-                b_{xx} & b_{xy} \
-                b_{yx} & b_{yy} \
+                b_{xx} & b_{xy} \\
+                b_{yx} & b_{yy}
             \end{pmatrix}
 
         A = \begin{pmatrix}
-                b_{xx} & b_{xy} & 0                \
-                b_{yx} & b_{yy} & 0                \
-                0      & 0      & -(b_{yx}+b_{yy}) \
+                b_{xx} & b_{xy} & 0                \\
+                b_{yx} & b_{yy} & 0                \\
+                0      & 0      & -(b_{yx}+b_{yy})
             \end{pmatrix}
     """
     return df.as_tensor([

@@ -9,3 +9,4 @@ src
    meshes
    postprocessor
    solver
+   tensoroperations

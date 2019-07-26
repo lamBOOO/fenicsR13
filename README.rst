@@ -201,7 +201,7 @@ Contact
     | lambert.theisen@rwth-aachen.de
 :Supervisor:
     | Prof. Dr. Manuel Torrilhon
-    | Lehrstuhl fur Mathematik (MathCCES)
+    | Lehrstuhl für Mathematik (MathCCES)
     | RWTH Aachen University
     | mt@mathcces.rwth-aachen.de
 :Context:
