@@ -412,8 +412,19 @@ class Solver:
             np.set_printoptions(precision=16)
             print(mean) # precision is not soo nice, only 9 digits
             print(self.calc_sf_mean(self.sol["p"])) # in solve() has m. prec. hm
+
+        .. note::
+
+            The following does not work in parallel because the mean is
+            then only local:
+
+            .. code-block:: python
+
+                mean = np.mean(scalar_function.vector()[:], dtype=np.float64)
         """
-        mean = np.mean(scalar_function.vector()[:], dtype=np.float64)
+        #
+        v = scalar_function.vector()
+        mean = v.sum()/v.size()
         return mean
 
 
