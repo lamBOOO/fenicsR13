@@ -265,6 +265,15 @@ class Solver:
             (p, u, sigma) = df.TrialFunctions(w)
             (q, v, psi) = df.TestFunctions(w)
 
+            # # same:
+            # i, j = ufl.indices(2)
+            # sigma_nn = sigma[i, j] * n[i] * n[j]
+            # psi_nn = psi[i, j] * n[i] * n[j]
+            # sigma_tt = sigma[i, j] * t[i] * t[j]
+            # psi_tt = psi[i, j] * t[i] * t[j]
+            # sigma_nt = sigma[i, j] * n[i] * t[j]
+            # psi_nt = psi[i, j] * n[i] * t[j]
+
             sigma_nn = df.dot(sigma*n, n)
             psi_nn = df.dot(psi*n, n)
             sigma_tt = df.dot(sigma*t, t)
@@ -278,7 +287,6 @@ class Solver:
             if self.use_coeffs:
                 a1 = (
                     # + 2 * tau * df.inner(devOfGrad2(sigma), df.grad(psi))
-
                     + 2 * tau * to.innerOfDevOfGrad2AndGrad2(sigma, psi)
                     + (1/tau) * to.innerOfTracefree2(sigma, psi)
                     # + (1/tau) * df.inner(sigma, psi) # is wrong
@@ -295,6 +303,7 @@ class Solver:
                     - 2.0 * psi_nt * bcs[bc]["v_t"] * df.ds(bc)
                     for bc in bcs.keys()
                 ])
+                # l1 = -2 * psi_nt * (-10) * df.ds(3000) # same
                 a2 = +(df.dot(df.div(sigma), v) + df.dot(df.grad(p), v)) * df.dx
                 l2 = +df.Constant(0) * df.div(v) * df.dx # dummy
                 a3 = +df.dot(u, df.grad(q)) * df.dx
