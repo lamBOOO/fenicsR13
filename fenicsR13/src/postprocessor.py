@@ -5,7 +5,7 @@
 from itertools import chain
 
 import csv
-from math import sqrt, ceil
+from math import sqrt, ceil, log, log10
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -41,10 +41,46 @@ class Postprocessor:
 
         for i, key in enumerate(raw_data):
             field = [df[key] for df in data]
-            plt.subplot(plt_sidelength_x, plt_sidelength_y, (i+1))
-            for etype in field[0]:
+            plot_i = plt.subplot(plt_sidelength_x, plt_sidelength_y, (i+1))
+            for j, etype in enumerate(field[0]):
                 values = [df[etype] for df in field]
                 plt.loglog(h, values, "-o", label=etype)
+
+                use_top = j == 1
+                bot = np.array([
+                    [h[-1], 0.5*values[-1]],
+                    [h[-2], 0.5*values[-1]],
+                    [h[-2], 0.5*values[-2]]
+                ])
+                top = np.array([
+                    [h[-1], 2.0*values[-1]],
+                    [h[-2], 2.0*values[-2]],
+                    [h[-1], 2.0*values[-2]]
+                ])
+                tria = top if use_top else bot
+                slope_marker = plt.Polygon(
+                    tria, color=plot_i.get_lines()[-1].get_color(),
+                    alpha=1.5, fill=False
+                    )
+                plot_i.add_patch(slope_marker)
+
+                conv_rate = (
+                    (log(values[-2]) - log(values[-1]))
+                    / (log(h[-2]) - log(h[-1]))
+                )
+                anchor_x = h[-1] if use_top else h[-2]
+                anchor_y = (
+                    10**(
+                        (log10(2.0*values[-2])+log10(2.0*values[-1]))/2
+                    ) if use_top
+                    else 10**((log10(0.5*values[-2])+log10(0.5*values[-1]))/2)
+                )
+                h_align = "left" if use_top else "right"
+                plot_i.text(
+                    anchor_x, anchor_y, str(round(conv_rate, 2)),
+                    alpha=1.0, ha=h_align, va="center"
+                )
+
             plt.loglog(h, np.array(2*np.power(h, 1)), "--", label="O(h^1)")
             plt.loglog(h, np.array(0.02*np.power(h, 2)), "--", label="O(h^2)")
             plt.loglog(h, np.array(0.02*np.power(h, 3)), "--", label="O(h^3)")
