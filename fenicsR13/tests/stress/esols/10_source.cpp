@@ -5,7 +5,7 @@
 #include <boost/math/special_functions/bessel.hpp>
 
 using namespace std;
-using namespace boost::math;
+//using namespace boost::math;
 
 namespace py = pybind11;
 
@@ -101,14 +101,79 @@ class Stress : public dolfin::Expression {
         double R = sqrt(pow(x[0],2)+pow(x[1],2));
         double phi = atan2(x[1],x[0]);
 
-        double gamma_0 = (2*C_7*pow(tau,2))/(pow(R,2)) + (C_10*K_1((R*lambda_3)/tau))/(lambda_3*R) + (C_11*I_1((R*lambda_3)/tau))/(lambda_3*R) + C_2*( (tau*K_1((R*lambda_2/tau)))/(2*lambda_2*R) - K_2(R*lambda_2/tau) ) + C_8*( -(tau*I_1(R*lambda_2/tau))/(2*lambda_2*R) - I_2(R*lambda_2/tau) );
-        double gamma   = (7*A_1*pow(R,2))/(27*tau) - (2*pow(tau,3)*(C_3-(64*C_5)/15))/pow(R,3) - (2*C_4*R)/tau - (2*C_5*tau)/R + (C_12*tau*I_2(R*lambda_3/tau))/(lambda_3*R) + (C_13*tau*K_2(R*lambda_3/tau))/(lambda_3*R) + C_14*( -K_1(R*lambda_2/tau)-(3*tau*K_2(R*lambda_2/tau))/(2*lambda_2*R) ) + C_15*( (3*tau*I_2(R*lambda_2/tau))/(2*lambda_2*R)-I_1(R*lambda_2/tau) );
+        // std::cout << atan2(0.0,1.0);
 
-        double kappa_0 = C_1/pow(R,2);
-        double kappa   = -(A_1*pow(R,2))/(9*tau) - (2*pow(tau,3)*(C_3-(64*C_5)/15))/pow(R,3) + (2*C_4*R)/tau + (C_12*tau*I_2(R*lambda_3/tau))/(lambda_3*R) + (C_13*tau*K_2(R*lambda_3/tau))/(lambda_3*R) - (3*C_14*tau*K_2(R*lambda_2/tau))/(2*lambda_2*R) + (3*C_15*tau*I_2(R*lambda_2/tau))/(2*lambda_2*R);
+        double gamma_0 =
+            + (2*C_7*pow(tau,2))/(pow(R,2))
+            + (C_10*tau*K_1((R*lambda_3)/tau))/(lambda_3*R)
+            + (C_11*tau*I_1((R*lambda_3)/tau))/(lambda_3*R)
+            + C_2*(
+                + (tau*K_1((R*lambda_2/tau)))/(2*lambda_2*R)
+                - K_2(R*lambda_2/tau)
+            )
+            + C_8*(
+                - (tau*I_1(R*lambda_2/tau))/(2*lambda_2*R)
+                - I_2(R*lambda_2/tau)
+            );
+        double gamma =
+            + (7.*A_1*pow(R,2))/(27.*tau)
+            - (2.*pow(tau,3)*(C_3-(64.*C_5)/15.))/pow(R,3)
+            - (2.*C_4*R)/tau
+            - (2.*C_5*tau)/R
+            + (C_12*tau*I_2(R*lambda_3/tau))/(lambda_3*R)
+            + (C_13*tau*K_2(R*lambda_3/tau))/(lambda_3*R)
+            + C_14*(
+                - K_1(R*lambda_2/tau)
+                - (3.*tau*K_2(R*lambda_2/tau))/(2.*lambda_2*R)
+            )
+            + C_15*(
+                + (3.*tau*I_2(R*lambda_2/tau))/(2.*lambda_2*R)
+                - I_1(R*lambda_2/tau)
+            );
 
-        double omega_0 = (2*C_7*pow(tau,2))/pow(R,2) + C_10*(K_0(R*lambda_3/tau)+(tau*K_1(R*lambda_3/tau)/(lambda_3*R))) + C_11*( (tau*I_1(R*lambda_3/tau))/(lambda_3*R) -I_0(R*lambda_3/tau) ) + C_2*( -1./2.*K_0(R*lambda_2/tau) - (3*K_1(R*lambda_2/tau))/(2*lambda_2*R) ) + C_8*( (3*I_1(R*lambda_2/tau))/(2*lambda_2*R) - 1./2.*I_0(R*lambda_2/tau));
-        double omega   = (2*A_1*pow(R,2))/(27*tau) - (2*pow(tau,3)*(C_3-(64*C_5)/15.))/(pow(R,3)) - (2*C_4*R)/tau - (2*C_5*tau)/R + C_12*((tau*I_2(R*lambda_3/tau))/(lambda_3*R) - I_1(R*lambda_3/tau)) + C_13*( - K_1(R*lambda_3/tau) + (tau*K_2(R*lambda_3/tau))/(lambda_3*R) ) + C_14*((tau*K_2(R*lambda_2/tau))/(2*lambda_2*R) - 1/2.*K_3(R*lambda_2/tau) ) + C_15*(-(tau*I_2(R*lambda_2/tau))/(2*lambda_2*R) - 1/2.*I_3(R*lambda_2/tau) );
+        double kappa_0 =
+            C_1/pow(R,2);
+        double kappa =
+            - (A_1*pow(R,2))/(9*tau)
+            - (2.*pow(tau,3)*(C_3-(64.*C_5)/15.))/pow(R,3)
+            + (2.*C_4*R)/tau
+            + (C_12*tau*I_2(R*lambda_3/tau))/(lambda_3*R)
+            + (C_13*tau*K_2(R*lambda_3/tau))/(lambda_3*R)
+            - (3.*C_14*tau*K_2(R*lambda_2/tau))/(2.*lambda_2*R)
+            + (3.*C_15*tau*I_2(R*lambda_2/tau))/(2.*lambda_2*R);
+
+        double omega_0 =
+            (2*C_7*pow(tau,2))/pow(R,2)
+            + C_10*(K_0(R*lambda_3/tau)+(tau*K_1(R*lambda_3/tau)/(lambda_3*R)))
+            + C_11*((tau*I_1(R*lambda_3/tau))/(lambda_3*R)-I_0(R*lambda_3/tau)) + C_2 * (
+                - 1./2.*K_0(R*lambda_2/tau)
+                - (3*tau*K_1(R*lambda_2/tau))/(2*lambda_2*R)
+            )
+            + C_8 * (
+                + (3*tau*I_1(R*lambda_2/tau))/(2*lambda_2*R)
+                - 1./2.*I_0(R*lambda_2/tau)
+            );
+        double omega =
+            (2*A_1*pow(R,2))/(27*tau)
+            - (2*pow(tau,3)*(C_3-(64*C_5)/15.))/(pow(R,3))
+            - (2*C_4*R)/tau
+            - (2*C_5*tau)/R
+            + C_12 * (
+                + (tau*I_2(R*lambda_3/tau))/(lambda_3*R)
+                - I_1(R*lambda_3/tau)
+            )
+            + C_13 * (
+                - K_1(R*lambda_3/tau)
+                + (tau*K_2(R*lambda_3/tau))/(lambda_3*R)
+            )
+            + C_14 * (
+                + (tau*K_2(R*lambda_2/tau))/(2*lambda_2*R)
+                - 1/2.*K_3(R*lambda_2/tau)
+            )
+            + C_15 * (
+                - (tau*I_2(R*lambda_2/tau))/(2*lambda_2*R)
+                - 1/2.*I_3(R*lambda_2/tau)
+            );
 
         double sigma_RR     =   gamma_0 + cos(phi) * gamma;
         double sigma_Rphi   =   kappa_0 + sin(phi) * kappa;
