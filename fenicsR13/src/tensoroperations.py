@@ -51,6 +51,7 @@ def dev3(rank3):
     """
     Return the deviator of a rank-3 tensor
     Henning p231ff
+    Manuels lecture p51
     """
     i, j, k, l = ufl.indices(4)
     delta = df.Identity(3)
@@ -58,8 +59,8 @@ def dev3(rank3):
     sym_ijk = sym3(rank3)[i, j, k]
     trace_ijk = 1/5 * (
         + sym3(rank3)[i, l, l] * delta[j, k]
-        + sym3(rank3)[j, l, l] * delta[i, k]
-        + sym3(rank3)[k, l, l] * delta[i, j]
+        + sym3(rank3)[l, j, l] * delta[i, k]
+        + sym3(rank3)[l, l, k] * delta[i, j]
     )
     tracefree_ijk = sym_ijk - trace_ijk
     return ufl.as_tensor(tracefree_ijk, (i, j, k))
@@ -74,7 +75,7 @@ def innerOfDevOfGrad2AndGrad2(sigma, psi):
         (\nabla \underline{\underline{\sigma}})_{\mathrm{dev}} :
             \nabla \underline{\underline{\psi}}
     """
-    hardcoded = False
+    hardcoded = True
     if hardcoded: # pylint: disable=no-else-return
         return psi[1, 1].dx(1)*((3*sigma[1, 1].dx(1))/5. - sigma[0, 1].dx(0)/5. - sigma[1, 0].dx(0)/5.) + (-psi[0, 0].dx(1) - psi[1, 1].dx(1))*(-sigma[0, 0].dx(1)/3. - (7*sigma[1, 1].dx(1))/15. - sigma[0, 1].dx(0)/15. - sigma[1, 0].dx(0)/15.) + psi[0, 0].dx(1)*(sigma[0, 0].dx(1)/3. - (2*sigma[1, 1].dx(1))/15. + (4*sigma[0, 1].dx(0))/15. + (4*sigma[1, 0].dx(0))/15.) + psi[0, 1].dx(1)*((4*sigma[0, 1].dx(1))/15. + (4*sigma[1, 0].dx(1))/15. - (2*sigma[0, 0].dx(0))/15. + sigma[1, 1].dx(0)/3.) + psi[1, 0].dx(1)*((4*sigma[0, 1].dx(1))/15. + (4*sigma[1, 0].dx(1))/15. - (2*sigma[0, 0].dx(0))/15. + sigma[1, 1].dx(0)/3.) + (-sigma[0, 1].dx(1)/5. - sigma[1, 0].dx(1)/5. + (3*sigma[0, 0].dx(0))/5.)*psi[0, 0].dx(0) + (sigma[0, 0].dx(1)/3. - (2*sigma[1, 1].dx(1))/15. + (4*sigma[0, 1].dx(0))/15. + (4*sigma[1, 0].dx(0))/15.)*psi[0, 1].dx(0) + (sigma[0, 0].dx(1)/3. - (2*sigma[1, 1].dx(1))/15. + (4*sigma[0, 1].dx(0))/15. + (4*sigma[1, 0].dx(0))/15.)*psi[1, 0].dx(0) + (-sigma[0, 1].dx(1)/15. - sigma[1, 0].dx(1)/15. - (7*sigma[0, 0].dx(0))/15. - sigma[1, 1].dx(0)/3.)*(-psi[0, 0].dx(0) - psi[1, 1].dx(0)) + ((4*sigma[0, 1].dx(1))/15. + (4*sigma[1, 0].dx(1))/15. - (2*sigma[0, 0].dx(0))/15. + sigma[1, 1].dx(0)/3.)*psi[1, 1].dx(0)
     else:
