@@ -8,7 +8,7 @@ meshes:
   - ../mesh/ring2.h5
   - ../mesh/ring3.h5
   - ../mesh/ring4.h5
-  - ../mesh/ring5.h5
+  # - ../mesh/ring5.h5
   # - ../mesh/ring6.h5 # fails on Macbook 8GB
   # - ../mesh/ring7.h5 # fails on iMac 24GB, works on iMac 48GB
   # - ../mesh/ring6.h5
@@ -22,13 +22,13 @@ elements:
     "degree": 1
   "p":
     "shape": "Lagrange"
-    "degree": 1
+    "degree": 2
   "u":
     "shape": "Lagrange"
-    "degree": 1
+    "degree": 2
   "sigma":
     "shape": "Lagrange"
-    "degree": 1
+    "degree": 2
 
 # Stabilization
 # =============
