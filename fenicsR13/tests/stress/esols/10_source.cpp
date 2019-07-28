@@ -180,9 +180,18 @@ class Stress : public dolfin::Expression {
         double sigma_phiphi = -(omega_0 + cos(phi) * omega);
 
         // Heinz Schade p377: Assume symmetry of tensor <=> a_Rphi = a_phiR
-        double sigma_xx = sigma_RR     * pow(cos(phi),2) - (sigma_Rphi) * sin(2*phi) + sigma_phiphi * pow(sin(phi),2);
-        double sigma_xy = sigma_Rphi * cos(2*phi) + 0.5*(sigma_RR-sigma_phiphi) * sin(2*phi); // same as in MomentsDG System_xy
-        double sigma_yy = sigma_phiphi * pow(cos(phi),2) + (sigma_Rphi) * sin(2*phi) + sigma_RR     * pow(sin(phi),2);
+        double sigma_xx =
+            + sigma_RR * pow(cos(phi),2)
+            - (sigma_Rphi + sigma_Rphi) * cos(phi) * sin(phi)
+            + sigma_phiphi * pow(sin(phi),2);
+        double sigma_xy =
+            + sigma_Rphi * pow(cos(phi),2)
+            + (sigma_RR - sigma_phiphi) * cos(phi) * sin(phi)
+            - sigma_Rphi * pow(sin(phi),2);
+        double sigma_yy =
+            + sigma_phiphi * pow(cos(phi),2)
+            + (sigma_Rphi + sigma_Rphi) * cos(phi) * sin(phi)
+            + sigma_RR * pow(sin(phi),2);
 
         values[0] = sigma_xx ;
         values[1] = sigma_xy ;
