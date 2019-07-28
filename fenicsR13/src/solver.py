@@ -304,10 +304,13 @@ class Solver:
                     for bc in bcs.keys()
                 ])
                 # l1 = -2 * psi_nt * (-10) * df.ds(3000) # same
-                a2 = +(df.dot(df.div(sigma), v) + df.dot(df.grad(p), v)) * df.dx
-                l2 = +df.Constant(0) * df.div(v) * df.dx # dummy
-                a3 = +df.dot(u, df.grad(q)) * df.dx
-                l3 = -(f * q) * df.dx
+                a2 = (
+                    + df.dot(df.div(sigma), v)
+                    + df.dot(df.grad(p), v)
+                ) * df.dx
+                l2 = + df.Constant(0) * df.div(v) * df.dx # dummy
+                a3 = + df.dot(u, df.grad(q)) * df.dx
+                l3 = - (f * q) * df.dx
 
             if self.use_cip:
                 stab = (
