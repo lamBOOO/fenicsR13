@@ -78,7 +78,7 @@ mass_source: "0"
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: esols/01_source.cpp
+  exact_solution: esols/01_nosource.cpp
   plot: True
   write_systemmatrix: False
 

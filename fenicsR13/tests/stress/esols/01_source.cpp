@@ -164,7 +164,7 @@ class Stress : public dolfin::Expression {
                 - I_1(R*lambda_3/tau)
             )
             + C_13 * (
-                - K_1(R*lambda_3/tau)
+                + K_1(R*lambda_3/tau)
                 + (tau*K_2(R*lambda_3/tau))/(lambda_3*R)
             )
             + C_14 * (
