@@ -332,37 +332,32 @@ class Solver:
 
         .. code-block:: python
 
+            # Some solver params
             solver_parameters={
-                'linear_solver': 'gmres', 'preconditioner': 'ilu'
+                'linear_solver': 'gmres', 'preconditioner': 'ilu' # or
+                'linear_solver': 'petsc', 'preconditioner': 'ilu' # or
+                'linear_solver': 'direct' # or
+                'linear_solver': 'mumps'
             }
-            solver_parameters={
-                'linear_solver': 'petsc', 'preconditioner': 'ilu'
-            }
-            solver_parameters={'linear_solver': 'direct'}
-            solver_parameters={'linear_solver': 'mumps'}
 
         """
         if self.mode == "heat":
-
             w = self.mxd_fspaces["heat"]
-            sol = df.Function(w)
-            df.solve(
-                self.form_a == self.form_b, sol, [],
-                solver_parameters={"linear_solver": "mumps"}
-            )
+        elif self.mode == "stress":
+            w = self.mxd_fspaces["stress"]
 
+        sol = df.Function(w)
+        df.solve(
+            self.form_a == self.form_b, sol, [],
+            solver_parameters={"linear_solver": "mumps"}
+        )
+
+        if self.mode == "heat":
             (self.sol["theta"], self.sol["s"]) = sol.split()
         elif self.mode == "stress":
-
-            w = self.mxd_fspaces["stress"]
-            sol = df.Function(w)
-            df.solve(
-                self.form_a == self.form_b, sol, [],
-                solver_parameters={"linear_solver": "mumps"}
-            )
-
             (self.sol["p"], self.sol["u"], self.sol["sigma"]) = sol.split()
 
+        if self.mode == "stress":
             # Scale pressure to have zero mean
             p_i = df.interpolate(self.sol["p"], self.fspaces["p"])
             mean_p_value = self.calc_sf_mean(p_i)
