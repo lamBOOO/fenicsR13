@@ -1,4 +1,4 @@
-.. image:: logo.png
+.. image:: logo.svg
     :width: 200px
     :alt: logo
 
