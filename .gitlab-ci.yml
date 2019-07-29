@@ -40,7 +40,7 @@ build:
     - ${APP_DIRECTORY}/htmlcov
     expire_in: 1 week
 
-test:convergence:heat:
+test:convergence:
   extends: .test
   script:
   - cd ${APP_DIRECTORY}
