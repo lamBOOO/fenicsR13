@@ -173,7 +173,25 @@ class Solver:
                 raise Exception("Mesh edge id {} has no bcs!".format(edge_id))
 
     def assemble(self):
-        "Assemble system"
+        r"""
+        Assembles the weak forms of the either the decoupled heat system,
+        the decoupled stress system or the whole coupled system.
+
+        .. |Rt| mathmacro:: \underline{\underline{R}}
+        .. |st| mathmacro:: \underline{s}
+
+        **Heat**:
+
+        .. math::
+            -\frac{24}{5} \tau (\nabla \st)_{\mathrm{dev}} - \Rt &= 0 \\
+            \frac{1}{2} \nabla \cdot \Rt + \frac{2}{3\tau} \st + \frac{5}{2}
+            \nabla \theta &= 0 \\
+            \nabla \cdot \st &= f \\
+
+        for :math:`\theta` and :math:`\st` with a given heat source :math:`f`
+        and the Knudsen number :math:`\tau`.
+
+        """
 
         # Check if all mesh boundaries have bcs presibed frm input
         self.check_bcs()
@@ -200,14 +218,21 @@ class Solver:
         h = df.CellDiameter(mesh)
         h_avg = (h("+") + h("-"))/2.0 # pylint: disable=not-callable
 
+        # Setup function spaces
+        w_heat = self.mxd_fspaces["heat"]
+        w_stress = self.mxd_fspaces["stress"]
+        w_coupled = self.mxd_fspaces["coupled"]
+        if self.mode == "coupled":
+            (theta, s, p, u, sigma) = df.TrialFunctions(w_coupled)
+            (kappa, r, q, v, psi) = df.TrialFunctions(w_coupled)
+        else:
+            # Pure heat or pure stress: setup all functions..
+            (theta, s) = df.TrialFunctions(w_heat)
+            (kappa, r) = df.TestFunctions(w_heat)
+            (p, u, sigma) = df.TrialFunctions(w_stress)
+            (q, v, psi) = df.TestFunctions(w_stress)
+
         if self.mode == "heat":
-
-            w = self.mxd_fspaces["heat"]
-
-            # Define trial and testfunction
-            (theta, s) = df.TrialFunctions(w)
-            (kappa, r) = df.TestFunctions(w)
-
             s_n = df.dot(s, n)
             r_n = df.dot(r, n)
             s_t = df.dot(s, t)
@@ -249,8 +274,10 @@ class Solver:
 
             # stabilization
             if self.use_cip:
-                stab = - (delta_1 * h_avg**3 * df.jump(df.grad(theta), n)
-                          * df.jump(df.grad(kappa), n)) * df.dS
+                stab = - (
+                    delta_1 * h_avg**3 *
+                    df.jump(df.grad(theta), n) * df.jump(df.grad(kappa), n)
+                ) * df.dS
             else:
                 stab = 0
 
@@ -258,21 +285,6 @@ class Solver:
             self.form_b = l1 + l2
 
         elif self.mode == "stress":
-
-            w = self.mxd_fspaces["stress"]
-
-            # Define trial and testfunctions
-            (p, u, sigma) = df.TrialFunctions(w)
-            (q, v, psi) = df.TestFunctions(w)
-
-            # # same:
-            # i, j = ufl.indices(2)
-            # sigma_nn = sigma[i, j] * n[i] * n[j]
-            # psi_nn = psi[i, j] * n[i] * n[j]
-            # sigma_tt = sigma[i, j] * t[i] * t[j]
-            # psi_tt = psi[i, j] * t[i] * t[j]
-            # sigma_nt = sigma[i, j] * n[i] * t[j]
-            # psi_nt = psi[i, j] * n[i] * t[j]
 
             sigma_nn = df.dot(sigma*n, n)
             psi_nn = df.dot(psi*n, n)
@@ -286,14 +298,11 @@ class Solver:
 
             if self.use_coeffs:
                 a1 = (
-                    # + 2 * tau * df.inner(devOfGrad2(sigma), df.grad(psi))
                     + 2 * tau * to.innerOfDevOfGrad2AndGrad2(sigma, psi)
                     + (1/tau) * to.innerOfTracefree2(sigma, psi)
-                    # + (1/tau) * df.inner(sigma, psi) # is wrong
-                    # - 2 * df.dot(u, df.div(psi)) # is same
                     - 2 * df.dot(u, df.div(df.sym(psi)))
                 ) * df.dx + (
-                    + 21/(10*xi_tilde) * sigma_nn * psi_nn
+                    + 21/10 * xi_tilde * sigma_nn * psi_nn
                     + 2 * xi_tilde * (
                         (sigma_tt + (1/2)*sigma_nn)*(psi_tt + (1/2)*psi_nn)
                     )
@@ -303,12 +312,11 @@ class Solver:
                     - 2.0 * psi_nt * bcs[bc]["v_t"] * df.ds(bc)
                     for bc in bcs.keys()
                 ])
-                # l1 = -2 * psi_nt * (-10) * df.ds(3000) # same
                 a2 = (
                     + df.dot(df.div(sigma), v)
                     + df.dot(df.grad(p), v)
                 ) * df.dx
-                l2 = + df.Constant(0) * df.div(v) * df.dx # dummy
+                l2 = + df.Constant(0) * df.div(v) * df.dx
                 a3 = + df.dot(u, df.grad(q)) * df.dx
                 l3 = - (f * q) * df.dx
 
@@ -318,7 +326,7 @@ class Solver:
                     df.dot(df.jump(df.grad(u), n), df.jump(df.grad(v), n))
                     - delta_3 * h_avg *
                     df.jump(df.grad(p), n) * df.jump(df.grad(q), n)
-                    ) * df.dS
+                ) * df.dS
             else:
                 stab = 0
 
