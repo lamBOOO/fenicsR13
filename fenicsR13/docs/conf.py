@@ -72,3 +72,18 @@ html_theme_options = {
     "note_bg": "#FFF59C",
     "show_relbars": False,
 }
+
+
+# -- Autodoc
+autodoc_default_options = {
+    'members': True,
+    'member-order': 'bysource',
+    'undoc-members': True,
+    'private-members': True,
+    'special-members': True,
+    # 'inherited-members': True,
+    'show-inheritance': True,
+    # 'ignore-module-all': True,
+    # 'imported-members': True,
+    'exclude-members': '__dict__,__module__,__weakref__'
+}
