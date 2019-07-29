@@ -1,6 +1,6 @@
 .. include:: ../../README.rst
     :start-after: inclusion-marker
-
+.. include:: ../../TODO.rst
 .. include:: ../../CHANGELOG.rst
 
 Indices and Tables
