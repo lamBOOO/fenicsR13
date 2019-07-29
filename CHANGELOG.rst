@@ -1,6 +1,17 @@
 Change log
 ----------
 
+0.2 (2019-07-29)
+~~~~~~~~~~~~~~~~
+
+- Decoupled stress system converges
+- Add separated tensor operations module
+    - This was needed to implement operations on synthetic 3D tensors
+- Add pytests for stress
+- Add new logo
+- Add more Sphinx documentation
+- Restructure repository
+
 0.1 (2019-07-17)
 ~~~~~~~~~~~~~~~~
 
