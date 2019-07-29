@@ -1,5 +1,6 @@
 image: docker:stable
 variables:
+  DOCKER_TLS_CERTDIR: ""
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
   APP_DIRECTORY: fenicsR13
