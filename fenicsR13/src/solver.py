@@ -36,7 +36,7 @@ class Solver:
     """
     def __init__(self, params, mesh, time):
         "Initializes solver"
-        self.params = params
+        self.params = params #: Doctest
         self.mesh = mesh.mesh
         self.boundaries = mesh.boundaries
         self.cell = self.mesh.ufl_cell()
