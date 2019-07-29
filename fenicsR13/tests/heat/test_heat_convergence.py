@@ -1,4 +1,6 @@
-"Test for convergence"
+"""
+Module to gather tests for convergence of decoupled heat system.
+"""
 
 import subprocess
 import pytest
@@ -51,9 +53,11 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
-
-        self.run_solver("inputs/01_coeffs_p1p1_stab.yml")
-        self.compare_errors("errors.csv", "referrors/01_coeffs_p1p1_stab.csv")
+        name = "01_coeffs_p1p1_stab"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
 
     def test_10_coeffs_p2p2_stab(self):
         r"""
@@ -69,9 +73,11 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
-
-        self.run_solver("inputs/10_coeffs_p2p2_stab.yml")
-        self.compare_errors("errors.csv", "referrors/10_coeffs_p2p2_stab.csv")
+        name = "10_coeffs_p2p2_stab"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
 
     def test_01_coeffs_p2p2_stab(self):
         r"""
@@ -87,9 +93,11 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
-
-        self.run_solver("inputs/01_coeffs_p2p2_stab.yml")
-        self.compare_errors("errors.csv", "referrors/01_coeffs_p2p2_stab.csv")
+        name = "01_coeffs_p2p2_stab"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
 
     def test_01_coeffs_p1p2_nostab(self):
         r"""
@@ -105,9 +113,11 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
-
-        self.run_solver("inputs/01_coeffs_p1p2_nostab.yml")
-        self.compare_errors("errors.csv", "referrors/01_coeffs_p1p2_nostab.csv")
+        name = "01_coeffs_p1p2_nostab"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
 
     def test_01_nocoeffs_p1p2_nostab(self):
         r"""
@@ -123,16 +133,15 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
+        name = "01_nocoeffs_p1p2_nostab"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
 
-        self.run_solver("inputs/01_nocoeffs_p1p2_nostab.yml")
-        self.compare_errors(
-            "errors.csv",
-            "referrors/01_nocoeffs_p1p2_nostab.csv"
-        )
-
-        @pytest.mark.skip(reason="Not implemented")
-        def test_01_nocoeffs_p1p1_stab(self):
-            pass
+    @pytest.mark.skip(reason="Not implemented")
+    def test_01_nocoeffs_p1p1_stab(self):
+        pass
 
 # TestHeatConvergence().test_01_nocoeffs_p1p2_nostab()
 # TestHeatConvergence().test_01_coeffs_p1p2_nostab()

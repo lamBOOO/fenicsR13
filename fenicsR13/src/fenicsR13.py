@@ -106,7 +106,7 @@ def main():
                 })
 
             if p == len(mesh_names)-1: # after last mesh
-                postp = Postprocessor(data)
+                postp = Postprocessor(data, params["case_name"])
                 postp.write_errors()
                 if plot:
                     postp.plot_errors()

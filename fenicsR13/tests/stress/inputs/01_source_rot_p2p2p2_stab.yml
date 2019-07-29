@@ -1,3 +1,6 @@
+# Case name, used as output folder
+case_name: 01_source_rot_p2p2p2_stab
+
 # Meshes
 # ======
 # Input files in h5 format.
@@ -78,9 +81,6 @@ mass_source: "2.0/5.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)"
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: esols/01_source.cpp
-  plot: True
+  exact_solution: esols/01_source_rot.cpp
+  plot: False
   write_systemmatrix: False
-
-# Output folder for vtu files
-output_folder: results/

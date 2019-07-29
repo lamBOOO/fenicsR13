@@ -1,3 +1,6 @@
+# Case name, used as output folder
+case_name: 01_source_norot_p1p1p1_stab
+
 # Meshes
 # ======
 # Input files in h5 format.
@@ -63,7 +66,7 @@ bcs:
   3000:
     "name": "inner"
     "theta_w": 1.0
-    "v_t": -10.0
+    "v_t": 0.0
   3100:
     "name": "outer"
     "theta_w": 0.5
@@ -73,14 +76,11 @@ bcs:
 heat_source: "2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)"
 
 # mass source
-mass_source: "0"
+mass_source: "2.0/5.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)"
 
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: esols/01_nosource.cpp
-  plot: True
+  exact_solution: esols/01_source_norot.cpp
+  plot: False
   write_systemmatrix: False
-
-# Output folder for vtu files
-output_folder: results/

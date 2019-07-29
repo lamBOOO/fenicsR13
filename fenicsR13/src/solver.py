@@ -65,7 +65,7 @@ class Solver:
         )
 
         self.exact_solution = self.params["convergence_study"]["exact_solution"]
-        self.output_folder = self.params["output_folder"]
+        self.output_folder = self.params["case_name"] + "/"
         self.var_ranks = {
             "theta": 0,
             "s": 1,

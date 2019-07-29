@@ -45,7 +45,7 @@ class Input:
             "bcs": {
                 "type": "dict",
                 "required": True,
-                "keysrules": {"type": "integer", "regex": "cip"},
+                "keysrules": {"type": "integer"},
                 "valueschema": {
                     "type": "dict",
                     "schema": {
@@ -95,7 +95,7 @@ class Input:
                     },
                 }
             },
-            "output_folder": {
+            "case_name": {
                 "type": "string",
                 "required": True,
             },

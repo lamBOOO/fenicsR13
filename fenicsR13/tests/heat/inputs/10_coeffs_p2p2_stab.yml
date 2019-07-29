@@ -1,3 +1,6 @@
+# Case name, used as output folder
+case_name: 10_coeffs_p2p2_stab
+
 # Meshes
 # ======
 # Input files in h5 format.
@@ -79,6 +82,3 @@ convergence_study:
   exact_solution: esols/10_coeffs.cpp
   plot: False # to avoid error exit code due to $DISPLAY
   write_systemmatrix: False
-
-# Output folder for vtu files
-output_folder: results/

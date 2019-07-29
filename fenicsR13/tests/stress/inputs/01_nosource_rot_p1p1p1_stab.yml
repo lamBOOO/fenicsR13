@@ -1,3 +1,6 @@
+# Case name, used as output folder
+case_name: 01_nosource_rot_p1p1p1_stab
+
 # Meshes
 # ======
 # Input files in h5 format.
@@ -8,7 +11,7 @@ meshes:
   - ../mesh/ring2.h5
   - ../mesh/ring3.h5
   - ../mesh/ring4.h5
-  - ../mesh/ring5.h5
+  # - ../mesh/ring5.h5
   # - ../mesh/ring6.h5 # fails on Macbook 8GB
   # - ../mesh/ring7.h5 # fails on iMac 24GB, works on iMac 48GB
   # - ../mesh/ring6.h5
@@ -53,11 +56,11 @@ mode: "stress"
 use_coeffs: True
 
 # Knudsen number
-tau: 10.0
+tau: 0.1
 
 # Refaction coefficient
 xi_tilde: 1.0
-# xi_tilde: 0.7978845608 sqrt(2/pi)
+# xi_tilde: 0.7978845608 # sqrt(2/pi)
 
 bcs:
   3000:
@@ -73,14 +76,11 @@ bcs:
 heat_source: "2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)"
 
 # mass source
-mass_source: "2.0/5.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)"
+mass_source: "0"
 
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: esols/10_source.cpp
-  plot: True
+  exact_solution: esols/01_nosource_rot.cpp
+  plot: False
   write_systemmatrix: False
-
-# Output folder for vtu files
-output_folder: results/

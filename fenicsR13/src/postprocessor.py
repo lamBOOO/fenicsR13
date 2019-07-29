@@ -11,12 +11,13 @@ import matplotlib.pyplot as plt
 
 class Postprocessor:
     "Postprocessor class"
-    def __init__(self, data):
+    def __init__(self, data, output_folder):
         self.data = data
+        self.output_folder = output_folder
 
     def plot_errors(self):
         """
-        Use ``matplotlib`` to plot all erros in a figure.
+        Use ``matplotlib`` to plot all errors in a figure.
 
         Exporting PDFs with
 
@@ -25,6 +26,8 @@ class Postprocessor:
             matplotlib.use('pdf')
             import matplotlib.pyplot as plt # pylint: disable=C0413
         """
+
+        filename = "convergence_plot.pdf"
 
         plt.figure(num=None, figsize=(16, 9), dpi=100)
 
@@ -90,7 +93,7 @@ class Postprocessor:
             plt.legend(loc='lower right')
 
         plt.tight_layout()
-        plt.savefig("convergence_plot.pdf", dpi=150)
+        plt.savefig(self.output_folder + "/" + filename, dpi=150)
         plt.show()
 
     def write_errors(self):
@@ -98,7 +101,7 @@ class Postprocessor:
         filename = "errors.csv"
         data = self.data
 
-        with open(filename, mode='w') as file:
+        with open(self.output_folder + "/" + filename, mode='w') as file:
             writer = csv.writer(file, delimiter=',', quotechar='"')
 
             # header
