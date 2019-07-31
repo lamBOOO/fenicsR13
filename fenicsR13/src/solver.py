@@ -232,14 +232,23 @@ class Solver:
             (p, u, sigma) = df.TrialFunctions(w_stress)
             (q, v, psi) = df.TestFunctions(w_stress)
 
-        if self.mode == "heat":
-            s_n = df.dot(s, n)
-            r_n = df.dot(r, n)
-            s_t = df.dot(s, t)
-            r_t = df.dot(r, t)
+        # Setup projections
+        s_n = df.dot(s, n)
+        r_n = df.dot(r, n)
+        s_t = df.dot(s, t)
+        r_t = df.dot(r, t)
+        sigma_nn = df.dot(sigma*n, n)
+        psi_nn = df.dot(psi*n, n)
+        sigma_tt = df.dot(sigma*t, t)
+        psi_tt = df.dot(psi*t, t)
+        sigma_nt = df.dot(sigma*n, t)
+        psi_nt = df.dot(psi*n, t)
 
-            # Define heat source function
-            f = self.heat_source
+        # Setup source functions
+        f_heat = self.heat_source
+        f_mass = self.mass_source
+
+        if self.mode == "heat":
 
             if self.use_coeffs:
                 a1 = (
@@ -255,7 +264,7 @@ class Solver:
                     - 5.0/2.0 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
                     for bc in bcs.keys()
                 ])
-                l2 = - (f * kappa) * df.dx
+                l2 = - (f_heat * kappa) * df.dx
             else:
                 a1 = (
                     tau * df.inner(to.dev3d(df.grad(s)), df.grad(r))
@@ -270,7 +279,7 @@ class Solver:
                     - 1 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
                     for bc in bcs.keys()
                 ])
-                l2 = - (f * kappa) * df.dx
+                l2 = - (f_heat * kappa) * df.dx
 
             # stabilization
             if self.use_cip:
@@ -285,16 +294,6 @@ class Solver:
             self.form_b = l1 + l2
 
         elif self.mode == "stress":
-
-            sigma_nn = df.dot(sigma*n, n)
-            psi_nn = df.dot(psi*n, n)
-            sigma_tt = df.dot(sigma*t, t)
-            psi_tt = df.dot(psi*t, t)
-            sigma_nt = df.dot(sigma*n, t)
-            psi_nt = df.dot(psi*n, t)
-
-            # Define mass source function
-            f = self.mass_source
 
             if self.use_coeffs:
                 a1 = (
@@ -318,7 +317,7 @@ class Solver:
                 ) * df.dx
                 l2 = + df.Constant(0) * df.div(v) * df.dx
                 a3 = + df.dot(u, df.grad(q)) * df.dx
-                l3 = - (f * q) * df.dx
+                l3 = - (f_mass * q) * df.dx
 
             if self.use_cip:
                 stab = (
