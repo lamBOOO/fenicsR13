@@ -4,7 +4,7 @@
 
 .. inclusion-marker
 
-gasDynamicsFEM
+fenicsR13
 ================================================================================
 
 |pipeline| |coverage|
