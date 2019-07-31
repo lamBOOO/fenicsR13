@@ -155,7 +155,8 @@ class Solver:
             msh, self.mxd_elems["stress"]
         )
 
-        self.mxd_elems["coupled"] = df.MixedElement(heat_elems, stress_elems)
+        coupled_elems = heat_elems + stress_elems
+        self.mxd_elems["coupled"] = df.MixedElement(coupled_elems)
         self.mxd_fspaces["coupled"] = df.FunctionSpace(
             msh, self.mxd_elems["coupled"]
         )
@@ -224,7 +225,7 @@ class Solver:
         w_coupled = self.mxd_fspaces["coupled"]
         if self.mode == "coupled":
             (theta, s, p, u, sigma) = df.TrialFunctions(w_coupled)
-            (kappa, r, q, v, psi) = df.TrialFunctions(w_coupled)
+            (kappa, r, q, v, psi) = df.TestFunctions(w_coupled)
         else:
             # Pure heat or pure stress: setup all functions..
             (theta, s) = df.TrialFunctions(w_heat)
@@ -330,6 +331,9 @@ class Solver:
         elif self.mode == "stress":
             self.form_a = a3 + a4 + a5 + stab_stress
             self.form_b = l3 + l4 + l5
+        elif self.mode == "coupled":
+            self.form_a = a1 + a2 + stab_heat + a3 + a4 + a5 + stab_stress
+            self.form_b = l1 + l2 + l3 + l4 + l5
 
     def solve(self):
         """
@@ -351,6 +355,8 @@ class Solver:
             w = self.mxd_fspaces["heat"]
         elif self.mode == "stress":
             w = self.mxd_fspaces["stress"]
+        elif self.mode == "coupled":
+            w = self.mxd_fspaces["coupled"]
 
         sol = df.Function(w)
         df.solve(
@@ -362,8 +368,13 @@ class Solver:
             (self.sol["theta"], self.sol["s"]) = sol.split()
         elif self.mode == "stress":
             (self.sol["p"], self.sol["u"], self.sol["sigma"]) = sol.split()
+        elif self.mode == "coupled":
+            (
+                self.sol["theta"], self.sol["s"],
+                self.sol["p"], self.sol["u"], self.sol["sigma"]
+            ) = sol.split()
 
-        if self.mode == "stress":
+        if self.mode == "stress" or self.mode == "coupled":
             # Scale pressure to have zero mean
             p_i = df.interpolate(self.sol["p"], self.fspaces["p"])
             mean_p_value = self.calc_sf_mean(p_i)
@@ -374,7 +385,7 @@ class Solver:
 
     def load_exact_solution(self):
         "Writes exact solution"
-        if self.mode == "heat":
+        if self.mode == "heat" or self.mode == "coupled":
 
             with open(self.exact_solution, "r") as file:
                 exact_solution_cpp_code = file.read()
@@ -388,7 +399,7 @@ class Solver:
             self.esol["s"] = df.CompiledExpression(
                 esol.Heatflux(), degree=2
             )
-        if self.mode == "stress":
+        if self.mode == "stress" or self.mode == "coupled":
 
             with open(self.exact_solution, "r") as file:
                 exact_solution_cpp_code = file.read()
@@ -512,7 +523,7 @@ class Solver:
 
             return (errs_f_L2, errs_v_linf)
 
-        if self.mode == "heat":
+        if self.mode == "heat" or self.mode == "coupled":
             se = calc_scalarfield_errors(
                 self.sol["theta"], self.esol["theta"],
                 self.fspaces["theta"], "theta"
@@ -525,7 +536,7 @@ class Solver:
             v_linf = self.errors["v"]["linf"]
             (f_l2["theta"], v_linf["theta"]) = se
             (f_l2["s"], v_linf["s"]) = ve
-        if self.mode == "stress":
+        if self.mode == "stress" or self.mode == "coupled":
             se = calc_scalarfield_errors(
                 self.sol["p"], self.esol["p"],
                 self.fspaces["p"], "p"
