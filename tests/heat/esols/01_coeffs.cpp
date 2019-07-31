@@ -5,7 +5,6 @@
 #include <boost/math/special_functions/bessel.hpp>
 
 using namespace std;
-using namespace boost::math;
 
 namespace py = pybind11;
 
