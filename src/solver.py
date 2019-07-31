@@ -196,7 +196,7 @@ class Solver:
         # Check if all mesh boundaries have bcs presibed frm input
         self.check_bcs()
 
-        # Local variables
+        # Get local variables
         mesh = self.mesh
         boundaries = self.boundaries
         bcs = self.bcs
@@ -207,7 +207,7 @@ class Solver:
         delta_3 = self.delta_3
 
         # Normal and tangential components
-        # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
+        # - tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
         n = df.FacetNormal(mesh)
         t = ufl.perp(n)
 
@@ -248,89 +248,88 @@ class Solver:
         f_heat = self.heat_source
         f_mass = self.mass_source
 
+        # Setup both weak forms
+        if self.use_coeffs:
+            a1 = (
+                + 12/5 * tau * df.inner(to.dev3d(df.grad(s)), df.grad(r))
+                + 2/3 * (1/tau) * df.inner(s, r)
+                - (5/2) * theta * df.div(r)
+            ) * df.dx + (
+                + 5/(4*xi_tilde) * s_n * r_n
+                + 11/10 * xi_tilde * s_t * r_t
+            ) * df.ds
+            l1 = sum([
+                - 5.0/2.0 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
+                for bc in bcs.keys()
+            ])
+
+            a2 = - (df.div(s) * kappa) * df.dx
+            l2 = - (f_heat * kappa) * df.dx
+
+            a3 = (
+                + 2 * tau * to.innerOfDevOfGrad2AndGrad2(sigma, psi)
+                + (1/tau) * to.innerOfTracefree2(sigma, psi)
+                - 2 * df.dot(u, df.div(df.sym(psi)))
+            ) * df.dx + (
+                + 21/10 * xi_tilde * sigma_nn * psi_nn
+                + 2 * xi_tilde * (
+                    (sigma_tt + (1/2)*sigma_nn)*(psi_tt + (1/2)*psi_nn)
+                )
+                + (2/xi_tilde) * sigma_nt * psi_nt
+            ) * df.ds
+            l3 = sum([
+                - 2.0 * psi_nt * bcs[bc]["v_t"] * df.ds(bc)
+                for bc in bcs.keys()
+            ])
+
+            a4 = (
+                + df.dot(df.div(sigma), v)
+                + df.dot(df.grad(p), v)
+            ) * df.dx
+            l4 = + df.Constant(0) * df.div(v) * df.dx
+
+            a5 = + df.dot(u, df.grad(q)) * df.dx
+            l5 = - (f_mass * q) * df.dx
+        else:
+            a1 = (
+                tau * df.inner(to.dev3d(df.grad(s)), df.grad(r))
+                + (1/tau) * df.inner(s, r)
+                - theta * df.div(r)
+            ) * df.dx + (
+                + 1/(xi_tilde) * s_n * r_n
+                + xi_tilde * s_t * r_t
+            ) * df.ds
+            a2 = - (df.div(s) * kappa) * df.dx
+            l1 = sum([
+                - 1 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
+                for bc in bcs.keys()
+            ])
+            l2 = - (f_heat * kappa) * df.dx
+
+        # stabilization
+        if self.use_cip:
+            stab_heat = - (
+                delta_1 * h_avg**3 *
+                df.jump(df.grad(theta), n) * df.jump(df.grad(kappa), n)
+            ) * df.dS
+
+            stab_stress = (
+                + delta_2 * h_avg**3 *
+                df.dot(df.jump(df.grad(u), n), df.jump(df.grad(v), n))
+                - delta_3 * h_avg *
+                df.jump(df.grad(p), n) * df.jump(df.grad(q), n)
+            ) * df.dS
+        else:
+            stab_heat = 0
+            stab_stress = 0
+
+        # Combine all equations
         if self.mode == "heat":
-
-            if self.use_coeffs:
-                a1 = (
-                    + 12/5 * tau * df.inner(to.dev3d(df.grad(s)), df.grad(r))
-                    + 2/3 * (1/tau) * df.inner(s, r)
-                    - (5/2) * theta * df.div(r)
-                ) * df.dx + (
-                    + 5/(4*xi_tilde) * s_n * r_n
-                    + 11/10 * xi_tilde * s_t * r_t
-                ) * df.ds
-                a2 = - (df.div(s) * kappa) * df.dx
-                l1 = sum([
-                    - 5.0/2.0 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
-                    for bc in bcs.keys()
-                ])
-                l2 = - (f_heat * kappa) * df.dx
-            else:
-                a1 = (
-                    tau * df.inner(to.dev3d(df.grad(s)), df.grad(r))
-                    + (1/tau) * df.inner(s, r)
-                    - theta * df.div(r)
-                ) * df.dx + (
-                    + 1/(xi_tilde) * s_n * r_n
-                    + xi_tilde * s_t * r_t
-                ) * df.ds
-                a2 = - (df.div(s) * kappa) * df.dx
-                l1 = sum([
-                    - 1 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
-                    for bc in bcs.keys()
-                ])
-                l2 = - (f_heat * kappa) * df.dx
-
-            # stabilization
-            if self.use_cip:
-                stab = - (
-                    delta_1 * h_avg**3 *
-                    df.jump(df.grad(theta), n) * df.jump(df.grad(kappa), n)
-                ) * df.dS
-            else:
-                stab = 0
-
-            self.form_a = a1 + a2 + stab
+            self.form_a = a1 + a2 + stab_heat
             self.form_b = l1 + l2
-
         elif self.mode == "stress":
-
-            if self.use_coeffs:
-                a1 = (
-                    + 2 * tau * to.innerOfDevOfGrad2AndGrad2(sigma, psi)
-                    + (1/tau) * to.innerOfTracefree2(sigma, psi)
-                    - 2 * df.dot(u, df.div(df.sym(psi)))
-                ) * df.dx + (
-                    + 21/10 * xi_tilde * sigma_nn * psi_nn
-                    + 2 * xi_tilde * (
-                        (sigma_tt + (1/2)*sigma_nn)*(psi_tt + (1/2)*psi_nn)
-                    )
-                    + (2/xi_tilde) * sigma_nt * psi_nt
-                ) * df.ds
-                l1 = sum([
-                    - 2.0 * psi_nt * bcs[bc]["v_t"] * df.ds(bc)
-                    for bc in bcs.keys()
-                ])
-                a2 = (
-                    + df.dot(df.div(sigma), v)
-                    + df.dot(df.grad(p), v)
-                ) * df.dx
-                l2 = + df.Constant(0) * df.div(v) * df.dx
-                a3 = + df.dot(u, df.grad(q)) * df.dx
-                l3 = - (f_mass * q) * df.dx
-
-            if self.use_cip:
-                stab = (
-                    + delta_2 * h_avg**3 *
-                    df.dot(df.jump(df.grad(u), n), df.jump(df.grad(v), n))
-                    - delta_3 * h_avg *
-                    df.jump(df.grad(p), n) * df.jump(df.grad(q), n)
-                ) * df.dS
-            else:
-                stab = 0
-
-            self.form_a = a1 + a2 + a3 + stab
-            self.form_b = l1 + l2 + l3
+            self.form_a = a3 + a4 + a5 + stab_stress
+            self.form_b = l3 + l4 + l5
 
     def solve(self):
         """
