@@ -1,0 +1,6 @@
+# dont ignore test meshes
+!ring0.h5
+!ring1.h5
+!ring2.h5
+!ring3.h5
+!ring4.h5

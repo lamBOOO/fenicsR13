@@ -61,14 +61,14 @@ html_theme = 'alabaster'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-html_logo = "media/logo_large.png"
-html_favicon = "media/logo_large.png"
-latex_logo = "media/logo_large.png"
+html_logo = "../media/logo_large.png"
+html_favicon = "../media/logo_large.png"
+latex_logo = "../media/logo_large.png"
 
 html_theme_options = {
     'sidebar_collapse': False,
     'description': "Release v{}<br>Extended gas dynamics using FEniCS platform.".format(release),
-    "touch_icon": "../../../logo_large.png",
+    "touch_icon": "../media/logo_large.png",
     "fixed_sidebar": True,
     "note_bg": "#FFF59C",
     "show_relbars": False,
