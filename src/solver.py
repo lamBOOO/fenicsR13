@@ -113,20 +113,7 @@ class Solver:
             "u": None,
             "sigma": None,
         }
-        self.errors = {
-            "f": {
-                "l2": {
-                    "theta": None,
-                    "s": None,
-                }
-            },
-            "v": {
-                "linf": {
-                    "theta": None,
-                    "s": None,
-                }
-            }
-        }
+        self.errors = {}
 
     def setup_function_spaces(self):
         "Setup function spaces"
@@ -462,7 +449,10 @@ class Solver:
 
             self.write_xdmf(name_ + "_e", field_e_i)
 
-            return (err_f_L2, err_v_linf)
+            return {
+                "L_2": err_f_L2,
+                "l_inf": err_v_linf,
+            }
 
         def calc_vectorfield_errors(sol_, sol_e_, v_sol, name_):
             "TODO"
@@ -491,7 +481,10 @@ class Solver:
 
             self.write_xdmf(name_ + "_e", field_e_i)
 
-            return (errs_f_L2, errs_v_linf)
+            return [{
+                "L_2": errs_f_L2[i],
+                "l_inf": errs_v_linf[i],
+            } for i in range(dofs)]
 
         def calc_tensorfield_errors(sol_, sol_e_, v_sol, name_):
             "TODO"
@@ -521,7 +514,10 @@ class Solver:
 
             self.write_xdmf(name_ + "_e", field_e_i)
 
-            return (errs_f_L2, errs_v_linf)
+            return [{
+                "L_2": errs_f_L2[i],
+                "l_inf": errs_v_linf[i],
+            } for i in range(dofs)]
 
         if self.mode == "heat" or self.mode == "coupled":
             se = calc_scalarfield_errors(
@@ -532,10 +528,10 @@ class Solver:
                 self.sol["s"], self.esol["s"],
                 self.fspaces["s"], "s"
             )
-            f_l2 = self.errors["f"]["l2"]
-            v_linf = self.errors["v"]["linf"]
-            (f_l2["theta"], v_linf["theta"]) = se
-            (f_l2["s"], v_linf["s"]) = ve
+            ers = self.errors
+            ers["theta"] = se
+            ers["sx"] = ve[0]
+            ers["sy"] = ve[1]
         if self.mode == "stress" or self.mode == "coupled":
             se = calc_scalarfield_errors(
                 self.sol["p"], self.esol["p"],
@@ -549,11 +545,13 @@ class Solver:
                 self.sol["sigma"], self.esol["sigma"],
                 self.fspaces["sigma"], "sigma"
             )
-            f_l2 = self.errors["f"]["l2"]
-            v_linf = self.errors["v"]["linf"]
-            (f_l2["p"], v_linf["p"]) = se
-            (f_l2["u"], v_linf["u"]) = ve
-            (f_l2["sigma"], v_linf["sigma"]) = te
+            ers = self.errors
+            ers["p"] = se
+            ers["ux"] = ve[0]
+            ers["uy"] = ve[1]
+            ers["sigmaxx"] = te[0]
+            ers["sigmaxy"] = te[1]
+            ers["sigmayy"] = te[2]
 
     def write_solutions(self):
         "Write Solutions"
