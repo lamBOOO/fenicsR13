@@ -136,7 +136,7 @@ hosted version on `Gitlab Pages`_.
 
 .. note:: Currently, there's a bug regarding Gitlab Pages with internal repositories. The access control fails and the page cannot be accessed. This may be fixed in the future.
 
-.. _`Gitlab Pages`: https://lamboo.pages.rwth-aachen.de/gasdynamicsfem/
+.. _`Gitlab Pages`: https://lamboo.pages.rwth-aachen.de/fenicsR13/
 
 Developer Notes
 --------------------------------------------------------------------------------
@@ -213,10 +213,10 @@ Contact
     | RWTH Aachen University
     | *Simulation of Non-Equilibrium Gas Flows Using the FEniCS Computing Platform*
 
-.. |pipeline| image:: https://git.rwth-aachen.de/lamboo/gasdynamicsfem/badges/master/pipeline.svg
-    :target: https://git.rwth-aachen.de/lamboo/gasdynamicsfem/commits/master
+.. |pipeline| image:: https://git.rwth-aachen.de/lamboo/fenicsR13/badges/master/pipeline.svg
+    :target: https://git.rwth-aachen.de/lamboo/fenicsR13/commits/master
     :alt: Pipeline status
 
-.. |coverage| image:: https://git.rwth-aachen.de/lamboo/gasdynamicsfem/badges/master/coverage.svg
-    :target: https://git.rwth-aachen.de/lamboo/gasdynamicsfem/commits/master
+.. |coverage| image:: https://git.rwth-aachen.de/lamboo/fenicsR13/badges/master/coverage.svg
+    :target: https://git.rwth-aachen.de/lamboo/fenicsR13/commits/master
     :alt: Test coverage

@@ -80,7 +80,7 @@ mass_source: "2.0/5.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)"
 
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
-  enable: True
+  enable: False
   exact_solution: esols/01_source_rot.cpp
   plot: True
   write_systemmatrix: False
