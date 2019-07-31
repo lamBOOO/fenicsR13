@@ -4,7 +4,7 @@ TODO List
 Important
 ~~~~~~~~~
 
-- Add unit tests
+- Add unit tests: Wrong input file, mesh not found, .. to get coverage high
 
 Optional
 ~~~~~~~~
