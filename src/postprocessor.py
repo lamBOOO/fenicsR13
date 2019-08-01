@@ -21,7 +21,7 @@ class Postprocessor:
 
         Exporting PDFs with
 
-        ..code-block:: python
+        .. code-block:: python
 
             matplotlib.use('pdf')
             import matplotlib.pyplot as plt # pylint: disable=C0413
