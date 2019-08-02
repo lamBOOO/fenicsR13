@@ -236,15 +236,28 @@ class Solver:
         f_heat = self.heat_source
         f_mass = self.mass_source
 
+        if self.mode == "coupled":
+            cpl = 1.0
+        else:
+            cpl = 0.0
+
         # Setup both weak forms
         if self.use_coeffs:
             a1 = (
                 + 12/5 * tau * df.inner(to.dev3d(df.grad(s)), df.grad(r))
                 + 2/3 * (1/tau) * df.inner(s, r)
                 - (5/2) * theta * df.div(r)
+                + cpl * df.dot(df.div(sigma), r)
             ) * df.dx + (
-                + 5/(4*xi_tilde) * s_n * r_n
-                + 11/10 * xi_tilde * s_t * r_t
+                + (
+                    + 5/(4*xi_tilde) * s_n
+                    - cpl * 5/8 * sigma_nn
+                ) * r_n
+                + (
+                    + 11/10 * xi_tilde * s_t
+                    + cpl * 1/10 * xi_tilde * s_t
+                    - cpl * 1/2 * sigma_nt
+                ) * r_t
             ) * df.ds
             l1 = sum([
                 - 5.0/2.0 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
@@ -258,12 +271,20 @@ class Solver:
                 + 2 * tau * to.innerOfDevOfGrad2AndGrad2(sigma, psi)
                 + (1/tau) * to.innerOfTracefree2(sigma, psi)
                 - 2 * df.dot(u, df.div(df.sym(psi)))
+                + cpl * 4/5 * df.inner(to.dev3d(df.grad(s)), psi)
             ) * df.dx + (
-                + 21/10 * xi_tilde * sigma_nn * psi_nn
+                + (
+                    + 21/10 * xi_tilde * sigma_nn
+                    + cpl * 3/20 * xi_tilde * sigma_nn
+                    - cpl * 3/10  * s_n
+                ) * psi_nn
                 + 2 * xi_tilde * (
                     (sigma_tt + (1/2)*sigma_nn)*(psi_tt + (1/2)*psi_nn)
                 )
-                + (2/xi_tilde) * sigma_nt * psi_nt
+                + (
+                    + (2/xi_tilde) * sigma_nt
+                    - cpl * 2/5 * s_t
+                ) * psi_nt
             ) * df.ds
             l3 = sum([
                 - 2.0 * psi_nt * bcs[bc]["v_t"] * df.ds(bc)
