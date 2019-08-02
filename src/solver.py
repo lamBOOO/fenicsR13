@@ -444,8 +444,8 @@ class Solver:
 
             err_f_L2 = df.errornorm(sol_e_, sol_, "L2")
             err_v_linf = df.norm(field_e_i.vector()-field_i.vector(), "linf")
-            print("L_2 error:", err_f_L2)
-            print("l_inf error:", err_v_linf)
+            print(str(name_) + " L_2 error:", err_f_L2)
+            print(str(name_) + " l_inf error:", err_v_linf)
 
             self.write_xdmf(name_ + "_e", field_e_i)
 
@@ -476,8 +476,8 @@ class Solver:
                 )
                 for i in range(dofs)
             ]
-            print("L_2 error:", errs_f_L2)
-            print("l_inf error:", errs_v_linf)
+            print(str(name_) + " L_2 error:", errs_f_L2)
+            print(str(name_) + " l_inf error:", errs_v_linf)
 
             self.write_xdmf(name_ + "_e", field_e_i)
 
@@ -509,8 +509,8 @@ class Solver:
                 )
                 for i in range(dofs)
             ]
-            print("L_2 error:", errs_f_L2)
-            print("l_inf error:", errs_v_linf)
+            print(str(name_) + " L_2 error:", errs_f_L2)
+            print(str(name_) + " l_inf error:", errs_v_linf)
 
             self.write_xdmf(name_ + "_e", field_e_i)
 
