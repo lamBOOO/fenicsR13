@@ -27,7 +27,7 @@ class Postprocessor:
             import matplotlib.pyplot as plt # pylint: disable=C0413
         """
 
-        filename = "convergence_plot.pdf"
+        filename = "convergence_plot_" + self.output_folder  + ".pdf"
 
         plt.figure(num=None, figsize=(16, 9), dpi=100)
 

@@ -37,4 +37,4 @@
 *.ip
 
 # ignore convergence plots
-*convergence_plot.pdf
+*convergence_plot*.pdf
