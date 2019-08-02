@@ -15,7 +15,9 @@ Contents
 --------
 
 .. toctree::
+    :glob:
 
     source/src/modules.rst
     source/tests/heat/modules.rst
     source/tests/stress/modules.rst
+    source/tests/coupled/modules.rst
