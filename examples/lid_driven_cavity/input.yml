@@ -50,7 +50,7 @@ stabilization:
 nsd: 2
 
 # heat, stress, coupled
-mode: "stress"
+mode: "coupled"
 
 # Coefficients as in westerkamp2019 or without as in torrilhon2017
 use_coeffs: True
@@ -69,11 +69,11 @@ bcs:
     "v_t": -1.0
   3100:
     "name": "lower"
-    "theta_w": 0.5
+    "theta_w": 1.0
     "v_t": 0.0
 
 # heat source
-heat_source: "2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)"
+heat_source: "0"
 
 # mass source
 mass_source: "0"
