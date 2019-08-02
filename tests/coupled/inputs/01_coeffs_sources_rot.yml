@@ -56,7 +56,7 @@ mode: "coupled"
 use_coeffs: True
 
 # Knudsen number
-tau: 0.1
+tau: 1.0
 
 # Refaction coefficient
 xi_tilde: 1.0
@@ -73,10 +73,10 @@ bcs:
     "v_t": 0.0
 
 # heat source
-heat_source: "2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)"
+heat_source: "0"
 
 # mass source
-mass_source: "2.0/5.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)"
+mass_source: "1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)"
 
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
