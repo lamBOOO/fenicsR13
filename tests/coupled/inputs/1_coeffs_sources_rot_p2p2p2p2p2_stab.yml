@@ -1,5 +1,5 @@
 # Case name, used as output folder
-case_name: 01_source_rot_p1p1p1_stab
+case_name: 1_coeffs_sources_rot_p2p2p2p2p2_stab
 
 # Meshes
 # ======
@@ -19,19 +19,19 @@ meshes:
 elements:
   "theta":
     "shape": "Lagrange"
-    "degree": 1
+    "degree": 2
   "s":
     "shape": "Lagrange"
-    "degree": 1
+    "degree": 2
   "p":
     "shape": "Lagrange"
-    "degree": 1
+    "degree": 2
   "u":
     "shape": "Lagrange"
-    "degree": 1
+    "degree": 2
   "sigma":
     "shape": "Lagrange"
-    "degree": 1
+    "degree": 2
 
 # Stabilization
 # =============
@@ -81,6 +81,6 @@ mass_source: "1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)"
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: esols/01_coeffs_sources_rot.cpp
-  plot: True
+  exact_solution: esols/1_coeffs_sources_rot.cpp
+  plot: False
   write_systemmatrix: False
