@@ -186,8 +186,7 @@ Developer Notes
     - In ``~/.gitlab-runner/config.toml`` (for the runner):
         - change priviliges to true
         - Use local images: ``pull_policy = "if-not-present"``
-        - To ``[[runners]]`` add ``environment = ["DOCKER_TLS_CERTDIR="]```
-            - See https://gitlab.com/gitlab-org/gitlab-ce/issues/64959
+        - To ``[[runners]]`` add ``environment = ["DOCKER_TLS_CERTDIR="]`` (See https://gitlab.com/gitlab-org/gitlab-ce/issues/64959)
 
     - Run local: ``gitlab-runner exec docker --docker-privileged build`` or with ``build`` replaced by job name
         - maybe local vars have to be change to use local Docker images because ``CI_REGISTRY``,... are not set
