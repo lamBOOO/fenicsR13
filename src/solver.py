@@ -2,6 +2,7 @@
 
 "solver module"
 
+import copy
 import dolfin as df
 import ufl
 import numpy as np
@@ -49,12 +50,21 @@ class Solver:
         self.delta_1 = self.params["stabilization"]["cip"]["delta_1"]
         self.delta_2 = self.params["stabilization"]["cip"]["delta_2"]
         self.delta_3 = self.params["stabilization"]["cip"]["delta_3"]
-        self.bcs = self.params["bcs"]
 
         self.R = df.Expression(
             "sqrt(pow(x[0],2)+pow(x[1],2))", degree=2
         )
         self.phi = df.Expression("atan2(x[1],x[0])", degree=2)
+
+        # Create boundary field expressions
+        self.bcs = copy.deepcopy(self.params["bcs"])
+        for edge_id in self.bcs:
+            for field in self.bcs[edge_id].keys():
+                self.bcs[edge_id][field] = df.Expression(
+                    str(self.bcs[edge_id][field]), degree=2,
+                    tau=self.tau, phi=self.phi, R=self.R
+                )
+
         self.heat_source = df.Expression(
             self.params["heat_source"], degree=2,
             tau=self.tau, phi=self.phi, R=self.R
@@ -285,9 +295,16 @@ class Solver:
                     + (2/xi_tilde) * sigma_nt
                     - cpl * 2/5 * s_t
                 ) * psi_nt
-            ) * df.ds
+            ) * df.ds + 2 * sum([
+                bcs[bc]["gamma"] * (p + sigma_nn) * psi_nn * df.ds(bc)
+                for bc in bcs.keys()
+            ])
             l3 = sum([
                 - 2.0 * psi_nt * bcs[bc]["v_t"] * df.ds(bc)
+                - 2.0 * (
+                    - bcs[bc]["gamma"] * bcs[bc]["p_w"]
+                    + bcs[bc]["v_n"]
+                ) * psi_nn * df.ds(bc)
                 for bc in bcs.keys()
             ])
 
@@ -297,8 +314,19 @@ class Solver:
             ) * df.dx
             l4 = + df.Constant(0) * df.div(v) * df.dx
 
-            a5 = + df.dot(u, df.grad(q)) * df.dx
-            l5 = - (f_mass * q) * df.dx
+            a5 = + (
+                df.dot(u, df.grad(q))
+            ) * df.dx - sum([
+                bcs[bc]["gamma"] * (p + sigma_nn) * q * df.ds(bc)
+                for bc in bcs.keys()
+            ])
+            l5 = - (f_mass * q) * df.dx + sum([
+                (
+                    - bcs[bc]["gamma"] * bcs[bc]["p_w"]
+                    + bcs[bc]["v_n"]
+                ) * q * df.ds(bc)
+                for bc in bcs.keys()
+            ])
         else:
             a1 = (
                 tau * df.inner(to.dev3d(df.grad(s)), df.grad(r))

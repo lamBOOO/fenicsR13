@@ -1,0 +1,90 @@
+# Case name, used as output folder
+case_name: 1_coeffs_p1p1p1p1p1_stab
+
+# Meshes
+# ======
+# Input files in h5 format.
+# List containing one or more meshes to perform simulation on.
+meshes:
+  - ../mesh/ring0.h5
+  - ../mesh/ring1.h5
+  - ../mesh/ring2.h5
+  - ../mesh/ring3.h5
+  - ../mesh/ring4.h5
+  - ../mesh/ring5.h5
+  # - ../mesh/ring6.h5 # fails on Macbook 8GB
+  # - ../mesh/ring7.h5 # fails on iMac 24GB, works on iMac 48GB
+  # - ../mesh/ring6.h5
+
+elements:
+  "theta":
+    "shape": "Lagrange"
+    "degree": 1
+  "s":
+    "shape": "Lagrange"
+    "degree": 1
+  "p":
+    "shape": "Lagrange"
+    "degree": 1
+  "u":
+    "shape": "Lagrange"
+    "degree": 1
+  "sigma":
+    "shape": "Lagrange"
+    "degree": 1
+
+# Stabilization
+# =============
+# - continous interior penalty (cip) with three parameters delta_i
+stabilization:
+  cip:
+    enable: True
+    delta_1: 1.0
+    delta_2: 1.0
+    delta_3: 0.01
+
+# Formulation Parameters
+# ======================
+
+# Number of spatial dimensions, currently only two-dimensional.
+nsd: 2
+
+# heat, stress, coupled
+mode: "coupled"
+
+# Coefficients as in westerkamp2019 or without as in torrilhon2017
+use_coeffs: True
+
+# Knudsen number
+tau: 1.0
+
+# Refaction coefficient
+xi_tilde: 1.0
+# xi_tilde: 0.7978845608 # sqrt(2/pi)
+
+bcs:
+  3000:
+    theta_w: 1.0
+    v_t: 0.0
+    v_n: 0.0
+    p_w: 0.0
+    gamma: "pow(10,-3)"
+  3100:
+    theta_w: 2.0
+    v_t: "-1.00 * sin(phi)"
+    v_n: "+1.00 * cos(phi)"
+    p_w: "-0.27 * cos(phi)"
+    gamma: "pow(10,+3)"
+
+# heat source
+heat_source: "0"
+
+# mass source
+mass_source: "0"
+
+# Perform convergence study on given set of meshes with exact solution
+convergence_study:
+  enable: True
+  exact_solution: esols/1_coeffs.cpp
+  plot: True
+  write_systemmatrix: False

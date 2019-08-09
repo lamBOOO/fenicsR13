@@ -49,17 +49,24 @@ class Input:
                 "valueschema": {
                     "type": "dict",
                     "schema": {
-                        "name": {
-                            "type": "string",
-                            "required": True
-                        },
                         "theta_w": {
-                            "type": "float",
+                            'anyof': [{'type': "string"}, {'type': "float"}],
                             "required": True,
-                            "min": 0.000000001
                         },
                         "v_t": {
-                            "type": "float",
+                            'anyof': [{'type': "string"}, {'type': "float"}],
+                            "required": True
+                        },
+                        "v_n": {
+                            'anyof': [{'type': "string"}, {'type': "float"}],
+                            "required": True
+                        },
+                        "p_w": {
+                            'anyof': [{'type': "string"}, {'type': "float"}],
+                            "required": True
+                        },
+                        "gamma": {
+                            'anyof': [{'type': "string"}, {'type': "float"}],
                             "required": True
                         },
                     }
