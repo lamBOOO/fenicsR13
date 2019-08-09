@@ -64,17 +64,17 @@ xi_tilde: 1.0
 
 bcs:
   3000:
-    theta_w: 1.0
-    v_t: 0.0
-    v_n: 0.0
-    p_w: 0.0
-    gamma: "pow(10,-3)"
+    theta_w: 1
+    v_t: 0
+    v_n: 0
+    p_w: 0
+    gamma: pow(10,-3)
   3100:
-    theta_w: 2.0
-    v_t: "-1.00 * sin(phi)"
-    v_n: "+1.00 * cos(phi)"
-    p_w: "-0.27 * cos(phi)"
-    gamma: "pow(10,+3)"
+    theta_w: 2
+    v_t: -1.00 * sin(phi)
+    v_n: +1.00 * cos(phi)
+    p_w: -0.27 * cos(phi)
+    gamma: pow(10,+3)
 
 # heat source
 heat_source: "0"
