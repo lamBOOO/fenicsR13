@@ -64,13 +64,17 @@ xi_tilde: 1.0
 
 bcs:
   3000:
-    "name": "inner"
-    "theta_w": 1.0
-    "v_t": -10.0
+    theta_w: 1.0
+    v_t: -10
+    v_n: 0
+    p_w: 0
+    gamma: 0
   3100:
-    "name": "outer"
-    "theta_w": 0.5
-    "v_t": 0.0
+    theta_w: 0.5
+    v_t: 0
+    v_n: 0
+    p_w: 0
+    gamma: 0
 
 # heat source
 heat_source: "0"

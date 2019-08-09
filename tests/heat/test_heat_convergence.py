@@ -24,11 +24,20 @@ class TestHeatConvergence(object):
 
     def compare_errors(self, errorsfile, ref_errorsfile):
         """
-        Check against reference errors.
+        Check against reference errors. Compares absolute differences.
+        Absolute Error allowed: ``1E-10``
         Return exception if diff returns with !=0
+        A comparison for complete equalness can be obtained with:
+
+        .. code-block:: python
+
+            subprocess.check_call([
+                "diff", "-u", "--strip-trailing-cr", errorsfile, ref_errorsfile
+            ], cwd=self.working_dir)
         """
         subprocess.check_call([
-            "diff", "-u", "--strip-trailing-cr", errorsfile, ref_errorsfile
+            "numdiff", "-s", "\"\n\r ,\"", "-a", "1E-10",
+            errorsfile, ref_errorsfile
         ], cwd=self.working_dir)
 
     # @pytest.fixture(scope="module", autouse=True)
