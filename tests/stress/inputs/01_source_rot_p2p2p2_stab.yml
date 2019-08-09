@@ -17,21 +17,21 @@ meshes:
   # - ../mesh/ring6.h5
 
 elements:
-  "theta":
-    "shape": "Lagrange"
-    "degree": 1
-  "s":
-    "shape": "Lagrange"
-    "degree": 1
-  "p":
-    "shape": "Lagrange"
-    "degree": 2
-  "u":
-    "shape": "Lagrange"
-    "degree": 2
-  "sigma":
-    "shape": "Lagrange"
-    "degree": 2
+  theta:
+    shape: Lagrange
+    degree: 1
+  s:
+    shape: Lagrange
+    degree: 1
+  p:
+    shape: Lagrange
+    degree: 2
+  u:
+    shape: Lagrange
+    degree: 2
+  sigma:
+    shape: Lagrange
+    degree: 2
 
 # Stabilization
 # =============
@@ -50,7 +50,7 @@ stabilization:
 nsd: 2
 
 # heat, stress, coupled
-mode: "stress"
+mode: stress
 
 # Coefficients as in westerkamp2019 or without as in torrilhon2017
 use_coeffs: True
@@ -77,10 +77,10 @@ bcs:
     gamma: 0
 
 # heat source
-heat_source: "2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)"
+heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
 
 # mass source
-mass_source: "2.0/5.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)"
+mass_source: 2.0/5.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)
 
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:

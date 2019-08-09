@@ -57,6 +57,7 @@ class Solver:
         self.phi = df.Expression("atan2(x[1],x[0])", degree=2)
 
         # Create boundary field expressions
+        # FIXME: Create function to create dolfin expression, also for sources
         self.bcs = copy.deepcopy(self.params["bcs"])
         for edge_id in self.bcs:
             for field in self.bcs[edge_id].keys():
@@ -66,11 +67,11 @@ class Solver:
                 )
 
         self.heat_source = df.Expression(
-            self.params["heat_source"], degree=2,
+            str(self.params["heat_source"]), degree=2,
             tau=self.tau, phi=self.phi, R=self.R
         )
         self.mass_source = df.Expression(
-            self.params["mass_source"], degree=2,
+            str(self.params["mass_source"]), degree=2,
             tau=self.tau, phi=self.phi, R=self.R
         )
 

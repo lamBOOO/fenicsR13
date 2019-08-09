@@ -50,34 +50,34 @@ class Input:
                     "type": "dict",
                     "schema": {
                         "theta_w": {
-                            'anyof': [{'type': "string"}, {'type': "float"}],
+                            "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True,
                         },
                         "v_t": {
-                            'anyof': [{'type': "string"}, {'type': "float"}],
+                            "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True
                         },
                         "v_n": {
-                            'anyof': [{'type': "string"}, {'type': "float"}],
+                            "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True
                         },
                         "p_w": {
-                            'anyof': [{'type': "string"}, {'type': "float"}],
+                            "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True
                         },
                         "gamma": {
-                            'anyof': [{'type': "string"}, {'type': "float"}],
+                            "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True
                         },
                     }
                 }
             },
             "heat_source": {
-                "type": "string",
+                "anyof": [{"type": "string"}, {"type": "float"}],
                 "required": True,
             },
             "mass_source": {
-                "type": "string",
+                "anyof": [{"type": "string"}, {"type": "float"}],
                 "required": True,
             },
             "convergence_study": {

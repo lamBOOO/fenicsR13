@@ -35,10 +35,10 @@ class TestStressConvergence(object):
                 "diff", "-u", "--strip-trailing-cr", errorsfile, ref_errorsfile
             ], cwd=self.working_dir)
         """
-        subprocess.check_call([
+        print(subprocess.check_output([
             "numdiff", "-s", "\"\n\r ,\"", "-a", "1E-10",
             errorsfile, ref_errorsfile
-        ], cwd=self.working_dir)
+        ], cwd=self.working_dir))
 
     # @pytest.fixture(scope="module", autouse=True)
     @pytest.mark.skip(reason="Not needed because meshes are in repo")
