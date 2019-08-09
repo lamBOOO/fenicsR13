@@ -1,5 +1,5 @@
 # Case name, used as output folder
-case_name: 1_coeffs_p1p1p1p1p1_stab
+case_name: 1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab
 
 # Meshes
 # ======
@@ -85,6 +85,6 @@ mass_source: 0
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: esols/1_coeffs.cpp
+  exact_solution: esols/1_coeffs_nosources_norot_inflow.cpp
   plot: True
   write_systemmatrix: False
