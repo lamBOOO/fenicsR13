@@ -15,20 +15,24 @@ class Postprocessor:
         self.data = data
         self.output_folder = output_folder
 
-    def plot_errors(self):
+    def plot_errors(self, show_popup):
         """
         Use ``matplotlib`` to plot all errors in a figure.
 
-        Exporting PDFs with
+        Exporting PDFs with:
 
         .. code-block:: python
 
+            # Write PDF without access to backend, i.e. use PDF backend
+            import matplotlib
             matplotlib.use('pdf')
             import matplotlib.pyplot as plt # pylint: disable=C0413
         """
 
         filename = "convergence_plot_" + self.output_folder  + ".pdf"
 
+        if not show_popup:
+            plt.switch_backend('agg')
         plt.figure(num=None, figsize=(16, 9), dpi=100)
 
         data = self.data
@@ -94,7 +98,8 @@ class Postprocessor:
 
         plt.tight_layout()
         plt.savefig(self.output_folder + "/" + filename, dpi=150)
-        plt.show()
+        if show_popup:
+            plt.show()
 
     def write_errors(self):
         "Writes errors to csv file"

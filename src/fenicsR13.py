@@ -30,7 +30,7 @@ def main():
     mesh_names = params["meshes"]
 
     convergence_study = params["convergence_study"]["enable"]
-    plot = params["convergence_study"]["plot"]
+    show_plot = params["convergence_study"]["plot"]
 
     data = []
 
@@ -67,8 +67,7 @@ def main():
             if p == len(mesh_names)-1: # after last mesh
                 postp = Postprocessor(data, params["case_name"])
                 postp.write_errors()
-                if plot:
-                    postp.plot_errors()
+                postp.plot_errors(show_plot)
 
         solver = None
         gc.collect()
