@@ -1,6 +1,14 @@
 Change log
 ----------
 
+0.3 (2019-08-11)
+~~~~~~~~~~~~~~~~
+
+- Full linear R13 now converges
+- Inflow model works
+- Restructuration of BC specification
+- Minor improvements in plotting routine
+
 0.2 (2019-07-29)
 ~~~~~~~~~~~~~~~~
 
