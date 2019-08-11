@@ -50,7 +50,7 @@ class TestR13Convergence(object):
 
     def test_1_coeffs_sources_rot_noinflow_p1p1p1p1p1_stab(self):
         r"""
-        Executes westerkamp2019 coupled system test and check with
+        Executes full linear R13 system test and check with
         reference errors.
 
         ========================= ==============================================
@@ -59,8 +59,16 @@ class TestR13Convergence(object):
         :math:`\tau`              :math:`1.0`
         :math:`f_{\mathrm{mass}}` :math:`(1-\frac{5R^2}{18\tau^2})\cos(\phi)`
         :math:`f_{\mathrm{heat}}` :math:`0`
+        :math:`\theta_w^1`        :math:`1.0`
         :math:`v_t^1`             :math:`10.0`
+        :math:`v_n^1`             :math:`0`
+        :math:`p_w^1`             :math:`0`
+        :math:`\gamma_w^1`        :math:`10^{-3}`
+        :math:`\theta_w^2`        :math:`0.5`
         :math:`v_t^2`             :math:`0.0`
+        :math:`v_n^2`             :math:`0`
+        :math:`p_w^2`             :math:`0`
+        :math:`\gamma_w^2`        :math:`10^{-3}`
         Elements                  :math:`P_1P_1P_1P_1P_1`
         Stabilization             CIP: :math:`\delta_1,\delta_2=1,\delta_3=0.01`
         ========================= ==============================================
@@ -73,7 +81,7 @@ class TestR13Convergence(object):
 
     def test_1_coeffs_sources_rot_noinflow_p2p2p2p2p2_stab(self):
         r"""
-        Executes westerkamp2019 coupled system test and check with
+        Executes full linear R13 system test and check with
         reference errors.
 
         ========================= ==============================================
@@ -82,13 +90,52 @@ class TestR13Convergence(object):
         :math:`\tau`              :math:`1.0`
         :math:`f_{\mathrm{mass}}` :math:`(1-\frac{5R^2}{18\tau^2})\cos(\phi)`
         :math:`f_{\mathrm{heat}}` :math:`0`
+        :math:`\theta_w^1`        :math:`1.0`
         :math:`v_t^1`             :math:`10.0`
+        :math:`v_n^1`             :math:`0`
+        :math:`p_w^1`             :math:`0`
+        :math:`\gamma_w^1`        :math:`10^{-3}`
+        :math:`\theta_w^2`        :math:`0.5`
         :math:`v_t^2`             :math:`0.0`
+        :math:`v_n^2`             :math:`0`
+        :math:`p_w^2`             :math:`0`
+        :math:`\gamma_w^2`        :math:`10^{-3}`
         Elements                  :math:`P_2P_2P_2P_2P_2`
         Stabilization             CIP: :math:`\delta_1,\delta_2=1,\delta_3=0.01`
         ========================= ==============================================
         """
         name = "1_coeffs_sources_rot_noinflow_p2p2p2p2p2_stab"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
+
+    def test_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab(self):
+        r"""
+        Executes full linear R13 system test and check with reference errors.
+        Test case is similar to Torrilhon2017.
+
+        ========================= ==============================================
+        Parameter     Value
+        ========================= ==============================================
+        :math:`\tau`              :math:`1.0`
+        :math:`f_{\mathrm{mass}}` :math:`0`
+        :math:`f_{\mathrm{heat}}` :math:`0`
+        :math:`\theta_w^1`        :math:`1.0`
+        :math:`v_t^1`             :math:`0`
+        :math:`v_n^1`             :math:`0`
+        :math:`p_w^1`             :math:`0`
+        :math:`\gamma_w^1`        :math:`10^{-3}`
+        :math:`\theta_w^2`        :math:`2.0`
+        :math:`v_t^2`             :math:`-1.00 \sin(\phi)`
+        :math:`v_n^2`             :math:`+1.00 \cos(\phi)`
+        :math:`p_w^2`             :math:`-0.27 \cos(\phi)`
+        :math:`\gamma_w^2`        :math:`10^{3}`
+        Elements                  :math:`P_1P_1P_1P_1P_1`
+        Stabilization             CIP: :math:`\delta_1,\delta_2=1,\delta_3=0.01`
+        ========================= ==============================================
+        """
+        name = "1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
