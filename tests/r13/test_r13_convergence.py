@@ -48,7 +48,7 @@ class TestR13Convergence(object):
         """
         subprocess.check_call(["python3", "create_meshes.py"], cwd="tests/mesh")
 
-    def test_1_coeffs_sources_rot_p1p1p1p1p1_stab(self):
+    def test_1_coeffs_sources_rot_noinflow_p1p1p1p1p1_stab(self):
         r"""
         Executes westerkamp2019 coupled system test and check with
         reference errors.
@@ -65,13 +65,13 @@ class TestR13Convergence(object):
         Stabilization             CIP: :math:`\delta_1,\delta_2=1,\delta_3=0.01`
         ========================= ==============================================
         """
-        name = "1_coeffs_sources_rot_p1p1p1p1p1_stab"
+        name = "1_coeffs_sources_rot_noinflow_p1p1p1p1p1_stab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_1_coeffs_sources_rot_p2p2p2p2p2_stab(self):
+    def test_1_coeffs_sources_rot_noinflow_p2p2p2p2p2_stab(self):
         r"""
         Executes westerkamp2019 coupled system test and check with
         reference errors.
@@ -88,7 +88,7 @@ class TestR13Convergence(object):
         Stabilization             CIP: :math:`\delta_1,\delta_2=1,\delta_3=0.01`
         ========================= ==============================================
         """
-        name = "1_coeffs_sources_rot_p2p2p2p2p2_stab"
+        name = "1_coeffs_sources_rot_noinflow_p2p2p2p2p2_stab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
