@@ -61,7 +61,7 @@ pages:
   - sphinx-apidoc -o source/src ../src
   - sphinx-apidoc -o source/tests/heat ../tests/heat
   - sphinx-apidoc -o source/tests/stress ../tests/stress
-  - sphinx-apidoc -o source/tests/coupled ../tests/coupled
+  - sphinx-apidoc -o source/tests/r13 ../tests/r13
   - make html
   - mv _build/html/ ${CI_PROJECT_DIR}/public/
   artifacts:

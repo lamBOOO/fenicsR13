@@ -26,7 +26,7 @@ class Input:
             "mode": {
                 "type": "string",
                 "required": True,
-                "allowed": ["heat", "stress", "coupled"]
+                "allowed": ["heat", "stress", "r13"]
             },
             "use_coeffs": {
                 "type": "boolean",

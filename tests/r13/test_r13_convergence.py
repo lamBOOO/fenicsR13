@@ -1,17 +1,17 @@
 """
-Module to gather tests for convergence of decoupled coupled system.
+Module to gather tests for convergence of decoupled r13 system.
 """
 
 import subprocess
 import pytest
 
-class TestCoupledConvergence(object):
+class TestR13Convergence(object):
     """
     Class to bundle all coupled convergence tests.
     All tests are compared against reference errors.
     """
 
-    working_dir = "tests/coupled"
+    working_dir = "tests/r13"
     solver_path = "../../src/fenicsR13.py"
 
     def run_solver(self, inputfile):

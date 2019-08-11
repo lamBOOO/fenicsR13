@@ -20,4 +20,4 @@ Contents
     source/src/modules.rst
     source/tests/heat/modules.rst
     source/tests/stress/modules.rst
-    source/tests/coupled/modules.rst
+    source/tests/r13/modules.rst

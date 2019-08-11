@@ -50,7 +50,7 @@ stabilization:
 # Number of spatial dimensions, currently only two-dimensional.
 nsd: 2
 
-# heat, stress, coupled
+# heat, stress, r13
 mode: heat
 
 # Coefficients as in westerkamp2019 or without as in torrilhon2017

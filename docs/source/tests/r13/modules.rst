@@ -1,7 +1,7 @@
-coupled
+r13
 =======
 
 .. toctree::
    :maxdepth: 4
 
-   test_coupled_convergence
+   test_r13_convergence
