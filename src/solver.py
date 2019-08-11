@@ -76,6 +76,7 @@ class Solver:
         )
 
         self.exact_solution = self.params["convergence_study"]["exact_solution"]
+        self.rescale_p = self.params["convergence_study"]["rescale_pressure"]
         self.output_folder = self.params["case_name"] + "/"
         self.var_ranks = {
             "theta": 0,
@@ -412,13 +413,14 @@ class Solver:
             ) = sol.split()
 
         if self.mode == "stress" or self.mode == "coupled":
-            # Scale pressure to have zero mean
-            p_i = df.interpolate(self.sol["p"], self.fspaces["p"])
-            mean_p_value = self.calc_sf_mean(p_i)
-            mean_p_fct = df.Function(self.fspaces["p"])
-            mean_p_fct.assign(df.Constant(mean_p_value))
-            p_i.assign(p_i - mean_p_fct)
-            self.sol["p"] = p_i
+            if self.rescale_p:
+                # Scale pressure to have zero mean
+                p_i = df.interpolate(self.sol["p"], self.fspaces["p"])
+                mean_p_value = self.calc_sf_mean(p_i)
+                mean_p_fct = df.Function(self.fspaces["p"])
+                mean_p_fct.assign(df.Constant(mean_p_value))
+                p_i.assign(p_i - mean_p_fct)
+                self.sol["p"] = p_i
 
     def load_exact_solution(self):
         "Writes exact solution"

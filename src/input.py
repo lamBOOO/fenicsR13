@@ -100,6 +100,10 @@ class Input:
                         "type": "boolean",
                         "required": True
                     },
+                    "rescale_pressure": {
+                        "type": "boolean",
+                        "required": True
+                    },
                 }
             },
             "case_name": {
