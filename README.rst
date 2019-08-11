@@ -141,6 +141,12 @@ hosted version on `Gitlab Pages`_.
 Developer Notes
 --------------------------------------------------------------------------------
 
+- Monitor the performance of the program with e.g.:
+
+    .. code-block:: bash
+
+        htop -p `{ python3 ../../src/fenicsR13.py inputs/1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.yml > /dev/null & } && echo $!`
+
 - Matplotbib fails when having wrong backend on macOS
     - Fix: Add ``backend: TkAgg`` to ``~/.matplotlib/matplotlibrc`` file
 - Performance in Docker is way better than conda build, especially JIT compilation is faster
