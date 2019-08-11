@@ -66,11 +66,11 @@ bcs:
   3000:
     "name": "upper"
     "theta_w": 1.0
-    "v_t": -1.0
+    "u_t_w": -1.0
   3100:
     "name": "lower"
     "theta_w": 1.0
-    "v_t": 0.0
+    "u_t_w": 0.0
 
 # heat source
 heat_source: "0"

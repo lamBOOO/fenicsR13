@@ -53,11 +53,11 @@ class Input:
                             "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True,
                         },
-                        "v_t": {
+                        "u_t_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True
                         },
-                        "v_n": {
+                        "u_n_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True
                         },
@@ -65,7 +65,7 @@ class Input:
                             "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True
                         },
-                        "gamma": {
+                        "gamma_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True
                         },

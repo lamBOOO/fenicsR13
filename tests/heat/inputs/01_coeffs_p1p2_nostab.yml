@@ -63,16 +63,16 @@ xi_tilde: 1.0
 bcs:
   3000:
     theta_w: 1.0
-    v_t: 10
-    v_n: 0
+    u_t_w: 10
+    u_n_w: 0
     p_w: 0
-    gamma: 0
+    gamma_w: 0
   3100:
     theta_w: 0.5
-    v_t: 0
-    v_n: 0
+    u_t_w: 0
+    u_n_w: 0
     p_w: 0
-    gamma: 0
+    gamma_w: 0
 
 # heat source
 heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
