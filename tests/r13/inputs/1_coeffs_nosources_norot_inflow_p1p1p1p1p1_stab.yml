@@ -52,7 +52,7 @@ nsd: 2
 # heat, stress, r13
 mode: r13
 
-# Coefficients as in westerkamp2019 or without as in torrilhon2017
+# Use coefficients: True means R13
 use_coeffs: True
 
 # Knudsen number
