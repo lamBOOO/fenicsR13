@@ -70,7 +70,7 @@ html_theme_options = {
     'sidebar_collapse': False,
     'description': "Release v{}<br>Extended gas dynamics using FEniCS platform.".format(release),
     "touch_icon": "../media/logo_large.png",
-    "fixed_sidebar": True,
+    "fixed_sidebar": False, # fails on mobile and with large sidebar
     "note_bg": "#FFF59C",
     "show_relbars": False,
 }
