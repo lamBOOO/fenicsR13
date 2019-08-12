@@ -129,16 +129,3 @@ class Postprocessor:
                         for field in [f for f in run if f != "h"]
                     ]))
                 )
-
-def plot_single(data_x_, data_y_, title_, legend_):
-    "TODO"
-    plt.loglog(data_x_, data_y_, "-o", label=legend_)
-    plt.loglog(data_x_, np.array(
-        2*np.power(data_x_, 1)), "--", label="1st order")
-    plt.loglog(data_x_, np.array(
-        0.02*np.power(data_x_, 2)), "--", label="2nd order")
-    plt.xlabel("h_max")
-    plt.ylabel("norm(theta_i-theta_{i-1})_L2")
-    plt.title(title_)
-    plt.legend()
-    plt.show()
