@@ -89,3 +89,4 @@ convergence_study:
   plot: False # to avoid error exit code due to $DISPLAY
   write_systemmatrix: False
   rescale_pressure: True
+  relative_error: True

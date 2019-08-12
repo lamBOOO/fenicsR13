@@ -66,6 +66,9 @@ class Solver:
 
         self.exact_solution = self.params["convergence_study"]["exact_solution"]
         self.rescale_p = self.params["convergence_study"]["rescale_pressure"]
+        self.relative_error = self.params["convergence_study"][
+            "relative_error"
+        ]
         self.output_folder = self.params["case_name"] + "/"
         self.var_ranks = {
             "theta": 0,
@@ -498,6 +501,10 @@ class Solver:
     def calc_sf_mean(self, scalar_function):
         """
         Calculates the mean of a scalar function.
+        Relative errors is based per field component and the maximum value of
+        the analytical solution. If the analytical solution is uniformly zero,
+        then the absolute erorrs is used.
+        (equivalent to setting the maximum to 1)
 
         .. code-block:: python
 
@@ -532,8 +539,14 @@ class Solver:
             difference = df.project(sol_e_ - sol_, v_sol)
             self.write_xdmf("difference_{}".format(name_), difference)
 
-            err_f_L2 = df.errornorm(sol_e_, sol_, "L2")
+            err_f_L2 = df.errornorm(field_e_i, field_i, "L2")
             err_v_linf = df.norm(field_e_i.vector()-field_i.vector(), "linf")
+
+            if self.relative_error:
+                max_esol = df.norm(field_e_i.vector(), "linf") or 1 # avoid div by zero
+                err_f_L2 /= max_esol
+                err_v_linf /= max_esol
+
             print(str(name_) + " L_2 error:", err_f_L2)
             print(str(name_) + " l_inf error:", err_v_linf)
 
@@ -566,6 +579,17 @@ class Solver:
                 )
                 for i in range(dofs)
             ]
+
+            if self.relative_error:
+                max_esols = [
+                    np.max(
+                        np.abs(field_e_i.split()[i].compute_vertex_values())
+                    )
+                    for i in range(dofs)
+                ]
+                errs_f_L2 = [x/y for x, y in zip(errs_f_L2, max_esols)]
+                errs_v_linf = [x/y for x, y in zip(errs_v_linf, max_esols)]
+
             print(str(name_) + " L_2 error:", errs_f_L2)
             print(str(name_) + " l_inf error:", errs_v_linf)
 
@@ -599,6 +623,17 @@ class Solver:
                 )
                 for i in range(dofs)
             ]
+
+            if self.relative_error:
+                max_esols = [
+                    np.max(
+                        np.abs(field_e_i.split()[i].compute_vertex_values())
+                    )
+                    for i in range(dofs)
+                ]
+                errs_f_L2 = [x/y for x, y in zip(errs_f_L2, max_esols)]
+                errs_v_linf = [x/y for x, y in zip(errs_v_linf, max_esols)]
+
             print(str(name_) + " L_2 error:", errs_f_L2)
             print(str(name_) + " l_inf error:", errs_v_linf)
 

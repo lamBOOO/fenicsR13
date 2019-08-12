@@ -104,6 +104,10 @@ class Input:
                         "type": "boolean",
                         "required": True
                     },
+                    "relative_error": {
+                        "type": "boolean",
+                        "required": True
+                    },
                 }
             },
             "case_name": {
