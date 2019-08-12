@@ -66,12 +66,12 @@ def innerOfDevOfGrad2AndGrad2(sigma, psi):
         return psi[1, 1].dx(1)*((3*sigma[1, 1].dx(1))/5. - sigma[0, 1].dx(0)/5. - sigma[1, 0].dx(0)/5.) + (-psi[0, 0].dx(1) - psi[1, 1].dx(1))*(-sigma[0, 0].dx(1)/3. - (7*sigma[1, 1].dx(1))/15. - sigma[0, 1].dx(0)/15. - sigma[1, 0].dx(0)/15.) + psi[0, 0].dx(1)*(sigma[0, 0].dx(1)/3. - (2*sigma[1, 1].dx(1))/15. + (4*sigma[0, 1].dx(0))/15. + (4*sigma[1, 0].dx(0))/15.) + psi[0, 1].dx(1)*((4*sigma[0, 1].dx(1))/15. + (4*sigma[1, 0].dx(1))/15. - (2*sigma[0, 0].dx(0))/15. + sigma[1, 1].dx(0)/3.) + psi[1, 0].dx(1)*((4*sigma[0, 1].dx(1))/15. + (4*sigma[1, 0].dx(1))/15. - (2*sigma[0, 0].dx(0))/15. + sigma[1, 1].dx(0)/3.) + (-sigma[0, 1].dx(1)/5. - sigma[1, 0].dx(1)/5. + (3*sigma[0, 0].dx(0))/5.)*psi[0, 0].dx(0) + (sigma[0, 0].dx(1)/3. - (2*sigma[1, 1].dx(1))/15. + (4*sigma[0, 1].dx(0))/15. + (4*sigma[1, 0].dx(0))/15.)*psi[0, 1].dx(0) + (sigma[0, 0].dx(1)/3. - (2*sigma[1, 1].dx(1))/15. + (4*sigma[0, 1].dx(0))/15. + (4*sigma[1, 0].dx(0))/15.)*psi[1, 0].dx(0) + (-sigma[0, 1].dx(1)/15. - sigma[1, 0].dx(1)/15. - (7*sigma[0, 0].dx(0))/15. - sigma[1, 1].dx(0)/3.)*(-psi[0, 0].dx(0) - psi[1, 1].dx(0)) + ((4*sigma[0, 1].dx(1))/15. + (4*sigma[1, 0].dx(1))/15. - (2*sigma[0, 0].dx(0))/15. + sigma[1, 1].dx(0)/3.)*psi[1, 1].dx(0)
     else:
         return df.inner(
-            dev3(grad3dOf2(gen3dTracefreeTensor(sigma))),
-            grad3dOf2(gen3dTracefreeTensor(psi))
-            # dev3(grad3dOf2(gen3dTracefreeTensor(psi))) # same
+            dev3(grad3dOf2(gen3dTF2(sigma))),
+            grad3dOf2(gen3dTF2(psi))
+            # dev3(grad3dOf2(gen3dTF2(psi))) # same
         )
 
-def gen3dTracefreeTensor(rank2):
+def gen3dTF2(rank2):
     r"""
     Returns the synthetic 3D version
     :math:`A \in \mathbb{R}^{3 \times 3}`
