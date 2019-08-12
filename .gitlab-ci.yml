@@ -36,12 +36,8 @@ build:
   image:
     name: $CI_REGISTRY_IMAGE:latest # use prebuilt image in Gitlab's registry
     entrypoint: [""] # == Repo. Has to be done if Dockerfile has own entrypoint
-  artifacts:
-    paths:
-    - ${APP_DIRECTORY}/htmlcov
-    expire_in: 1 week
 
-test:convergence:
+test:pytest:
   extends: .test
   script:
   - cd ${APP_DIRECTORY}
@@ -51,6 +47,7 @@ test:convergence:
   artifacts:
     paths:
     - ${APP_DIRECTORY}/convergence_plots
+    - ${APP_DIRECTORY}/htmlcov
     expire_in: 6 month
 
 # **************************************************************************** #
