@@ -36,12 +36,12 @@ First install `Docker Desktop`_ for your OS. Then:
     cd fenicsR13/examples/heat
 
     # in serial...
-    python3 ../../src/fenicsR13.py
+    # usage: python3 <path/to/fenicsR13.py> <path/to/input.yml>
+    python3 ../../src/fenicsR13.py inputs/01_coeffs_p1p1_stab.yml
 
     # in parallel... ("-u" to flash stdout)
-    mpirun -n 4 python3 -u ../../src/fenicsR13.py
-
-
+    # usage: mpirun -n <numberOfProcesses> <serialCommand>
+    mpirun -n 4 python3 -u ../../src/fenicsR13.py inputs/01_coeffs_p1p1_stab.yml
 
 The main folder of this repository contains a ``Dockerfile`` defining the used environment. Here, we used the optimized and official FEniCS Docker image and include ``Gmsh`` and install some requirements from the ``requirements.txt``. This can take a while, especially the ``Gmsh`` mirror can be quite slow. To avoid very long execution commands (``docker run <..> -v <volume share> <etc..>``), a ``docker-compose.yml`` is used to store all these parameters. ``docker-compose`` acts as an wrapper for the Docker execution.
 
@@ -186,6 +186,10 @@ Developer Notes
 
             import sys
             print(sys.path)
+
+- Create new version tag:
+    1. Add CHANGELOG entry
+    2. Adapt version in `conf.py` for docs
 
 - Gitlab CI Setup:
     - The ``build`` stage has to be triggered manually when something in the setup changes. This is because it takes a fair amount of time.
