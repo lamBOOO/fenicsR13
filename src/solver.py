@@ -36,7 +36,10 @@ class Solver:
 
     """
     def __init__(self, params, mesh, time):
-        "Initializes solver"
+        """
+        Initializes solver
+        """
+
         self.params = params #: Doctest
         self.mesh = mesh.mesh
         self.boundaries = mesh.boundaries
@@ -51,29 +54,15 @@ class Solver:
         self.delta_2 = self.params["stabilization"]["cip"]["delta_2"]
         self.delta_3 = self.params["stabilization"]["cip"]["delta_3"]
 
-        self.R = df.Expression(
-            "sqrt(pow(x[0],2)+pow(x[1],2))", degree=2
-        )
-        self.phi = df.Expression("atan2(x[1],x[0])", degree=2)
-
-        # Create boundary field expressions
-        # FIXME: Create function to create dolfin expression, also for sources
+        # Create boundary field and sources expressions
         self.bcs = copy.deepcopy(self.params["bcs"])
         for edge_id in self.bcs:
             for field in self.bcs[edge_id].keys():
-                self.bcs[edge_id][field] = df.Expression(
-                    str(self.bcs[edge_id][field]), degree=2,
-                    tau=self.tau, phi=self.phi, R=self.R
+                self.bcs[edge_id][field] = self.createMacroExpr(
+                    self.bcs[edge_id][field]
                 )
-
-        self.heat_source = df.Expression(
-            str(self.params["heat_source"]), degree=2,
-            tau=self.tau, phi=self.phi, R=self.R
-        )
-        self.mass_source = df.Expression(
-            str(self.params["mass_source"]), degree=2,
-            tau=self.tau, phi=self.phi, R=self.R
-        )
+        self.heat_source = self.createMacroExpr(self.params["heat_source"])
+        self.mass_source = self.createMacroExpr(self.params["mass_source"])
 
         self.exact_solution = self.params["convergence_study"]["exact_solution"]
         self.rescale_p = self.params["convergence_study"]["rescale_pressure"]
@@ -126,6 +115,43 @@ class Solver:
             "sigma": None,
         }
         self.errors = {}
+
+    def createMacroExpr(self, cpp_string):
+        """
+        Return a DOLFIN expression with predefined macros.
+        These macros include:
+
+        ============================ ======= =================================
+        Name                         Macro   CPP Replacement
+        ============================ ======= =================================
+        Radius wrt. to :math:`(0,0)` ``R``   ``sqrt(pow(x[0],2)+pow(x[1],2))``
+        Angle wrt. :math:`(0,0)`     ``phi`` ``atan2(x[1],x[0])``
+        Knudsen number               ``tau`` ``self.tau``
+        ============================ ======= =================================
+
+        The following expressions are therefore equal:
+
+        .. code-block:: python
+
+            # expr1 is equal to expr2
+            expr1 = self.createMacroExpr("R*cos(phi)")
+            expr2 = dolfin.Expression(
+                "R*cos(phi)",
+                degree=2,
+                R=dolfin.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2),
+                phi=dolfin.Expression("atan2(x[1],x[0])", degree=2),
+            )
+        """
+        R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+        phi = df.Expression("atan2(x[1],x[0])", degree=2)
+        tau = self.tau
+        return df.Expression(
+            str(cpp_string),
+            degree=2,
+            tau=tau,
+            phi=phi,
+            R=R
+        )
 
     def setup_function_spaces(self):
         "Setup function spaces"

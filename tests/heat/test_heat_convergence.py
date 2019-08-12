@@ -150,7 +150,4 @@ class TestHeatConvergence(object):
 
     @pytest.mark.skip(reason="Not implemented")
     def test_01_nocoeffs_p1p1_stab(self):
-        pass
-
-# TestHeatConvergence().test_01_nocoeffs_p1p2_nostab()
-# TestHeatConvergence().test_01_coeffs_p1p2_nostab()
+        "Not implemented"
