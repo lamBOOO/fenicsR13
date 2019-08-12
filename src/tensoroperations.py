@@ -2,32 +2,18 @@
 
 """
 Module to gather all additional tensor operations not present in UFL.
+This especially includes all 3D operations and operations on tensors with
+rank above 2.
 """
 
 import dolfin as df
 import ufl
-
 
 def dev3d(mat):
     "2d deviatoric part of actually 3d matrix"
     return (
         0.5 * (mat + ufl.transpose(mat))
         - (1/3) * ufl.tr(mat) * ufl.Identity(2)
-    )
-
-def innerOfTracefree2(rank2_1, rank2_2):
-    """
-    Return the 3D inner prodcut of two symmetric tracefree
-    rank-2 tensors (two-dimensional) as used the weak form of
-    westerkamp2019.
-    """
-    return (
-        df.inner(rank2_1, rank2_2)
-        # part from u_zz=-(u_xx+u_yy) contribution
-        + rank2_1[0][0] * rank2_2[0][0]
-        + rank2_1[0][0] * rank2_2[1][1]
-        + rank2_1[1][1] * rank2_2[0][0]
-        + rank2_1[1][1] * rank2_2[1][1]
     )
 
 def sym3(rank3):
