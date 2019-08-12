@@ -214,6 +214,15 @@ class Solver:
             \nabla \theta &= 0 \\
             \nabla \cdot \st &= f \\
 
+        **Stress**
+
+        Includes i.a. the term
+
+        .. math::
+
+            (\nabla \underline{\underline{\sigma}})_{\mathrm{dev}} :
+            \nabla \underline{\underline{\psi}}
+
         for :math:`\theta` and :math:`\st` with a given heat source :math:`f`
         and the Knudsen number :math:`\tau`.
 
@@ -306,7 +315,10 @@ class Solver:
             l2 = - (f_heat * kappa) * df.dx
 
             a3 = (
-                + 2 * tau * to.innerOfDevOfGrad2AndGrad2(sigma, psi)
+                + 2 * tau * df.inner(
+                    to.dev3(to.grad3dOf2(to.gen3dTF2(sigma))),
+                    to.grad3dOf2(to.gen3dTF2(psi))
+                )
                 + (1/tau) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
                 - 2 * df.dot(u, df.div(df.sym(psi)))
                 + cpl * 4/5 * df.inner(to.dev3d(df.grad(s)), psi)
