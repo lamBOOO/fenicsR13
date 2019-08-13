@@ -294,7 +294,7 @@ class Solver:
         # Setup both weak forms
         if self.use_coeffs:
             a1 = (
-                + 12/5 * tau * df.inner(to.dev3d(df.grad(s)), df.grad(r))
+                + 12/5 * tau * df.inner(to.dev3d2(df.grad(s)), df.grad(r))
                 + 2/3 * (1/tau) * df.inner(s, r)
                 - (5/2) * theta * df.div(r)
                 + cpl * df.dot(df.div(sigma), r)
@@ -319,12 +319,12 @@ class Solver:
 
             a3 = (
                 + 2 * tau * df.inner(
-                    to.dev3(to.grad3dOf2(to.gen3dTF2(sigma))),
+                    to.dev3dOfSym3(to.grad3dOf2(to.gen3dTF2(sigma))),
                     to.grad3dOf2(to.gen3dTF2(psi))
                 )
                 + (1/tau) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
                 - 2 * df.dot(u, df.div(df.sym(psi)))
-                + cpl * 4/5 * df.inner(to.dev3d(df.grad(s)), psi)
+                + cpl * 4/5 * df.inner(to.dev3d2(df.grad(s)), psi)
             ) * df.dx + (
                 + (
                     + 21/10 * xi_tilde * sigma_nn
@@ -372,7 +372,7 @@ class Solver:
             ])
         else:
             a1 = (
-                tau * df.inner(to.dev3d(df.grad(s)), df.grad(r))
+                tau * df.inner(to.dev3d2(df.grad(s)), df.grad(r))
                 + (1/tau) * df.inner(s, r)
                 - theta * df.div(r)
             ) * df.dx + (
@@ -543,7 +543,7 @@ class Solver:
             err_v_linf = df.norm(field_e_i.vector()-field_i.vector(), "linf")
 
             if self.relative_error:
-                max_esol = df.norm(field_e_i.vector(), "linf") or 1 # avoid div by zero
+                max_esol = df.norm(field_e_i.vector(), "linf") or 1 # avoid 0
                 err_f_L2 /= max_esol
                 err_v_linf /= max_esol
 
