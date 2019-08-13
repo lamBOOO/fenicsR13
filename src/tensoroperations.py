@@ -77,6 +77,33 @@ def gen3dTF2(rank2):
         [0, 0, -rank2[0, 0]-rank2[1, 1]]
     ])
 
+def gen3d2(rank2):
+    r"""
+    Returns the synthetic 3D version
+    :math:`A \in \mathbb{R}^{3 \times 3}`
+    of a 2D rank-2 tensor
+    :math:`B \in \mathbb{R}^{2 \times 2}`.
+    The 3D-components are set to zero.
+
+    .. math::
+
+        B = \begin{pmatrix}
+                b_{xx} & b_{xy} \\
+                b_{yx} & b_{yy}
+            \end{pmatrix}
+
+        A = \begin{pmatrix}
+                b_{xx} & b_{xy} & 0                \\
+                b_{yx} & b_{yy} & 0                \\
+                0      & 0      & 0
+            \end{pmatrix}
+    """
+    return df.as_tensor([
+        [rank2[0, 0], rank2[0, 1], 0],
+        [rank2[1, 0], rank2[1, 1], 0],
+        [0, 0, 0]
+    ])
+
 def grad3dOf2(rank2):
     """
     Returns the 3D version gradient of a 3D synthetic tracefree tensor,
