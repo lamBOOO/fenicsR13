@@ -39,6 +39,7 @@ extensions = [
   'sphinx.ext.viewcode',
   'sphinx.ext.napoleon', # for numpy and Google docstrings
   'fluiddoc.mathmacro',
+  'sphinx.ext.imgconverter', # for svg usage in latex, but bad output
 ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -230,10 +230,10 @@ Contact
     :target: https://git.rwth-aachen.de/lamboo/fenicsR13/pipelines
     :alt: Test coverage
 
-.. |version| image:: https://img.shields.io/badge/version-v0.3-blue
+.. |version| image:: https://img.shields.io/badge/version-v0.3-blue.svg
     :target: https://git.rwth-aachen.de/lamBOO/fenicsR13/-/tags
     :alt: Documentation Website
 
-.. |website| image:: https://img.shields.io/badge/doc-https%3A%2F%2Flamboo.pages.rwth--aachen.de%2FfenicsR13%2F-blue
+.. |website| image:: https://img.shields.io/badge/doc-https%3A%2F%2Flamboo.pages.rwth--aachen.de%2FfenicsR13%2F-blue.svg
     :target: https://lamboo.pages.rwth-aachen.de/fenicsR13/
     :alt: Documentation Website
