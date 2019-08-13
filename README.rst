@@ -7,7 +7,7 @@
 fenicsR13
 ================================================================================
 
-|pipeline| |coverage| |website|
+|pipeline| |coverage| |version| |website|
 
 ``#extendedGasDynamics`` ``#using`` ``#FEniCS``
 
@@ -230,6 +230,10 @@ Contact
     :target: https://git.rwth-aachen.de/lamboo/fenicsR13/commits/master
     :alt: Test coverage
 
-.. |website| image:: https://img.shields.io/website/https/lamboo.pages.rwth-aachen.de/fenicsR13?down_message=offline&label=Documentation&up_message=online%20%28click%29
+.. |version| image:: https://img.shields.io/badge/version-v0.3-blue
     :target: https://lamboo.pages.rwth-aachen.de/fenicsR13/
+    :alt: Documentation Website
+
+.. |website| image:: https://img.shields.io/badge/doc-https%3A%2F%2Flamboo.pages.rwth--aachen.de%2FfenicsR13%2F-blue
+    :target: %{project_path}
     :alt: Documentation Website
