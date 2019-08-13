@@ -235,5 +235,5 @@ Contact
     :alt: Documentation Website
 
 .. |website| image:: https://img.shields.io/badge/doc-https%3A%2F%2Flamboo.pages.rwth--aachen.de%2FfenicsR13%2F-blue
-    :target: %{project_path}
+    :target: https://lamboo.pages.rwth-aachen.de/fenicsR13/
     :alt: Documentation Website
