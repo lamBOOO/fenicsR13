@@ -5,6 +5,7 @@
 	"workspaceFolder": "/home/fenics/shared",
 	"extensions": [
 		"ms-python.python",
-		"ms-vscode.cpptools"
+		"ms-vscode.cpptools",
+		"lextudio.restructuredtext"
 	]
 }
