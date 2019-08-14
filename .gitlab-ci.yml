@@ -5,7 +5,7 @@ variables:
   DOCKER_DRIVER: overlay2
   APP_DIRECTORY: .
   DOCS_DIRECTORY: ${APP_DIRECTORY}/docs
-  PROJECT_NAME: fenicsR13
+  DOCS_LATEX_NAME: fenicsr13
 services:
 - docker:dind # docker in docker
 stages:
@@ -34,7 +34,6 @@ build:doc:
     name: $CI_REGISTRY_IMAGE:latest
     entrypoint: [""]
   script:
-    - which convert # FIXME: Remove this test
     - cd ${DOCS_DIRECTORY}
     - sphinx-apidoc -o source/src ../src
     - sphinx-apidoc -o source/tests/heat ../tests/heat
@@ -87,7 +86,7 @@ compile_latex_doc:
     - make
   artifacts:
     paths:
-      - ${DOCS_DIRECTORY}/_build/latex/${PROJECT_NAME}.pdf
+      - ${DOCS_DIRECTORY}/_build/latex/${DOCS_LATEX_NAME}.pdf
     expire_in: 6 month
 
 pages:
