@@ -65,7 +65,7 @@ html_static_path = ['_static']
 
 html_logo = "../media/logo_large.png"
 html_favicon = "../media/logo_large.png"
-latex_logo = "../media/logo_large.png"
+
 
 html_theme_options = {
     'sidebar_collapse': False,
@@ -76,6 +76,11 @@ html_theme_options = {
     "show_relbars": False,
 }
 
+# -- LaTeX
+latex_logo = "../media/logo_large.png"
+latex_elements = {
+  'extraclassoptions': 'openany' # skip empty pages
+}
 
 # -- Autodoc
 autodoc_default_options = {
