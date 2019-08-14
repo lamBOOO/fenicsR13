@@ -464,7 +464,98 @@ class Solver:
                 self.sol["p"] = p_i
 
     def load_exact_solution(self):
-        "Writes exact solution"
+        """
+        Loads exact solution from the location given in ``input.yml``
+
+        The exact solution must be C++ format with a specific syntax.
+        The ``esol.cpp`` must contain the classes:
+
+        =============== =====================
+        Class           mode
+        =============== =====================
+        ``Temperature`` ``heat`` or ``r13``
+        ``Heatflux``    ``heat`` or ``r13``
+        ``Pressure``    ``stress`` or ``r13``
+        ``Velocity``    ``stress`` or ``r13``
+        ``Stress``      ``stress`` or ``r13``
+        =============== =====================
+
+        The file has to follow a specific syntax for DOLFIN.
+        An example file could look like:
+
+        .. code-block:: c++
+
+            #include <pybind11/pybind11.h>
+            #include <pybind11/eigen.h>
+            #include <cmath>
+            #include <boost/math/special_functions/bessel.hpp>  // additional includes
+            using namespace std;
+            namespace py = pybind11;
+            #include <dolfin/function/Expression.h>
+            double lambda_3 = sqrt(3.0/2.0); // some own constants
+            class Temperature : public dolfin::Expression {
+                public:
+                Temperature() : dolfin::Expression() {}
+                void eval(Eigen::Ref<Eigen::VectorXd> values,
+                        Eigen::Ref<const Eigen::VectorXd> x) const override {
+                    values[0] = 1; // value
+                }
+            };
+            class Heatflux : public dolfin::Expression {
+                public:
+                Heatflux() : dolfin::Expression(2) {} // note components=2!
+                void eval(Eigen::Ref<Eigen::VectorXd> values,
+                        Eigen::Ref<const Eigen::VectorXd> x) const override {
+                    values[0] = 42;
+                    values[1] = 3.14;
+                }
+            };
+            class Pressure : public dolfin::Expression {
+                public:
+                Pressure() : dolfin::Expression() {}
+                void eval(Eigen::Ref<Eigen::VectorXd> values,
+                        Eigen::Ref<const Eigen::VectorXd> x) const override {
+                    values[0] = boost::math::cyl_bessel_i(1,2.71); // external function
+                }
+            };
+            class Velocity : public dolfin::Expression {
+                public:
+                Velocity() : dolfin::Expression(2) {}
+                void eval(Eigen::Ref<Eigen::VectorXd> values,
+                        Eigen::Ref<const Eigen::VectorXd> x) const override {
+                    values[0] = lambda_3;
+                    values[1] = 2;
+                }
+            };
+            class Stress : public dolfin::Expression {
+                public:
+                Stress() : dolfin::Expression(2,2) {} // note dim=2 and shape=(2,2)
+                void eval(Eigen::Ref<Eigen::VectorXd> values,
+                        Eigen::Ref<const Eigen::VectorXd> x) const override {
+                    values[0] = 1.2345 ;
+                    values[1] = 1.2345 ;
+                    values[2] = 1.2345 ;
+                    // values[3] // not needed because symmetry is hnadled
+                }
+            };
+            PYBIND11_MODULE(SIGNATURE, m) { // needed for DOLFIN
+                py::class_<Temperature, std::shared_ptr<Temperature>, dolfin::Expression>
+                    (m, "Temperature")
+                .def(py::init<>());
+                py::class_<Heatflux, std::shared_ptr<Heatflux>, dolfin::Expression>
+                    (m, "Heatflux")
+                .def(py::init<>());
+                py::class_<Pressure, std::shared_ptr<Pressure>, dolfin::Expression>
+                    (m, "Pressure")
+                .def(py::init<>());
+                py::class_<Velocity, std::shared_ptr<Velocity>, dolfin::Expression>
+                    (m, "Velocity")
+                .def(py::init<>());
+                py::class_<Stress, std::shared_ptr<Stress>, dolfin::Expression>
+                    (m, "Stress")
+                .def(py::init<>());
+            }
+        """
         if self.mode == "heat" or self.mode == "r13":
 
             with open(self.exact_solution, "r") as file:
