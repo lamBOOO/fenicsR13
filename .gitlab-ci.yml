@@ -34,6 +34,7 @@ build:doc:
     name: $CI_REGISTRY_IMAGE:latest
     entrypoint: [""]
   script:
+    - which convert # FIXME: Remove this test
     - cd ${DOCS_DIRECTORY}
     - sphinx-apidoc -o source/src ../src
     - sphinx-apidoc -o source/tests/heat ../tests/heat
