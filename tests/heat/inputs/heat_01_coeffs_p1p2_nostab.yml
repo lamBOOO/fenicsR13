@@ -1,5 +1,5 @@
 # Case name, used as output folder
-case_name: 01_coeffs_p1p2_nostab
+case_name: heat_01_coeffs_p1p2_nostab
 
 # Meshes
 # ======

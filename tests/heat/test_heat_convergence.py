@@ -48,7 +48,7 @@ class TestHeatConvergence(object):
         """
         subprocess.check_call(["python3", "create_meshes.py"], cwd="tests/mesh")
 
-    def test_01_coeffs_p1p1_stab(self):
+    def test_heat_01_coeffs_p1p1_stab(self):
         r"""
         Executes westerkamp2019 decoupled heat system test and check with
         reference errors.
@@ -62,13 +62,13 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
-        name = "01_coeffs_p1p1_stab"
+        name = "heat_01_coeffs_p1p1_stab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_10_coeffs_p2p2_stab(self):
+    def test_heat_10_coeffs_p2p2_stab(self):
         r"""
         Executes westerkamp2019 decoupled heat system test and check with
         reference errors.
@@ -82,13 +82,13 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
-        name = "10_coeffs_p2p2_stab"
+        name = "heat_10_coeffs_p2p2_stab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_01_coeffs_p2p2_stab(self):
+    def test_heat_01_coeffs_p2p2_stab(self):
         r"""
         Executes westerkamp2019 decoupled heat system test and check with
         reference errors.
@@ -102,13 +102,13 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
-        name = "01_coeffs_p2p2_stab"
+        name = "heat_01_coeffs_p2p2_stab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_01_coeffs_p1p2_nostab(self):
+    def test_heat_01_coeffs_p1p2_nostab(self):
         r"""
         Executes westerkamp2019 decoupled heat system test and check with
         reference errors.
@@ -122,13 +122,13 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
-        name = "01_coeffs_p1p2_nostab"
+        name = "heat_01_coeffs_p1p2_nostab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_01_nocoeffs_p1p2_nostab(self):
+    def test_heat_01_nocoeffs_p1p2_nostab(self):
         r"""
         Executes westerkamp2019 decoupled heat system test and check with
         reference errors.
@@ -142,12 +142,12 @@ class TestHeatConvergence(object):
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
-        name = "01_nocoeffs_p1p2_nostab"
+        name = "heat_01_nocoeffs_p1p2_nostab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
     @pytest.mark.skip(reason="Not implemented")
-    def test_01_nocoeffs_p1p1_stab(self):
+    def test_heat_01_nocoeffs_p1p1_stab(self):
         "Not implemented"

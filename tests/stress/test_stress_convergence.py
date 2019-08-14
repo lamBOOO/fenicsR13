@@ -48,7 +48,7 @@ class TestStressConvergence(object):
         """
         subprocess.check_call(["python3", "create_meshes.py"], cwd="tests/mesh")
 
-    def test_01_nosource_rot_p1p1p1_stab(self):
+    def test_stress_01_nosource_rot_p1p1p1_stab(self):
         r"""
         Executes westerkamp2019 decoupled heat system test and check with
         reference errors.
@@ -63,13 +63,13 @@ class TestStressConvergence(object):
         Stabilization             CIP, :math:`\delta_2=1, \delta_3=0.01`
         ========================= =============================================
         """
-        name = "01_nosource_rot_p1p1p1_stab"
+        name = "stress_01_nosource_rot_p1p1p1_stab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_01_source_norot_p1p1p1_stab(self):
+    def test_stress_01_source_norot_p1p1p1_stab(self):
         r"""
         Executes westerkamp2019 decoupled heat system test and check with
         reference errors.
@@ -84,13 +84,13 @@ class TestStressConvergence(object):
         Stabilization             CIP, :math:`\delta_2=1, \delta_3=0.01`
         ========================= =============================================
         """
-        name = "01_source_norot_p1p1p1_stab"
+        name = "stress_01_source_norot_p1p1p1_stab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_01_source_rot_p1p1p1_stab(self):
+    def test_stress_01_source_rot_p1p1p1_stab(self):
         r"""
         Executes westerkamp2019 decoupled heat system test and check with
         reference errors.
@@ -105,13 +105,13 @@ class TestStressConvergence(object):
         Stabilization             CIP, :math:`\delta_2=1, \delta_3=0.01`
         ========================= =============================================
         """
-        name = "01_source_rot_p1p1p1_stab"
+        name = "stress_01_source_rot_p1p1p1_stab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_01_source_rot_p1p2p4_nostab(self):
+    def test_stress_01_source_rot_p1p2p4_nostab(self):
         r"""
         Executes westerkamp2019 decoupled heat system test and check with
         reference errors.
@@ -126,13 +126,13 @@ class TestStressConvergence(object):
         Stabilization             CIP, :math:`\delta_1=1`
         ========================= =============================================
         """
-        name = "01_source_rot_p1p2p4_nostab"
+        name = "stress_01_source_rot_p1p2p4_nostab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_01_source_rot_p2p2p2_stab(self):
+    def test_stress_01_source_rot_p2p2p2_stab(self):
         r"""
         Executes westerkamp2019 decoupled heat system test and check with
         reference errors.
@@ -147,13 +147,13 @@ class TestStressConvergence(object):
         Stabilization             CIP, :math:`\delta_2=1, \delta_3=0.01`
         ========================= =============================================
         """
-        name = "01_source_rot_p2p2p2_stab"
+        name = "stress_01_source_rot_p2p2p2_stab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_10_source_rot_p1p1p1_stab(self):
+    def test_stress_10_source_rot_p1p1p1_stab(self):
         r"""
         Executes westerkamp2019 decoupled heat system test and check with
         reference errors.
@@ -168,7 +168,7 @@ class TestStressConvergence(object):
         Stabilization             CIP, :math:`\delta_2=1, \delta_3=0.01`
         ========================= =============================================
         """
-        name = "10_source_rot_p1p1p1_stab"
+        name = "stress_10_source_rot_p1p1p1_stab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"

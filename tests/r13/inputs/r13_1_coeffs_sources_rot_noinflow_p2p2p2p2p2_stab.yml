@@ -1,5 +1,5 @@
 # Case name, used as output folder
-case_name: 1_coeffs_sources_rot_noinflow_p1p1p1p1p1_stab
+case_name: r13_1_coeffs_sources_rot_noinflow_p2p2p2p2p2_stab
 
 # Meshes
 # ======
@@ -19,19 +19,19 @@ meshes:
 elements:
   theta:
     shape: Lagrange
-    degree: 1
+    degree: 2
   s:
     shape: Lagrange
-    degree: 1
+    degree: 2
   p:
     shape: Lagrange
-    degree: 1
+    degree: 2
   u:
     shape: Lagrange
-    degree: 1
+    degree: 2
   sigma:
     shape: Lagrange
-    degree: 1
+    degree: 2
 
 # Stabilization
 # =============
@@ -69,12 +69,14 @@ bcs:
     u_n_w: 0
     p_w: 0
     gamma_w: 0
+
   3100:
     theta_w: 0.5
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     gamma_w: 0
+
 
 # heat source
 heat_source: 0

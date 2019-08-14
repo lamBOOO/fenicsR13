@@ -1,5 +1,5 @@
 # Case name, used as output folder
-case_name: 01_coeffs_p2p2_stab
+case_name: heat_01_nocoeffs_p1p2_nostab
 
 # Meshes
 # ======
@@ -12,15 +12,13 @@ meshes:
   - ../mesh/ring3.h5
   - ../mesh/ring4.h5
   # - ../mesh/ring5.h5
-  # - ../mesh/ring6.h5
-  # - ../mesh/ring7.h5 # fails on acbook 8GB
-  # - ../mesh/ring8.h5 # fails on iMac 24GB, works on iMac 48GB
-  # - ../mesh/ring9.h5
+  # - ../mesh/ring6.h5 # fails at 8GB with P2P2
+  # - ../mesh/ring7.h5 # fails at 8GB with P1P1
 
 elements:
   theta:
     shape: Lagrange
-    degree: 2
+    degree: 1
   s:
     shape: Lagrange
     degree: 2
@@ -39,7 +37,7 @@ elements:
 # - continous interior penalty (cip) with three parameters delta_i
 stabilization:
   cip:
-    enable: True
+    enable: False
     delta_1: 1.0
     delta_2: 1.0
     delta_3: 0.1
@@ -54,7 +52,7 @@ nsd: 2
 mode: heat
 
 # Use coefficients: True means R13
-use_coeffs: True
+use_coeffs: False
 
 # Knudsen number
 tau: 0.1
@@ -85,7 +83,7 @@ mass_source: 2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(1
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: esols/01_coeffs.cpp
+  exact_solution: esols/01_nocoeffs.cpp
   plot: False # to avoid error exit code due to $DISPLAY
   write_systemmatrix: False
   rescale_pressure: True

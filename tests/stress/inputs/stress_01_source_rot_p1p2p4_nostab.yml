@@ -1,5 +1,5 @@
 # Case name, used as output folder
-case_name: 10_coeffs_p2p2_stab
+case_name: stress_01_source_rot_p1p2p4_nostab
 
 # Meshes
 # ======
@@ -12,8 +12,9 @@ meshes:
   - ../mesh/ring3.h5
   - ../mesh/ring4.h5
   # - ../mesh/ring5.h5
-  # - ../mesh/ring6.h5 # fails at 8GB with P2P2
-  # - ../mesh/ring7.h5 # fails at 8GB with P1P1
+  # - ../mesh/ring6.h5 # fails on Macbook 8GB
+  # - ../mesh/ring7.h5 # fails on iMac 24GB, works on iMac 48GB
+  # - ../mesh/ring6.h5
 
 elements:
   theta:
@@ -24,23 +25,23 @@ elements:
     degree: 1
   p:
     shape: Lagrange
-    degree: 1
+    degree: 2
   u:
     shape: Lagrange
-    degree: 1
+    degree: 2
   sigma:
     shape: Lagrange
-    degree: 1
+    degree: 4
 
 # Stabilization
 # =============
 # - continous interior penalty (cip) with three parameters delta_i
 stabilization:
   cip:
-    enable: True
+    enable: False
     delta_1: 1.0
     delta_2: 1.0
-    delta_3: 0.1
+    delta_3: 0.01
 
 # Formulation Parameters
 # ======================
@@ -49,21 +50,22 @@ stabilization:
 nsd: 2
 
 # heat, stress, r13
-mode: heat
+mode: stress
 
 # Use coefficients: True means R13
 use_coeffs: True
 
 # Knudsen number
-tau: 10.0
+tau: 0.1
 
 # Refaction coefficient
 xi_tilde: 1.0
+# xi_tilde: 0.7978845608 # sqrt(2/pi)
 
 bcs:
   3000:
     theta_w: 1.0
-    u_t_w: 10
+    u_t_w: -10
     u_n_w: 0
     p_w: 0
     gamma_w: 0
@@ -78,13 +80,13 @@ bcs:
 heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
 
 # mass source
-mass_source: 2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(18.0*pow(tau,2))) * std::cos(phi)
+mass_source: 2.0/5.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)
 
 # Perform convergence study on given set of meshes with exact solution
 convergence_study:
   enable: True
-  exact_solution: esols/10_coeffs.cpp
-  plot: False # to avoid error exit code due to $DISPLAY
+  exact_solution: esols/01_source_rot.cpp
+  plot: False
   write_systemmatrix: False
   rescale_pressure: True
   relative_error: True
