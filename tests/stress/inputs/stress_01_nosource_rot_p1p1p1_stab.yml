@@ -1,10 +1,11 @@
-# Case name, used as output folder
+# General
+# =======
+# - case_name: Used as output folder
 case_name: stress_01_nosource_rot_p1p1p1_stab
 
 # Meshes
 # ======
-# Input files in h5 format.
-# List containing one or more meshes to perform simulation on.
+# - meshes: List of input meshes in h5 format to run simulations on
 meshes:
   - ../mesh/ring0.h5
   - ../mesh/ring1.h5
@@ -12,10 +13,22 @@ meshes:
   - ../mesh/ring3.h5
   - ../mesh/ring4.h5
   # - ../mesh/ring5.h5
-  # - ../mesh/ring6.h5 # fails on Macbook 8GB
-  # - ../mesh/ring7.h5 # fails on iMac 24GB, works on iMac 48GB
   # - ../mesh/ring6.h5
+  # - ../mesh/ring7.h5
+  # - ../mesh/ring8.h5
 
+# Numerical Parameters
+# ====================
+# - elements: Must contain the fields: theta, s, p, u, sigma
+#   - fields: List of FEM parameters (shape, degree)
+#     - shape: Element shape, e.g. Lagrange
+#     - degree: Element degree, e.g. 2
+# - stabilization: Must contain cip
+#   - cip: Collection of Continous Interior Penalty (CIP) parameters
+#     - enable: Enable CIP stabilization
+#     - delta_1: Stabilization of grad(T)*grad(T_test) over edge
+#     - delta_2: Stabilization of grad(u)*grad(u_test) over edge
+#     - delta_3: Stabilization of grad(p)*grad(p_test) over edge
 elements:
   theta:
     shape: Lagrange
@@ -32,10 +45,6 @@ elements:
   sigma:
     shape: Lagrange
     degree: 1
-
-# Stabilization
-# =============
-# - continous interior penalty (cip) with three parameters delta_i
 stabilization:
   cip:
     enable: True
@@ -45,23 +54,30 @@ stabilization:
 
 # Formulation Parameters
 # ======================
-
-# Number of spatial dimensions, currently only two-dimensional.
+# - nsd: Number of spatial dimensions == 2
+# - mode: Formulation mode, one of heat, stress, r13
+# - use_coeffs: Use real R13 coefficients, False only valid in mode==heat
+# - tau: Measure for Knudsen number
+# - xi_tilde: Refaction coefficient in Maxwell accomodation model
+# - heat_source: Heat source function for mode==heat||r13
+# - mass_source: Mass source function for mode==stress||r13
 nsd: 2
-
-# heat, stress, r13
 mode: stress
-
-# Use coefficients: True means R13
 use_coeffs: True
-
-# Knudsen number
 tau: 0.1
-
-# Refaction coefficient
 xi_tilde: 1.0
-# xi_tilde: 0.7978845608 # sqrt(2/pi)
+heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
+mass_source: 0
 
+# Boundary Conditions
+# ===================
+# - bcs: Dictionary of all boundary IDs from mesh
+#   - bc_id: must contain theta_w, u_t_w, u_n_w, p_w, gamma_w
+#     - theta_w: Value for temperature at wall
+#     - u_t_w: Value for tangential velocity at wall
+#     - u_n_w: Value for normal velocity at wall
+#     - p_w: Value for pressure at wall
+#     - gamma_w: Inflow-model parameter <=> Weight of pressure prescription
 bcs:
   3000:
     theta_w: 1.0
@@ -76,13 +92,14 @@ bcs:
     p_w: 0
     gamma_w: 0
 
-# heat source
-heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
-
-# mass source
-mass_source: 0
-
-# Perform convergence study on given set of meshes with exact solution
+# Convergence Study
+# =================
+# - enable: Enable convergence study on given meshes
+# - exact_solution: Path to exact solution in cpp-format to compare errors
+# - plot: Show errors in matplotlib window. PDF output is always per default.
+# - write_systemmatrix: Writes out systemmatrix (LHS) to use for analysis
+# - rescale_pressure: Rescale numerical pressure result to have zero mean
+# - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
 convergence_study:
   enable: True
   exact_solution: esols/01_nosource_rot.cpp

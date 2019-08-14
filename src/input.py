@@ -5,7 +5,126 @@ import yaml
 from cerberus import Validator
 
 class Input:
-    "Class to handle the input YAML file."
+    """
+    Class to handle the input file in `YAML <https://en.wikipedia.org/wiki/YAML>`_ format.
+
+    An example input file could look like:
+
+    .. code-block:: yaml
+
+        # General
+        # =======
+        # - case_name: Used as output folder
+        case_name: r13_1_coeffs_sources_rot_noinflow_p2p2p2p2p2_stab
+
+        # Meshes
+        # ======
+        # - meshes: List of input meshes in h5 format to run simulations on
+        meshes:
+          - ../mesh/ring0.h5
+          - ../mesh/ring1.h5
+          - ../mesh/ring2.h5
+          - ../mesh/ring3.h5
+          - ../mesh/ring4.h5
+          # - ../mesh/ring5.h5
+          # - ../mesh/ring6.h5
+          # - ../mesh/ring7.h5
+          # - ../mesh/ring8.h5
+
+        # Numerical Parameters
+        # ====================
+        # - elements: Must contain the fields: theta, s, p, u, sigma
+        #   - fields: List of FEM parameters (shape, degree)
+        #     - shape: Element shape, e.g. Lagrange
+        #     - degree: Element degree, e.g. 2
+        # - stabilization: Must contain cip
+        #   - cip: Collection of Continous Interior Penalty (CIP) parameters
+        #     - enable: Enable CIP stabilization
+        #     - delta_1: Stabilization of grad(T)*grad(T_test) over edge
+        #     - delta_2: Stabilization of grad(u)*grad(u_test) over edge
+        #     - delta_3: Stabilization of grad(p)*grad(p_test) over edge
+        elements:
+          theta:
+            shape: Lagrange
+            degree: 2
+          s:
+            shape: Lagrange
+            degree: 2
+          p:
+            shape: Lagrange
+            degree: 2
+          u:
+            shape: Lagrange
+            degree: 2
+          sigma:
+            shape: Lagrange
+            degree: 2
+        stabilization:
+          cip:
+            enable: True
+            delta_1: 1.0
+            delta_2: 1.0
+            delta_3: 0.01
+
+        # Formulation Parameters
+        # ======================
+        # - nsd: Number of spatial dimensions == 2
+        # - mode: Formulation mode, one of heat, stress, r13
+        # - use_coeffs: Use real R13 coefficients, False only valid in mode==heat
+        # - tau: Measure for Knudsen number
+        # - xi_tilde: Refaction coefficient in Maxwell accomodation model
+        # - heat_source: Heat source function for mode==heat||r13
+        # - mass_source: Mass source function for mode==stress||r13
+        nsd: 2
+        mode: r13
+        use_coeffs: True
+        tau: 1.0
+        xi_tilde: 1.0
+        heat_source: 0
+        mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)
+
+        # Boundary Conditions
+        # ===================
+        # - bcs: Dictionary of all boundary IDs from mesh
+        #   - bc_id: must contain theta_w, u_t_w, u_n_w, p_w, gamma_w
+        #     - theta_w: Value for temperature at wall
+        #     - u_t_w: Value for tangential velocity at wall
+        #     - u_n_w: Value for normal velocity at wall
+        #     - p_w: Value for pressure at wall
+        #     - gamma_w: Inflow-model parameter <=> Weight of pressure prescription
+        bcs:
+          3000:
+            theta_w: 1.0
+            u_t_w: -10
+            u_n_w: 0
+            p_w: 0
+            gamma_w: 0
+          3100:
+            theta_w: 0.5
+            u_t_w: 0
+            u_n_w: 0
+            p_w: 0
+            gamma_w: 0
+
+        # Convergence Study
+        # =================
+        # - enable: Enable convergence study on given meshes
+        # - exact_solution: Path to exact solution in cpp-format to compare errors
+        # - plot: Show errors in matplotlib window. PDF output is always per default.
+        # - write_systemmatrix: Writes out systemmatrix (LHS) to use for analysis
+        # - rescale_pressure: Rescale numerical pressure result to have zero mean
+        # - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
+        convergence_study:
+          enable: True
+          exact_solution: esols/1_coeffs_sources_rot_noinflow.cpp
+          plot: False
+          write_systemmatrix: False
+          rescale_pressure: True
+          relative_error: True
+
+    Further examples can be found in the ``tests`` or ``examples`` folders.
+
+    """
 
     def __init__(self, yaml_file):
         with open(yaml_file, "r") as stream:
