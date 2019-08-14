@@ -5,6 +5,7 @@ variables:
   DOCKER_DRIVER: overlay2
   APP_DIRECTORY: .
   DOCS_DIRECTORY: ${APP_DIRECTORY}/docs
+  PROJECT_NAME: fenicsR13
 services:
 - docker:dind # docker in docker
 stages:
@@ -16,7 +17,7 @@ stages:
 # build
 # **************************************************************************** #
 
-build:
+build:environment:
   stage: build
   before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -26,6 +27,25 @@ build:
   # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA # no need
   - docker push $CI_REGISTRY_IMAGE:latest
   when: manual # skips 15min, but has to be done manually if Dockerfile changes
+
+build:doc:
+  stage: build
+  image:
+    name: $CI_REGISTRY_IMAGE:latest
+    entrypoint: [""]
+  script:
+    - cd ${DOCS_DIRECTORY}
+    - sphinx-apidoc -o source/src ../src
+    - sphinx-apidoc -o source/tests/heat ../tests/heat
+    - sphinx-apidoc -o source/tests/stress ../tests/stress
+    - sphinx-apidoc -o source/tests/r13 ../tests/r13
+    - make html
+    - make latex
+  artifacts:
+    paths:
+      - ${DOCS_DIRECTORY}/_build/html/
+      - ${DOCS_DIRECTORY}/_build/latex/
+    expire_in: 6 month
 
 # **************************************************************************** #
 # test
@@ -46,27 +66,38 @@ test:pytest:
   - cp tests/*/*/convergence_plot* convergence_plots/
   artifacts:
     paths:
-    - ${APP_DIRECTORY}/convergence_plots
-    - ${APP_DIRECTORY}/htmlcov
+      - ${APP_DIRECTORY}/convergence_plots
+      - ${APP_DIRECTORY}/htmlcov
     expire_in: 6 month
 
 # **************************************************************************** #
-# build
+# deploy
 # **************************************************************************** #
+
+compile_latex_doc:
+  stage: deploy
+  image:
+    name: blang/latex
+    entrypoint: [""]
+  dependencies:
+    - build:doc
+  script:
+    - cd ${DOCS_DIRECTORY}/_build/latex/
+    - make
+  artifacts:
+    paths:
+      - ${DOCS_DIRECTORY}/_build/latex/${PROJECT_NAME}.pdf
+    expire_in: 6 month
 
 pages:
   stage: deploy
   image:
     name: $CI_REGISTRY_IMAGE:latest
     entrypoint: [""]
+  dependencies:
+    - build:doc
   script:
-  - cd ${DOCS_DIRECTORY}
-  - sphinx-apidoc -o source/src ../src
-  - sphinx-apidoc -o source/tests/heat ../tests/heat
-  - sphinx-apidoc -o source/tests/stress ../tests/stress
-  - sphinx-apidoc -o source/tests/r13 ../tests/r13
-  - make html
-  - mv _build/html/ ${CI_PROJECT_DIR}/public/
+    - mv ${DOCS_DIRECTORY}/_build/html/ ${CI_PROJECT_DIR}/public/
   artifacts:
     paths:
-    - public
+      - public
