@@ -74,7 +74,7 @@ test:pytest:
 # deploy
 # **************************************************************************** #
 
-compile_latex_doc:
+deploy:latex:
   stage: deploy
   image:
     name: blang/latex
@@ -89,7 +89,7 @@ compile_latex_doc:
       - ${DOCS_DIRECTORY}/_build/latex/${DOCS_LATEX_NAME}.pdf
     expire_in: 6 month
 
-pages:
+deploy:pages:
   stage: deploy
   image:
     name: $CI_REGISTRY_IMAGE:latest
