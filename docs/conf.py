@@ -79,7 +79,11 @@ html_theme_options = {
 # -- LaTeX
 latex_logo = "../media/logo_large.png"
 latex_elements = {
-  'extraclassoptions': 'openany' # skip empty pages
+    'extraclassoptions': 'openany', # skip empty pages
+    # 'printindex': '\\footnotesize\\raggedright\\printindex', # small index
+    'preamble': r'''
+      \usepackage[columns=1]{idxlayout}
+    ''' # for onecolumn index layout
 }
 
 # -- Autodoc
