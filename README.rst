@@ -162,44 +162,69 @@ Developer Notes
             %s
             """
 
-- Python notes:
-    - Get current work directory
+Python notes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Get current work directory
 
-        .. code-block:: python
+    .. code-block:: python
 
-            import os
-            cwd = os.getcwd()
-            print(cwd)
+        import os
+        cwd = os.getcwd()
+        print(cwd)
 
-    - Latex font for matplotlib
+- Latex font for matplotlib
 
-        .. code-block:: python
+    .. code-block:: python
 
-            # LaTeX text fonts:
-            # Use with raw strings: r"$\mathcal{O}(h^1)$"
-            plt.rc('text', usetex=True)
-            plt.rc('font', family='serif')
+        # LaTeX text fonts:
+        # Use with raw strings: r"$\mathcal{O}(h^1)$"
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='serif')
 
-    - Get system path where modules are searched
+- Get system path where modules are searched
 
-        .. code-block:: python
+    .. code-block:: python
 
-            import sys
-            print(sys.path)
+        import sys
+        print(sys.path)
 
-- Create new version tag:
-    1. Add CHANGELOG entry
-    2. Adapt version in `conf.py` for docs
+Create new version tag
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Add CHANGELOG entry
+2. Adapt version in `conf.py` for docs
 
-- Gitlab CI Setup:
-    - The ``build`` stage has to be triggered manually when something in the setup changes. This is because it takes a fair amount of time.
-    - In ``~/.gitlab-runner/config.toml`` (for the runner):
-        - change priviliges to true
-        - Use local images: ``pull_policy = "if-not-present"``
-        - To ``[[runners]]`` add ``environment = ["DOCKER_TLS_CERTDIR="]`` (See https://gitlab.com/gitlab-org/gitlab-ce/issues/64959)
+Gitlab CI Setup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- The ``build`` stage has to be triggered manually when something in the setup changes. This is because it takes a fair amount of time.
+- In ``~/.gitlab-runner/config.toml`` (for the runner):
+    - change priviliges to true
+    - Use local images: ``pull_policy = "if-not-present"``
+    - To ``[[runners]]`` add ``environment = ["DOCKER_TLS_CERTDIR="]`` (See https://gitlab.com/gitlab-org/gitlab-ce/issues/64959)
+- Run local: ``gitlab-runner exec docker --docker-privileged build`` or with ``build`` replaced by job name
+    - maybe local vars have to be change to use local Docker images because ``CI_REGISTRY``,... are not set
 
-    - Run local: ``gitlab-runner exec docker --docker-privileged build`` or with ``build`` replaced by job name
-        - maybe local vars have to be change to use local Docker images because ``CI_REGISTRY``,... are not set
+A example gitlab runner ``config/toml`` in ``~/.gitlab-runner`` can look like:
+
+.. code-block:: toml
+
+    concurrent = 1
+    check_interval = 0
+
+    [[runners]]
+    name = "190716-macbookpro"
+    url = "https://git.rwth-aachen.de/"
+    token = "<PRIVATE_TOKEN>"
+    executor = "docker"
+    environment = ["DOCKER_TLS_CERTDIR="]
+    [runners.docker]
+        tls_verify = false
+        image = "docker:stable"
+        privileged = true
+        disable_cache = false
+        volumes = ["/cache"]
+        shm_size = 0
+        pull_policy = "if-not-present"
+    [runners.cache]
 
 Contact
 -------
