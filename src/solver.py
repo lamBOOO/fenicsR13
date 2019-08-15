@@ -532,10 +532,13 @@ class Solver:
                 Stress() : dolfin::Expression(2,2) {} // note dim=2 and shape=(2,2)
                 void eval(Eigen::Ref<Eigen::VectorXd> values,
                         Eigen::Ref<const Eigen::VectorXd> x) const override {
-                    values[0] = 1.2345 ;
-                    values[1] = 1.2345 ;
-                    values[2] = 1.2345 ;
-                    // values[3] // not needed because symmetry is hnadled
+                    double xx_val = 1.23;
+                    double xy_val = 1.23;
+                    double yy_val = 1.23;
+                    values[0] = xx_val;
+                    values[1] = xy_val;
+                    values[2] = yy_val;
+                    // values[3] = xy_val // not used due to symmetry, skip
                 }
             };
             PYBIND11_MODULE(SIGNATURE, m) { // needed for DOLFIN

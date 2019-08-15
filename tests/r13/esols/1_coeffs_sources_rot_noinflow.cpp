@@ -185,6 +185,7 @@ class Stress : public dolfin::Expression {
         values[0] = sigma_xx ;
         values[1] = sigma_xy ;
         values[2] = sigma_yy ;
+        values[3] = sigma_xy ; // no difference because symmetry
     }
 };
 
