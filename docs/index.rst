@@ -21,3 +21,8 @@ Contents
     source/tests/heat/modules.rst
     source/tests/stress/modules.rst
     source/tests/r13/modules.rst
+
+Last Update
+-----------
+
+|today|
