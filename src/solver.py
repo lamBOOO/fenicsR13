@@ -30,6 +30,12 @@ class Solver:
     .. [TOR2003] H Struchtrup, M Torrilhon (2003). Regularization of Grad’s 13
        moment equations: derivation and linear analysis.
 
+    Usage:
+
+    .. digraph:: foo
+
+        "__init__" -> "setup_function_spaces" -> "assemble" -> "...";
+
     :ivar params: parameter dict
     :ivar mesh: Dolfin mesh
     :ivar cell: ``ufl_cell()`` for internal usage
@@ -319,7 +325,7 @@ class Solver:
 
             a3 = (
                 + 2 * tau * df.inner(
-                    to.dev3dOfSym3(to.grad3dOf2(to.gen3dTF2(sigma))),
+                    to.dev3d3(to.grad3dOf2(to.gen3dTF2(sigma))),
                     to.grad3dOf2(to.gen3dTF2(psi))
                 )
                 + (1/tau) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
