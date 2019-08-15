@@ -89,7 +89,7 @@ deploy:latex:
       - ${DOCS_DIRECTORY}/_build/latex/${DOCS_LATEX_NAME}.pdf
     expire_in: 6 month
 
-deploy:pages:
+pages:
   stage: deploy
   image:
     name: $CI_REGISTRY_IMAGE:latest
