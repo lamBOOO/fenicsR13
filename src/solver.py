@@ -12,17 +12,12 @@ class Solver:
     r"""
     Solver class
 
-    ::
+    .. code-block:: python
 
         # Example usage:
         params = Input("input.yml").dict
         msh = meshes.H5Mesh("mesh.h5")
         solver = Solver(params, msh, "0") # "0" means time=0
-
-    Assembles and solves the linear system.
-
-    .. math::
-        \mathbf{A} \mathbf{x} = \mathbf{b}
 
     The system results from the two dimensional, linearized R13 equations
     [TOR2003]_.
@@ -34,7 +29,7 @@ class Solver:
 
     .. digraph:: foo
 
-        "__init__" -> "setup_function_spaces" -> "assemble" -> "...";
+        "__init__" -> "__setup_function_spaces" -> "assemble" -> "...";
 
     :ivar params: parameter dict
     :ivar mesh: Dolfin mesh
@@ -64,13 +59,16 @@ class Solver:
         self.bcs = copy.deepcopy(self.params["bcs"])
         for edge_id in self.bcs:
             for field in self.bcs[edge_id].keys():
-                self.bcs[edge_id][field] = self.createMacroExpr(
+                self.bcs[edge_id][field] = self.__createMacroExpr(
                     self.bcs[edge_id][field]
                 )
-        self.heat_source = self.createMacroExpr(self.params["heat_source"])
-        self.mass_source = self.createMacroExpr(self.params["mass_source"])
+        self.heat_source = self.__createMacroExpr(self.params["heat_source"])
+        self.mass_source = self.__createMacroExpr(self.params["mass_source"])
 
         self.exact_solution = self.params["convergence_study"]["exact_solution"]
+        self.write_systemmatrix = self.params["convergence_study"][
+            "write_systemmatrix"
+        ]
         self.rescale_p = self.params["convergence_study"]["rescale_pressure"]
         self.relative_error = self.params["convergence_study"][
             "relative_error"
@@ -125,7 +123,7 @@ class Solver:
         }
         self.errors = {}
 
-    def createMacroExpr(self, cpp_string):
+    def __createMacroExpr(self, cpp_string):
         """
         Return a DOLFIN expression with predefined macros.
         These macros include:
@@ -143,7 +141,7 @@ class Solver:
         .. code-block:: python
 
             # expr1 is equal to expr2
-            expr1 = self.createMacroExpr("R*cos(phi)")
+            expr1 = self.__createMacroExpr("R*cos(phi)")
             expr2 = dolfin.Expression(
                 "R*cos(phi)",
                 degree=2,
@@ -162,8 +160,27 @@ class Solver:
             R=R
         )
 
-    def setup_function_spaces(self):
-        "Setup function spaces"
+    def __setup_function_spaces(self):
+        """
+        Setup function spaces for trial functions.
+        Depends on the ``mode``.
+        Function spaces depend on the choice of the element and its degree
+        (see the input file :class:`input.Input`).
+
+        The following DOLFIN functions are used:
+
+        ========= =================
+        field     DOLFIN Function
+        ========= =================
+        ``theta`` ``FiniteElement``
+        ``s``     ``VectorElement``
+        ``p``     ``FiniteElement``
+        ``u``     ``VectorElement``
+        ``sigma`` ``TensorElement``
+        ========= =================
+        """
+
+        # Setup elements for all fields
         cell = self.cell
         msh = self.mesh
         for var in self.elems:
@@ -177,29 +194,32 @@ class Solver:
                 self.elems[var] = df.TensorElement(e, cell, deg, symmetry=True)
             self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
 
+        # Bundle elements per mode into `mxd_elems` dict
+        # 1) heat
         heat_elems = [self.elems["theta"], self.elems["s"]]
         self.mxd_elems["heat"] = df.MixedElement(heat_elems)
         self.mxd_fspaces["heat"] = df.FunctionSpace(
             msh, self.mxd_elems["heat"]
         )
-
+        # 2) stress
         stress_elems = [self.elems["p"], self.elems["u"], self.elems["sigma"]]
         self.mxd_elems["stress"] = df.MixedElement(stress_elems)
         self.mxd_fspaces["stress"] = df.FunctionSpace(
             msh, self.mxd_elems["stress"]
         )
-
+        # 3) r13
         r13_elems = heat_elems + stress_elems
         self.mxd_elems["r13"] = df.MixedElement(r13_elems)
         self.mxd_fspaces["r13"] = df.FunctionSpace(
             msh, self.mxd_elems["r13"]
         )
 
-    def check_bcs(self):
+    def __check_bcs(self):
         """
-        Checks if all mesh boundaries have bcs prescribed.
-        Raises an exception if something is wrong.
+        Checks if all boundaries from the input mesh have BCs prescribed.
+        Raises an exception if one BC is missing.
         """
+
         boundary_ids = self.boundaries.array()
         bcs_specified = list(self.bcs.keys())
 
@@ -238,7 +258,10 @@ class Solver:
         """
 
         # Check if all mesh boundaries have bcs presibed frm input
-        self.check_bcs()
+        self.__check_bcs()
+
+        # Setup required function spaces
+        self.__setup_function_spaces()
 
         # Get local variables
         mesh = self.mesh
@@ -463,13 +486,13 @@ class Solver:
             if self.rescale_p:
                 # Scale pressure to have zero mean
                 p_i = df.interpolate(self.sol["p"], self.fspaces["p"])
-                mean_p_value = self.calc_sf_mean(p_i)
+                mean_p_value = self.__calc_sf_mean(p_i)
                 mean_p_fct = df.Function(self.fspaces["p"])
                 mean_p_fct.assign(df.Constant(mean_p_value))
                 p_i.assign(p_i - mean_p_fct)
                 self.sol["p"] = p_i
 
-    def load_exact_solution(self):
+    def __load_exact_solution(self):
         """
         Loads exact solution from the location given in ``input.yml``
 
@@ -603,19 +626,17 @@ class Solver:
                 esol.Stress(), degree=2
             )
 
-    def calc_sf_mean(self, scalar_function):
+    def __calc_sf_mean(self, scalar_function):
         """
         Calculates the mean of a scalar function.
-        Relative errors is based per field component and the maximum value of
-        the analytical solution. If the analytical solution is uniformly zero,
-        then the absolute erorrs is used.
-        (equivalent to setting the maximum to 1)
 
         .. code-block:: python
 
             np.set_printoptions(precision=16)
-            print(mean) # precision is not soo nice, only 9 digits
-            print(self.calc_sf_mean(self.sol["p"])) # in solve() has m. prec. hm
+            # Precision is not soo nice, only 9 digits:
+            print(mean)
+            # In solve() has m. prec. hmmm:
+            print(self.__calc_sf_mean(self.sol["p"]))
 
         .. note::
 
@@ -631,11 +652,19 @@ class Solver:
         mean = v.sum()/v.size()
         return mean
 
+    def calculate_errors(self):
+        """
+        Calculate and returns the errors of numerical to exact solution.
+        Relative errors is based per field component and the maximum value of
+        the analytical solution. If the analytical solution is uniformly zero,
+        then the absolute erorrs is used.
+        (equivalent to setting the maximum to 1)
 
-    def calc_errors(self):
+        Returns:
+            dict -- Errors
         """
-        Calculate ad returns the errors of numerical to exact solution.
-        """
+
+        self.__load_exact_solution()
 
         def calc_scalarfield_errors(sol_, sol_e_, v_sol, name_):
             "TODO"
@@ -644,7 +673,7 @@ class Solver:
             field_i = df.interpolate(sol_, v_sol)
 
             difference = df.project(sol_e_ - sol_, v_sol)
-            self.write_xdmf("difference_{}".format(name_), difference)
+            self.__write_xdmf("difference_{}".format(name_), difference)
 
             err_f_L2 = df.errornorm(field_e_i, field_i, "L2")
             err_v_linf = df.norm(field_e_i.vector()-field_i.vector(), "linf")
@@ -657,7 +686,7 @@ class Solver:
             print(str(name_) + " L_2 error:", err_f_L2)
             print(str(name_) + " l_inf error:", err_v_linf)
 
-            self.write_xdmf(name_ + "_e", field_e_i)
+            self.__write_xdmf(name_ + "_e", field_e_i)
 
             return {
                 "L_2": err_f_L2,
@@ -671,7 +700,7 @@ class Solver:
             field_i = df.interpolate(sol_, v_sol)
 
             difference = df.project(sol_e_ - sol_, v_sol)
-            self.write_xdmf("difference_{}".format(name_), difference)
+            self.__write_xdmf("difference_{}".format(name_), difference)
 
             dofs = len(field_e_i.split())
             errs_f_L2 = [df.errornorm(
@@ -700,7 +729,7 @@ class Solver:
             print(str(name_) + " L_2 error:", errs_f_L2)
             print(str(name_) + " l_inf error:", errs_v_linf)
 
-            self.write_xdmf(name_ + "_e", field_e_i)
+            self.__write_xdmf(name_ + "_e", field_e_i)
 
             return [{
                 "L_2": errs_f_L2[i],
@@ -715,7 +744,7 @@ class Solver:
 
             # difference = df.project(sol_e_ - sol_, v_sol) # different outpu
             difference = df.project(field_e_i - field_i, v_sol)
-            self.write_xdmf("difference_{}".format(name_), difference)
+            self.__write_xdmf("difference_{}".format(name_), difference)
 
             dofs = len(field_e_i.split())
             errs_f_L2 = [df.errornorm(
@@ -744,7 +773,7 @@ class Solver:
             print(str(name_) + " L_2 error:", errs_f_L2)
             print(str(name_) + " l_inf error:", errs_v_linf)
 
-            self.write_xdmf(name_ + "_e", field_e_i)
+            self.__write_xdmf(name_ + "_e", field_e_i)
 
             return [{
                 "L_2": errs_f_L2[i],
@@ -787,45 +816,98 @@ class Solver:
 
         return self.errors
 
-    def write_solutions(self):
-        "Write Solutions"
+    def write(self):
+        """
+        Writes all solver data to separate folder.
+        This includes the writing of:
+
+        (#) Solutions
+        (#) Parameter functions
+        (#) System matrices if set in input file
+        """
+        self.__write_solutions()
+        self.__write_parameters()
+        if self.write_systemmatrix:
+            self.__write_discrete_system()
+
+    def __write_solutions(self):
+        """
+        Writes all solutions fields.
+        """
         sols = self.sol
         for field in sols:
             if sols[field] is not None:
-                self.write_xdmf(field, sols[field])
+                self.__write_xdmf(field, sols[field])
 
-    def write_parameters(self):
-        "Write Parameters: Heat source or Mass Source"
+    def __write_parameters(self):
+        """
+        Writes parameter functions for debug reasons.
+        This includes:
 
-        el = "Lagrange"
+        (#) Heat source as `f_mass`
+        (#) Mass Source as `f_heat`
+
+        The parameter functions are internally interpolated into a :math:`P_1`
+        space before writing.
+        """
+
+        # Interpolation setup
+        el_str = "Lagrange"
         deg = 1
+        el = df.FiniteElement(el_str, degree=deg, cell=self.cell)
+        V = df.FunctionSpace(self.mesh, el)
 
         # Heat source
-        f_heat = df.interpolate(
-            self.heat_source,
-            df.FunctionSpace(
-                self.mesh,
-                df.FiniteElement(el, degree=deg, cell=self.cell)
-            )
-        )
-        self.write_xdmf("f_heat", f_heat)
+        f_heat = df.interpolate(self.heat_source, V)
+        self.__write_xdmf("f_heat", f_heat)
 
         # Mass source
-        f_mass = df.interpolate(
-            self.mass_source,
-            df.FunctionSpace(
-                self.mesh,
-                df.FiniteElement(el, degree=deg, cell=self.cell)
-            )
+        f_mass = df.interpolate(self.mass_source, V)
+        self.__write_xdmf("f_mass", f_mass)
+
+    def __write_discrete_system(self):
+        r"""
+        Writes the discrete system matrix and the RHS vector.
+        Can be used to analyze e.g. condition number.
+        Include writing of :math:`\mathbf{A}` and :math:`\mathbf{b}`
+        of :math:`\mathbf{A} \mathbf{x} = \mathbf{b}`.
+
+        File-ending is `.mat`.
+
+        Import the matrices/vectors e.g. into Matlab with:
+
+        .. code-block:: matlab
+
+            % Input into MATLAB
+            At = readtable("A.mat");
+            bt = readtable("b.mat");
+            A = table2array(At);
+            b = table2array(bt);
+
+        """
+        file_ending = ".mat"
+        np.savetxt(
+            self.output_folder + "A_{}".format(self.time) + file_ending,
+            df.assemble(self.form_a).array()
         )
-        self.write_xdmf("f_mass", f_mass)
+        np.savetxt(
+            self.output_folder + "b_{}".format(self.time) + file_ending,
+            df.assemble(self.form_b).array()
+        )
 
+    def __write_xdmf(self, name, field):
+        """
+        Writes a given field to a XDMF file in the output folder.
 
-    def write_xdmf(self, name, field):
-        "Writes a renamed field to XDMF format"
+        *Arguments*
+            name
+                The name to be given to the field. Will be used as filename
+                and is the name of the field in e.g. Paraview.
+            field
+                The field to write.
+        """
         filename = self.output_folder + name + "_" + str(self.time) + ".xdmf"
         with df.XDMFFile(self.mesh.mpi_comm(), filename) as file:
-
             for degree in range(5): # test until degree five
                 # Writing symmetric tensors crashes.
                 # Therefore project symmetric tensor in nonsymmetric space
@@ -849,23 +931,3 @@ class Solver:
 
             field.rename(name, name)
             file.write(field, self.time)
-
-    def write_systemmatrix(self):
-        """
-        Writes system matrix. Can be used to analyze e.g. condition number with
-        decreasing mesh sizes.
-
-        Import to Matlab with:
-
-        .. code-block:: matlab
-
-            % First adapt to filename...
-            T = readtable("a.txt");
-            M = table2array(T);
-
-        """
-
-        np.savetxt(
-            self.output_folder + "A_{}.txt".format(self.time),
-            df.assemble(self.form_a).array()
-        )

@@ -43,19 +43,13 @@ def main():
         current_mesh = meshes.H5Mesh(mesh_name)
         solver = Solver(params, current_mesh, p)
 
-        solver.setup_function_spaces()
         solver.assemble()
         solver.solve()
-        solver.write_solutions()
-        solver.write_parameters()
+        solver.write()
 
         if convergence_study:
 
-            if params["convergence_study"]["write_systemmatrix"]:
-                solver.write_systemmatrix()
-
-            solver.load_exact_solution()
-            errors = solver.calc_errors()
+            errors = solver.calculate_errors()
 
             data.append({
                 "h": current_mesh.mesh.hmax(),
