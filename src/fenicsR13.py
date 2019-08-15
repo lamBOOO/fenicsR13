@@ -55,9 +55,7 @@ def main():
                 solver.write_systemmatrix()
 
             solver.load_exact_solution()
-            solver.calc_errors()
-
-            errors = solver.errors
+            errors = solver.calc_errors()
 
             data.append({
                 "h": current_mesh.mesh.hmax(),

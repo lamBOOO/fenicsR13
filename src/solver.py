@@ -622,7 +622,9 @@ class Solver:
 
 
     def calc_errors(self):
-        "Calculate errors"
+        """
+        Calculate ad returns the errors of numerical to exact solution.
+        """
 
         def calc_scalarfield_errors(sol_, sol_e_, v_sol, name_):
             "TODO"
@@ -771,6 +773,8 @@ class Solver:
             ers["sigmaxx"] = te[0]
             ers["sigmaxy"] = te[1]
             ers["sigmayy"] = te[2]
+
+        return self.errors
 
     def write_solutions(self):
         "Write Solutions"
