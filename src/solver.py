@@ -488,7 +488,8 @@ class Solver:
             #include <pybind11/pybind11.h>
             #include <pybind11/eigen.h>
             #include <cmath>
-            #include <boost/math/special_functions/bessel.hpp>  // additional includes
+            // additional includes
+            #include <boost/math/special_functions/bessel.hpp>
             using namespace std;
             namespace py = pybind11;
             #include <dolfin/function/Expression.h>
@@ -515,7 +516,7 @@ class Solver:
                 Pressure() : dolfin::Expression() {}
                 void eval(Eigen::Ref<Eigen::VectorXd> values,
                         Eigen::Ref<const Eigen::VectorXd> x) const override {
-                    values[0] = boost::math::cyl_bessel_i(1,2.71); // external function
+                    values[0] = boost::math::cyl_bessel_i(1,2.71); // external
                 }
             };
             class Velocity : public dolfin::Expression {
@@ -529,7 +530,7 @@ class Solver:
             };
             class Stress : public dolfin::Expression {
                 public:
-                Stress() : dolfin::Expression(2,2) {} // note dim=2 and shape=(2,2)
+                Stress() : dolfin::Expression(2,2) {} // note dim=2, shape=(2,2)
                 void eval(Eigen::Ref<Eigen::VectorXd> values,
                         Eigen::Ref<const Eigen::VectorXd> x) const override {
                     double xx_val = 1.23;
@@ -542,16 +543,20 @@ class Solver:
                 }
             };
             PYBIND11_MODULE(SIGNATURE, m) { // needed for DOLFIN
-                py::class_<Temperature, std::shared_ptr<Temperature>, dolfin::Expression>
+                py::class_<Temperature, std::shared_ptr<Temperature>,
+                           dolfin::Expression>
                     (m, "Temperature")
                 .def(py::init<>());
-                py::class_<Heatflux, std::shared_ptr<Heatflux>, dolfin::Expression>
+                py::class_<Heatflux, std::shared_ptr<Heatflux>,
+                           dolfin::Expression>
                     (m, "Heatflux")
                 .def(py::init<>());
-                py::class_<Pressure, std::shared_ptr<Pressure>, dolfin::Expression>
+                py::class_<Pressure, std::shared_ptr<Pressure>,
+                           dolfin::Expression>
                     (m, "Pressure")
                 .def(py::init<>());
-                py::class_<Velocity, std::shared_ptr<Velocity>, dolfin::Expression>
+                py::class_<Velocity, std::shared_ptr<Velocity>,
+                           dolfin::Expression>
                     (m, "Velocity")
                 .def(py::init<>());
                 py::class_<Stress, std::shared_ptr<Stress>, dolfin::Expression>
