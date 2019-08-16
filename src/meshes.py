@@ -1,14 +1,31 @@
-"Class to handle a mesh"
+"""
+Module to store the mesh classes: H5Mesh.
+"""
 
 import os
 import dolfin as df
 
 class H5Mesh:
-    "Mesh class"
+    """
+    Mesh class
+
+    Raises
+    ------
+    Exception
+        File not found
+
+    Examples
+    --------
+
+    >>> mesh = H5Mesh("not_found.h5")
+    Traceback (most recent call last):
+    ...
+    Exception: not_found.h5 not found
+    """
     def __init__(self, h5_file):
 
         if not os.path.isfile(h5_file):
-            raise Exception(f"[{self}]: {h5_file} not found")
+            raise Exception(f"{h5_file} not found")
 
         self.mesh = df.Mesh()
 
