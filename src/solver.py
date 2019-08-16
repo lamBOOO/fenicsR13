@@ -22,7 +22,7 @@ class Solver:
     The system results from the two dimensional, linearized R13 equations
     [TOR2003]_.
 
-    .. [TOR2003] H Struchtrup, M Torrilhon (2003). Regularization of Grad’s 13
+    .. [TOR2003] H Struchtrup, M Torrilhon (2003). Regularization of Grad's 13
        moment equations: derivation and linear analysis.
 
     Usage:
@@ -653,13 +653,126 @@ class Solver:
         mean = np.mean(v)
         return mean
 
-    def calculate_errors(self):
-        """
-        Calculate and returns the errors of numerical to exact solution.
-        Relative errors is based per field component and the maximum value of
+    def __calc_field_errors(self, field_, field_e_, v_field, name_):
+        r"""
+        Calculates both :math:`L_2` and :math:`l_\infty` errors
+
+        Works for scalars, vectors and tensors.
+        The difference is written to a file.
+        The exact solution is written to a file.
+        Relative errors are based per field component and the maximum value of
         the analytical solution. If the analytical solution is uniformly zero,
         then the absolute erorrs is used.
         (equivalent to setting the maximum to 1)
+
+        Parameters
+        ----------
+        field_ : DOLFIN function
+            calculated field
+        field_e_ : DOLFIN function
+            exact solution of field
+        v_field : DOLFIN fspace
+            function space for error calculation
+        name_ : string
+            name of the field, used to write difference
+
+        Returns
+        -------
+        dict
+            Dict with an error list for "L_2" and a list for "l_inf"
+
+        Raises
+        ------
+        Nothing
+
+        See Also
+        --------
+        calculate_errors: Function to return all field errors
+
+        Notes
+        -----
+        For other norm types, see DOLFIN documentation [1]_ and search for
+        norms.
+
+        References
+        ----------
+        .. [1] `DOLFIN documentation <https://fenicsproject.org/docs/dolfin/>`_
+
+        Examples
+        --------
+        Here should be some doctest examples.
+
+        >>> a=1
+        >>> b=2
+        >>> print(a+b)
+        3
+        """
+
+        field_e_i = df.interpolate(field_e_, v_field)
+        field_i = df.interpolate(field_, v_field)
+
+        difference = df.project(field_e_i - field_i, v_field)
+        self.__write_xdmf("difference_{}".format(name_), difference)
+
+        dofs = len(field_e_i.split()) or 1
+
+        if dofs == 1:
+            # scalar
+            errs_f_L2 = [df.errornorm(field_e_i, field_i, "L2")]
+            errs_v_linf = [
+                np.max(
+                    np.abs(
+                        field_e_i.compute_vertex_values()
+                        - field_i.compute_vertex_values()
+                    )
+                )
+            ]
+        else:
+            # vector or tensor
+            errs_f_L2 = [df.errornorm(
+                field_e_i.split()[i], field_i.split()[i], "L2"
+            ) for i in range(dofs)]
+            errs_v_linf = [
+                np.max(
+                    np.abs(
+                        field_e_i.split()[i].compute_vertex_values()
+                        - field_i.split()[i].compute_vertex_values()
+                    )
+                )
+                for i in range(dofs)
+            ]
+
+        if self.relative_error:
+            if dofs == 1:
+                # scalar
+                max_esols = [
+                    np.max(np.abs(field_e_i.compute_vertex_values())) or 1
+                ]
+            else:
+                # vector or tensor
+                max_esols = [
+                    np.max(
+                        np.abs(field_e_i.split()[i].compute_vertex_values())
+                    )
+                    for i in range(dofs)
+                ]
+            errs_f_L2 = [x/y for x, y in zip(errs_f_L2, max_esols)]
+            errs_v_linf = [x/y for x, y in zip(errs_v_linf, max_esols)]
+
+        print(str(name_) + " L_2 error:", errs_f_L2)
+        print(str(name_) + " l_inf error:", errs_v_linf)
+
+        self.__write_xdmf(name_ + "_e", field_e_i)
+
+        return [{
+            "L_2": errs_f_L2[i],
+            "l_inf": errs_v_linf[i],
+        } for i in range(dofs)]
+
+    def calculate_errors(self):
+        """
+        Calculate and returns the errors of numerical to exact solution.
+        This includes all calculated fields.
 
         Returns:
             dict -- Errors
@@ -674,155 +787,34 @@ class Solver:
 
         self.__load_exact_solution()
 
-        def calc_scalarfield_errors(sol_, sol_e_, v_sol, name_):
-            "TODO"
-
-            field_e_i = df.interpolate(sol_e_, v_sol)
-            field_i = df.interpolate(sol_, v_sol)
-
-            difference = df.project(sol_e_ - sol_, v_sol)
-            self.__write_xdmf("difference_{}".format(name_), difference)
-
-            err_f_L2 = df.errornorm(field_e_i, field_i, "L2")
-            err_v_linf = np.max(
-                np.abs(
-                    field_e_i.compute_vertex_values()
-                    - field_i.compute_vertex_values()
-                )
-            )
-
-            if self.relative_error:
-                max_esol = np.max(
-                    np.abs(field_e_i.compute_vertex_values())
-                ) or 1 # avoid 0
-                err_f_L2 /= max_esol
-                err_v_linf /= max_esol
-
-            print(str(name_) + " L_2 error:", err_f_L2)
-            print(str(name_) + " l_inf error:", err_v_linf)
-
-            self.__write_xdmf(name_ + "_e", field_e_i)
-
-            return {
-                "L_2": err_f_L2,
-                "l_inf": err_v_linf,
-            }
-
-        def calc_vectorfield_errors(sol_, sol_e_, v_sol, name_):
-            "TODO"
-
-            field_e_i = df.interpolate(sol_e_, v_sol)
-            field_i = df.interpolate(sol_, v_sol)
-
-            difference = df.project(sol_e_ - sol_, v_sol)
-            self.__write_xdmf("difference_{}".format(name_), difference)
-
-            dofs = len(field_e_i.split())
-            errs_f_L2 = [df.errornorm(
-                field_e_i.split()[i], field_i.split()[i], "L2"
-            ) for i in range(dofs)] # ignore warning
-            errs_v_linf = [
-                np.max(
-                    np.abs(
-                        field_e_i.split()[i].compute_vertex_values()
-                        - field_i.split()[i].compute_vertex_values()
-                    )
-                )
-                for i in range(dofs)
-            ]
-
-            if self.relative_error:
-                max_esols = [
-                    np.max(
-                        np.abs(field_e_i.split()[i].compute_vertex_values())
-                    )
-                    for i in range(dofs)
-                ]
-                errs_f_L2 = [x/y for x, y in zip(errs_f_L2, max_esols)]
-                errs_v_linf = [x/y for x, y in zip(errs_v_linf, max_esols)]
-
-            print(str(name_) + " L_2 error:", errs_f_L2)
-            print(str(name_) + " l_inf error:", errs_v_linf)
-
-            self.__write_xdmf(name_ + "_e", field_e_i)
-
-            return [{
-                "L_2": errs_f_L2[i],
-                "l_inf": errs_v_linf[i],
-            } for i in range(dofs)]
-
-        def calc_tensorfield_errors(sol_, sol_e_, v_sol, name_):
-            "TODO"
-
-            field_e_i = df.interpolate(sol_e_, v_sol)
-            field_i = df.interpolate(sol_, v_sol)
-
-            # difference = df.project(sol_e_ - sol_, v_sol) # different outpu
-            difference = df.project(field_e_i - field_i, v_sol)
-            self.__write_xdmf("difference_{}".format(name_), difference)
-
-            dofs = len(field_e_i.split())
-            errs_f_L2 = [df.errornorm(
-                field_e_i.split()[i], field_i.split()[i], "L2"
-            ) for i in range(dofs)] # ignore warning
-            errs_v_linf = [
-                np.max(
-                    np.abs(
-                        field_e_i.split()[i].compute_vertex_values()
-                        - field_i.split()[i].compute_vertex_values()
-                    )
-                )
-                for i in range(dofs)
-            ]
-
-            if self.relative_error:
-                max_esols = [
-                    np.max(
-                        np.abs(field_e_i.split()[i].compute_vertex_values())
-                    )
-                    for i in range(dofs)
-                ]
-                errs_f_L2 = [x/y for x, y in zip(errs_f_L2, max_esols)]
-                errs_v_linf = [x/y for x, y in zip(errs_v_linf, max_esols)]
-
-            print(str(name_) + " L_2 error:", errs_f_L2)
-            print(str(name_) + " l_inf error:", errs_v_linf)
-
-            self.__write_xdmf(name_ + "_e", field_e_i)
-
-            return [{
-                "L_2": errs_f_L2[i],
-                "l_inf": errs_v_linf[i],
-            } for i in range(dofs)]
-
         if self.mode == "heat" or self.mode == "r13":
-            se = calc_scalarfield_errors(
+            se = self.__calc_field_errors(
                 self.sol["theta"], self.esol["theta"],
                 self.fspaces["theta"], "theta"
             )
-            ve = calc_vectorfield_errors(
+            ve = self.__calc_field_errors(
                 self.sol["s"], self.esol["s"],
                 self.fspaces["s"], "s"
             )
             ers = self.errors
-            ers["theta"] = se
+            ers["theta"] = se[0]
             ers["sx"] = ve[0]
             ers["sy"] = ve[1]
         if self.mode == "stress" or self.mode == "r13":
-            se = calc_scalarfield_errors(
+            se = self.__calc_field_errors(
                 self.sol["p"], self.esol["p"],
                 self.fspaces["p"], "p"
             )
-            ve = calc_vectorfield_errors(
+            ve = self.__calc_field_errors(
                 self.sol["u"], self.esol["u"],
                 self.fspaces["u"], "u"
             )
-            te = calc_tensorfield_errors(
+            te = self.__calc_field_errors(
                 self.sol["sigma"], self.esol["sigma"],
                 self.fspaces["sigma"], "sigma"
             )
             ers = self.errors
-            ers["p"] = se
+            ers["p"] = se[0]
             ers["ux"] = ve[0]
             ers["uy"] = ve[1]
             ers["sigmaxx"] = te[0]
