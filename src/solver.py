@@ -13,15 +13,36 @@ class Solver:
     r"""
     Class to store the actual solver.
 
-    Order of methods:
+    Possible order of methods in context of convergence study
+    (see main program src.fenicsR13.main()):
+
+    src.fenicsR13.main()
 
     .. digraph:: foo
 
+        "START, mesh=meshes[i=0]" ->
         "__init__" ->
         "assemble()" ->
         "solve()" ->
         "write()" ->
-        "...";
+        "..." ->
+        "mesh=meshes[i+1]" ->
+        "__init__";
+        "..." -> "END";
+
+    Parameters
+    ----------
+    params : input.Input
+        Input parameters
+    mesh : meshes.H5Mesh
+        Mesh
+    time : string
+        Identifier for e.g. convergence study naming
+
+    Returns
+    -------
+    dict
+        Dict with an error list for "L_2" and a list for "l_inf"
 
     :ivar params: parameter dict
     :ivar mesh: Dolfin mesh
@@ -29,18 +50,17 @@ class Solver:
 
     Example
     -------
+    >>> # Example usage:
+    >>> from src.input import Input
+    >>> from src.meshes import H5Mesh
+    >>> params = Input(
+    ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
+    ... ) # doctest: +ELLIPSIS
+    Input:...
+    >>> msh = H5Mesh("tests/mesh/ring0.h5")
+    >>> solver = Solver(params.dict, msh, "0") # "0" means time=0
 
-    .. code-block:: python
-
-        >>> # Example usage:
-        >>> from src.input import Input
-        >>> import src.meshes as meshes
-        >>> params = Input(
-        ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
-        ... ) # doctest: +ELLIPSIS
-        Input:...
-        >>> msh = meshes.H5Mesh("tests/mesh/ring0.h5")
-        >>> solver = Solver(params.dict, msh, "0") # "0" means time=0
+    >>> # Second example
 
     """
     def __init__(self, params, mesh, time):

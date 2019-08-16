@@ -1,5 +1,7 @@
 """
-Module to store the mesh classes: H5Mesh.
+Module to store the mesh classes.
+
+Currently, the only mesh format is h5.
 """
 
 import os
@@ -7,7 +9,7 @@ import dolfin as df
 
 class H5Mesh:
     """
-    Mesh class
+    Mesh class.
 
     Raises
     ------
@@ -16,14 +18,19 @@ class H5Mesh:
 
     Examples
     --------
-
-    >>> mesh = H5Mesh("not_found.h5")
+    >>> mesh = H5Mesh("non_existing_mesh.h5")
     Traceback (most recent call last):
     ...
-    Exception: not_found.h5 not found
-    """
-    def __init__(self, h5_file):
+    Exception: non_existing_mesh.h5 not found
 
+    """
+
+    def __init__(self, h5_file):
+        """
+        TODO.
+
+        TODO1
+        """
         if not os.path.isfile(h5_file):
             raise Exception(f"{h5_file} not found")
 
