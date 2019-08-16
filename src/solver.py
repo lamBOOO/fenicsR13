@@ -8,32 +8,39 @@ import ufl
 import numpy as np
 import tensoroperations as to
 
+
 class Solver:
     r"""
-    Solver class
+    Class to store the actual solver.
 
-    .. code-block:: python
-
-        # Example usage:
-        params = Input("input.yml").dict
-        msh = meshes.H5Mesh("mesh.h5")
-        solver = Solver(params, msh, "0") # "0" means time=0
-
-    The system results from the two dimensional, linearized R13 equations
-    [TOR2003]_.
-
-    .. [TOR2003] H Struchtrup, M Torrilhon (2003). Regularization of Grad's 13
-       moment equations: derivation and linear analysis.
-
-    Usage:
+    Order of methods:
 
     .. digraph:: foo
 
-        "__init__" -> "__setup_function_spaces" -> "assemble" -> "...";
+        "__init__" ->
+        "assemble()" ->
+        "solve()" ->
+        "write()" ->
+        "...";
 
     :ivar params: parameter dict
     :ivar mesh: Dolfin mesh
     :ivar cell: ``ufl_cell()`` for internal usage
+
+    Example
+    -------
+
+    .. code-block:: python
+
+        >>> # Example usage:
+        >>> from src.input import Input
+        >>> import src.meshes as meshes
+        >>> params = Input(
+        ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
+        ... ) # doctest: +ELLIPSIS
+        Input:...
+        >>> msh = meshes.H5Mesh("tests/mesh/ring0.h5")
+        >>> solver = Solver(params.dict, msh, "0") # "0" means time=0
 
     """
     def __init__(self, params, mesh, time):
@@ -231,6 +238,12 @@ class Solver:
         r"""
         Assembles the weak forms of the either the decoupled heat system,
         the decoupled stress system or the whole coupled system.
+
+        The system results from the two dimensional, linearized R13 equations
+        [TOR2003]_.
+
+        .. [TOR2003] H Struchtrup, M Torrilhon (2003). Regularization of
+            Grad's 13 moment equations: derivation and linear analysis.
 
         .. |Rt| mathmacro:: \underline{\underline{R}}
         .. |st| mathmacro:: \underline{s}
