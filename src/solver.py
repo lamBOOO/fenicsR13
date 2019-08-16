@@ -641,15 +641,16 @@ class Solver:
         .. note::
 
             The following does not work in parallel because the mean is
-            then only local:
+            then only local. So convergence studies have to be performed in
+            serial:
 
             .. code-block:: python
 
-                mean = np.mean(scalar_function.vector()[:], dtype=np.float64)
+                mean = np.mean(scalar_function.compute_vertex_values())
         """
         #
-        v = scalar_function.vector()
-        mean = v.sum()/v.size()
+        v = scalar_function.compute_vertex_values()
+        mean = np.mean(v)
         return mean
 
     def calculate_errors(self):
@@ -662,6 +663,13 @@ class Solver:
 
         Returns:
             dict -- Errors
+
+        .. note::
+
+            Usage of `np.max()` does not work in parallel.
+            So convergence studies have to be performed in serial for now.
+            Final fields should be right, so MPI can be used for production
+            simulations.
         """
 
         self.__load_exact_solution()
@@ -676,10 +684,17 @@ class Solver:
             self.__write_xdmf("difference_{}".format(name_), difference)
 
             err_f_L2 = df.errornorm(field_e_i, field_i, "L2")
-            err_v_linf = df.norm(field_e_i.vector()-field_i.vector(), "linf")
+            err_v_linf = np.max(
+                np.abs(
+                    field_e_i.compute_vertex_values()
+                    - field_i.compute_vertex_values()
+                )
+            )
 
             if self.relative_error:
-                max_esol = df.norm(field_e_i.vector(), "linf") or 1 # avoid 0
+                max_esol = np.max(
+                    np.abs(field_e_i.compute_vertex_values())
+                ) or 1 # avoid 0
                 err_f_L2 /= max_esol
                 err_v_linf /= max_esol
 
