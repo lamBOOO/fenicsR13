@@ -91,9 +91,6 @@ deploy:latex:
 
 pages:
   stage: deploy
-  image:
-    name: $CI_REGISTRY_IMAGE:latest
-    entrypoint: [""]
   dependencies:
     - build:doc
   script:
