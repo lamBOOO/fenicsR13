@@ -1,4 +1,8 @@
-"Class to handle input file"
+"""
+Module for input related Classes.
+
+Contains the Input class.
+"""
 
 from json import dumps
 import yaml
@@ -6,7 +10,9 @@ from cerberus import Validator
 
 class Input:
     """
-    Class to handle the input file in `YAML <https://en.wikipedia.org/wiki/YAML>`_ format.
+    Class to handle the input file in YAML_ format.
+
+    .. _YAML: https://en.wikipedia.org/wiki/YAML
 
     An example input file could look like:
 
@@ -70,7 +76,7 @@ class Input:
         # ======================
         # - nsd: Number of spatial dimensions == 2
         # - mode: Formulation mode, one of heat, stress, r13
-        # - use_coeffs: Use real R13 coefficients, False only valid in mode==heat
+        # - use_coeffs: Use real R13 coefficients, False only valid in heat
         # - tau: Measure for Knudsen number
         # - xi_tilde: Refaction coefficient in Maxwell accomodation model
         # - heat_source: Heat source function for mode==heat||r13
@@ -91,7 +97,7 @@ class Input:
         #     - u_t_w: Value for tangential velocity at wall
         #     - u_n_w: Value for normal velocity at wall
         #     - p_w: Value for pressure at wall
-        #     - gamma_w: Inflow-model parameter <=> Weight of pressure prescription
+        #     - gamma_w: Inflow-model parameter <=> Weight of pressure
         bcs:
           3000:
             theta_w: 1.0
@@ -109,11 +115,11 @@ class Input:
         # Convergence Study
         # =================
         # - enable: Enable convergence study on given meshes
-        # - exact_solution: Path to exact solution in cpp-format to compare errors
-        # - plot: Show errors in matplotlib window. PDF output is always per default.
-        # - write_systemmatrix: Writes out systemmatrix (LHS) to use for analysis
-        # - rescale_pressure: Rescale numerical pressure result to have zero mean
-        # - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
+        # - exact_solution: Path to exact solution in cpp-format to compare
+        # - plot: Show errors in matplotlib window. PDF output is default
+        # - write_systemmatrix: Writes out systemmatrix (LHS)
+        # - rescale_pressure: Rescale numerical pressure result for zero mean
+        # - relative_errors: Use relative errors. If esol=0, use absolute.
         convergence_study:
           enable: True
           exact_solution: esols/1_coeffs_sources_rot_noinflow.cpp
@@ -122,11 +128,24 @@ class Input:
           rescale_pressure: True
           relative_error: True
 
-    Further examples can be found in the ``tests`` or ``examples`` folders.
+    Further input examples can be found in the ``tests`` or ``examples``
+    folders.
+
+    Examples
+    --------
+
+    >>> corrupt_input = Input("etc/doctest_data/corrupt_input.yml")
+    Traceback (most recent call last):
+    ...
+    Exception: Parsing error
+
+    >>> working_input = Input("tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml")
+    Input:...
 
     """
 
     def __init__(self, yaml_file):
+        """Construct the Input class."""
         with open(yaml_file, "r") as stream:
             self.dict = yaml.safe_load(stream)
 
@@ -165,7 +184,7 @@ class Input:
                 "type": "dict",
                 "required": True,
                 "keysrules": {"type": "integer"},
-                "valueschema": {
+                "valuesrules": {
                     "type": "dict",
                     "schema": {
                         "theta_w": {
@@ -237,7 +256,7 @@ class Input:
                 "type": "dict",
                 "required": True,
                 "keysrules": {"type": "string", "regex": "cip"},
-                "valueschema": {
+                "valuesrules": {
                     "type": "dict",
                     "schema": {
                         "enable": {

@@ -4,8 +4,11 @@
 # pylint: disable=unsubscriptable-object
 
 """
-Program to solve the decoupled (removed coupling term) heat system of the
-linearized R13 equations
+Program to solve linearized R13 equations.
+
+Different modes allow to solved the ecoupled heat or stress system.
+Different meshes can be used to perform a convergence study with given
+exact solution.
 """
 
 import sys
@@ -18,8 +21,23 @@ from solver import Solver
 from postprocessor import Postprocessor
 
 def main():
-    "Main Program"
+    """
+    Execute the main program.
 
+    Searches for an ``"input.yml"`` file in the current directory to use as
+    input.
+
+    Usage
+    -----
+
+    .. code-block:: bash
+
+        # Usage: <path_to_program> <input_file>
+        # Goto case folder:
+        cd tests/heat
+        python3 ../../src.fenicsR13.py heat_01_coeffs_p1p1_stab.yml
+
+    """
     # Dolfin settings
     df.set_log_level(100) # 1: all logs
     df.parameters["ghost_mode"] = "shared_vertex"

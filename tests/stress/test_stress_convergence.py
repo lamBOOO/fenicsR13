@@ -1,5 +1,7 @@
 """
 Module to gather tests for convergence of decoupled stress system.
+
+This file is executed by ``pytest`` to have good CI.
 """
 
 import subprocess
@@ -8,6 +10,7 @@ import pytest
 class TestStressConvergence(object):
     """
     Class to bundle all stress convergence tests.
+
     All tests are compared against reference errors.
     """
 
@@ -16,7 +19,9 @@ class TestStressConvergence(object):
 
     def run_solver(self, inputfile):
         """
-        Runs the solver as subprocess with the given input file.
+        Run the solver as subprocess with the given input file.
+
+        Test fails if subprocess return Exception or error.
         """
         subprocess.check_call([
             "python3", self.solver_path, inputfile
@@ -25,6 +30,7 @@ class TestStressConvergence(object):
     def compare_errors(self, errorsfile, ref_errorsfile):
         """
         Check against reference errors. Compares absolute differences.
+
         Absolute Error allowed: ``1E-10``
         Return exception if diff returns with !=0
         A comparison for complete equalness can be obtained with:
@@ -44,14 +50,15 @@ class TestStressConvergence(object):
     @pytest.mark.skip(reason="Not needed because meshes are in repo")
     def create_meshes(self):
         """
-        Creates the test meshes. Executed before any test of the class.
+        Create the test meshes. Executed before any test of the class.
+
+        Often not needed if meshes are in Git through LFS for reproducability.
         """
         subprocess.check_call(["python3", "create_meshes.py"], cwd="tests/mesh")
 
     def test_stress_01_nosource_rot_p1p1p1_stab(self):
         r"""
-        Executes westerkamp2019 decoupled heat system test and check with
-        reference errors.
+        Execute decoupled heat system test and check with reference errors.
 
         ========================= =============================================
         Parameter     Value
@@ -71,8 +78,7 @@ class TestStressConvergence(object):
 
     def test_stress_01_source_norot_p1p1p1_stab(self):
         r"""
-        Executes westerkamp2019 decoupled heat system test and check with
-        reference errors.
+        Execute decoupled heat system test and check with reference errors.
 
         ========================= =============================================
         Parameter     Value
@@ -92,8 +98,7 @@ class TestStressConvergence(object):
 
     def test_stress_01_source_rot_p1p1p1_stab(self):
         r"""
-        Executes westerkamp2019 decoupled heat system test and check with
-        reference errors.
+        Execute decoupled heat system test and check with reference errors.
 
         ========================= =============================================
         Parameter     Value
@@ -113,8 +118,7 @@ class TestStressConvergence(object):
 
     def test_stress_01_source_rot_p1p2p4_nostab(self):
         r"""
-        Executes westerkamp2019 decoupled heat system test and check with
-        reference errors.
+        Execute decoupled heat system test and check with reference errors.
 
         ========================= =============================================
         Parameter     Value
@@ -134,8 +138,7 @@ class TestStressConvergence(object):
 
     def test_stress_01_source_rot_p2p2p2_stab(self):
         r"""
-        Executes westerkamp2019 decoupled heat system test and check with
-        reference errors.
+        Execute decoupled heat system test and check with reference errors.
 
         ========================= =============================================
         Parameter     Value
@@ -155,8 +158,7 @@ class TestStressConvergence(object):
 
     def test_stress_10_source_rot_p1p1p1_stab(self):
         r"""
-        Executes westerkamp2019 decoupled heat system test and check with
-        reference errors.
+        Execute decoupled heat system test and check with reference errors.
 
         ========================= =============================================
         Parameter     Value

@@ -1,6 +1,10 @@
 # pylint: disable=invalid-name
 
-"solver module"
+"""
+Solver module, contains the Solver class.
+
+For usage examples, see the :class:`solver.Solver` description.
+"""
 
 import copy
 import dolfin as df
@@ -14,9 +18,7 @@ class Solver:
     Class to store the actual solver.
 
     Possible order of methods in context of convergence study
-    (see main program src.fenicsR13.main()):
-
-    src.fenicsR13.main()
+    (see main program):
 
     .. digraph:: foo
 
@@ -41,18 +43,14 @@ class Solver:
 
     Returns
     -------
-    dict
-        Dict with an error list for "L_2" and a list for "l_inf"
-
-    :ivar params: parameter dict
-    :ivar mesh: Dolfin mesh
-    :ivar cell: ``ufl_cell()`` for internal usage
+    Solver
+        Solver object
 
     Example
     -------
     >>> # Example usage:
-    >>> from src.input import Input
-    >>> from src.meshes import H5Mesh
+    >>> from input import Input
+    >>> from meshes import H5Mesh
     >>> params = Input(
     ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
     ... ) # doctest: +ELLIPSIS
@@ -60,14 +58,10 @@ class Solver:
     >>> msh = H5Mesh("tests/mesh/ring0.h5")
     >>> solver = Solver(params.dict, msh, "0") # "0" means time=0
 
-    >>> # Second example
-
     """
-    def __init__(self, params, mesh, time):
-        """
-        Initializes solver
-        """
 
+    def __init__(self, params, mesh, time):
+        """Initialize solver and setup variables from input parameters."""
         self.params = params #: Doctest
         self.mesh = mesh.mesh
         self.boundaries = mesh.boundaries
@@ -153,6 +147,7 @@ class Solver:
     def __createMacroExpr(self, cpp_string):
         """
         Return a DOLFIN expression with predefined macros.
+
         These macros include:
 
         ============================ ======= =================================
@@ -189,7 +184,8 @@ class Solver:
 
     def __setup_function_spaces(self):
         """
-        Setup function spaces for trial functions.
+        Set up function spaces for trial and test functions for assembling.
+
         Depends on the ``mode``.
         Function spaces depend on the choice of the element and its degree
         (see the input file :class:`input.Input`).
@@ -206,7 +202,6 @@ class Solver:
         ``sigma`` ``TensorElement``
         ========= =================
         """
-
         # Setup elements for all fields
         cell = self.cell
         msh = self.mesh
@@ -243,10 +238,10 @@ class Solver:
 
     def __check_bcs(self):
         """
-        Checks if all boundaries from the input mesh have BCs prescribed.
+        Check if all boundaries from the input mesh have BCs prescribed.
+
         Raises an exception if one BC is missing.
         """
-
         boundary_ids = self.boundaries.array()
         bcs_specified = list(self.bcs.keys())
 
@@ -256,8 +251,7 @@ class Solver:
 
     def assemble(self):
         r"""
-        Assembles the weak forms of the either the decoupled heat system,
-        the decoupled stress system or the whole coupled system.
+        Assemble the weak form of the system, depending on the mode.
 
         The system results from the two dimensional, linearized R13 equations
         [TOR2003]_.
@@ -289,7 +283,6 @@ class Solver:
         and the Knudsen number :math:`\tau`.
 
         """
-
         # Check if all mesh boundaries have bcs presibed frm input
         self.__check_bcs()
 
@@ -478,7 +471,8 @@ class Solver:
 
     def solve(self):
         """
-        Solves the system.
+        Solve the previously assembled system.
+
         Some available solver options:
 
         .. code-block:: python
@@ -527,7 +521,7 @@ class Solver:
 
     def __load_exact_solution(self):
         """
-        Loads exact solution from the location given in ``input.yml``
+        Load exact solution from the location given in ``input.yml``.
 
         The exact solution must be C++ format with a specific syntax.
         The ``esol.cpp`` must contain the classes:
@@ -661,7 +655,7 @@ class Solver:
 
     def __calc_sf_mean(self, scalar_function):
         """
-        Calculates the mean of a scalar function.
+        Calculate the mean of a scalar function.
 
         .. code-block:: python
 
@@ -688,7 +682,7 @@ class Solver:
 
     def __calc_field_errors(self, field_, field_e_, v_field, name_):
         r"""
-        Calculates both :math:`L_2` and :math:`l_\infty` errors
+        Calculate both :math:`L_2` and :math:`l_\infty` errors.
 
         Works for scalars, vectors and tensors.
         The difference is written to a file.
@@ -739,8 +733,8 @@ class Solver:
         >>> b=2
         >>> print(a+b)
         3
-        """
 
+        """
         field_e_i = df.interpolate(field_e_, v_field)
         field_i = df.interpolate(field_, v_field)
 
@@ -804,11 +798,9 @@ class Solver:
 
     def calculate_errors(self):
         """
-        Calculate and returns the errors of numerical to exact solution.
-        This includes all calculated fields.
+        Calculate and return the errors of numerical to exact solution.
 
-        Returns:
-            dict -- Errors
+        This includes all calculated fields.
 
         .. note::
 
@@ -816,8 +808,11 @@ class Solver:
             So convergence studies have to be performed in serial for now.
             Final fields should be right, so MPI can be used for production
             simulations.
-        """
 
+        Returns:
+            dict -- Errors
+
+        """
         self.__load_exact_solution()
 
         if self.mode == "heat" or self.mode == "r13":
@@ -858,7 +853,8 @@ class Solver:
 
     def write(self):
         """
-        Writes all solver data to separate folder.
+        Write all solver data to separate folder.
+
         This includes the writing of:
 
         (#) Solutions
@@ -871,9 +867,7 @@ class Solver:
             self.__write_discrete_system()
 
     def __write_solutions(self):
-        """
-        Writes all solutions fields.
-        """
+        """Write all solutions fields."""
         sols = self.sol
         for field in sols:
             if sols[field] is not None:
@@ -881,7 +875,8 @@ class Solver:
 
     def __write_parameters(self):
         """
-        Writes parameter functions for debug reasons.
+        Write parameter functions for debug reasons.
+
         This includes:
 
         (#) Heat source as `f_mass`
@@ -890,7 +885,6 @@ class Solver:
         The parameter functions are internally interpolated into a :math:`P_1`
         space before writing.
         """
-
         # Interpolation setup
         el_str = "Lagrange"
         deg = 1
@@ -907,7 +901,8 @@ class Solver:
 
     def __write_discrete_system(self):
         r"""
-        Writes the discrete system matrix and the RHS vector.
+        Write the discrete system matrix and the RHS vector.
+
         Can be used to analyze e.g. condition number.
         Include writing of :math:`\mathbf{A}` and :math:`\mathbf{b}`
         of :math:`\mathbf{A} \mathbf{x} = \mathbf{b}`.
@@ -924,6 +919,47 @@ class Solver:
             A = table2array(At);
             b = table2array(bt);
 
+        Example
+        -------
+        >>> # Construct LHS
+        >>> from dolfin import *
+        >>> mesh = IntervalMesh(2 ,0, 1)
+        >>> V = FunctionSpace(mesh, "Lagrange", 1)
+        >>> u = TrialFunction(V)
+        >>> v = TestFunction(V)
+        >>> a = inner(grad(u),grad(v))*dx
+        >>> L = df.Constant(1)*v*dx
+        >>> lhs = assemble(a)
+        >>> print(lhs.array())
+        [[ 2. -2.  0.]
+         [-2.  4. -2.]
+         [ 0. -2.  2.]]
+        >>> rhs = assemble(L)
+        >>> print(rhs.get_local())
+        [ 0.25  0.5   0.25]
+        >>> # Assign LHS to solver
+        >>> from input import Input
+        >>> from meshes import H5Mesh
+        >>> params = Input(
+        ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
+        ... ) # doctest: +ELLIPSIS
+        Input:...
+        >>> msh = H5Mesh("tests/mesh/ring0.h5")
+        >>> solver = Solver(params.dict, msh, "0") # "0" means time=0
+        >>> solver.form_a = a
+        >>> solver.form_b = L
+        >>> solver.output_folder = "./"
+        >>> solver._Solver__write_discrete_system()
+        >>> print(open("A_0.mat","r").read())
+        2.0000...00000e+00 -2.0000...00000e+00 0.000...000000e+00
+        -2.0000...00000e+00 4.0000...00000e+00 -2.0000...00000e+00
+        0.0000...00000e+00 -2.0000...00000e+00 2.000...000000e+00
+        <BLANKLINE>
+        >>> print(open("b_0.mat","r").read())
+        2.500000000000000000e-01
+        5.000000000000000000e-01
+        2.500000000000000000e-01
+        <BLANKLINE>
         """
         file_ending = ".mat"
         np.savetxt(
@@ -932,12 +968,12 @@ class Solver:
         )
         np.savetxt(
             self.output_folder + "b_{}".format(self.time) + file_ending,
-            df.assemble(self.form_b).array()
+            df.assemble(self.form_b)
         )
 
     def __write_xdmf(self, name, field):
         """
-        Writes a given field to a XDMF file in the output folder.
+        Write a given field to a XDMF file in the output folder.
 
         *Arguments*
             name

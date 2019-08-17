@@ -1,9 +1,10 @@
 # pylint: disable=invalid-name
 
 """
-Module to gather all additional tensor operations not present in UFL. This
-especially includes all 3D operations and operations on tensors with rank above
-2.
+Module to gather all additional tensor operations not present in UFL.
+
+This especially includes all 3D operations and operations on tensors with rank
+above 2.
 
 .. [STR2005] Struchtrup, H. (2005). Macroscopic transport equations for rarefied
     gas flows. In Macroscopic Transport Equations for Rarefied Gas Flows.
@@ -20,6 +21,8 @@ import ufl
 
 def dev3d2(rank2_2d):
     r"""
+    Return the synthetic 3D deviator of a 2D 2-tensor.
+
     Returns the 3D-synthetic 2D deviator
     :math:`B \in \mathbb{R}^{2 \times 2}`
     of the 2D 2-tensor
@@ -43,6 +46,8 @@ def dev3d2(rank2_2d):
 
 def sym3d3(rank3_3d):
     r"""
+    Return the symmetric part of a 3D 3-tensor.
+
     Returns the symmetric part :math:`A_{(i j k)}` of a 3D rank-3 tensor
     :math:`A \in \mathbb{R}^{3 \times 3 \times 3}` [STR2005]_ [TOR2018]_.
 
@@ -66,6 +71,8 @@ def sym3d3(rank3_3d):
 
 def dev3d3(rank3_3d):
     r"""
+    Return the deviator of a 3D 3-tensor.
+
     Returns the deviator :math:`A_{\langle i j k\rangle}` of a rank-3 tensor
     :math:`A \in \mathbb{R}^{3 \times 3 \times 3}` [TOR2018]_.
 
@@ -122,6 +129,8 @@ def dev3d3(rank3_3d):
 
 def gen3dTF2(rank2_2d):
     r"""
+    Generate a 3D tracefree 2-tensor from a 2D 2-tensor.
+
     Returns the synthetic 3D version
     :math:`A \in \mathbb{R}^{3 \times 3}`
     of a 2D rank-2 tensor
@@ -139,6 +148,25 @@ def gen3dTF2(rank2_2d):
                 b_{yx} & b_{yy} & 0 \\
                 0      & 0      & -(b_{yx}+b_{yy})
             \end{pmatrix}
+
+    Example
+    -------
+
+    >>> t2d = df.Expression((("1","2"),("3","4")), degree=1)
+    >>> t3d = gen3dTF2(t2d)
+    >>> print(
+    ...     t3d[0,0]==t2d[0,0] and
+    ...     t3d[0,1]==t2d[0,1] and
+    ...     t3d[0,2]==0 and
+    ...     t3d[1,0]==t2d[1,0] and
+    ...     t3d[1,1]==t2d[1,1] and
+    ...     t3d[1,2]==0 and
+    ...     t3d[2,0]==0 and
+    ...     t3d[2,1]==0 and
+    ...     t3d[2,2]==-t2d[0,0]-t2d[1,1]
+    ... )
+    True
+
     """
     return df.as_tensor([
         [rank2_2d[0, 0], rank2_2d[0, 1], 0],
@@ -148,6 +176,8 @@ def gen3dTF2(rank2_2d):
 
 def gen3d2(rank2_2d):
     r"""
+    Generate a 3D 2-tensor from a 2D 2-tensor (add zeros to last dimensions).
+
     Returns the synthetic 3D version
     :math:`A \in \mathbb{R}^{3 \times 3}`
     of a 2D rank-2 tensor
@@ -166,6 +196,25 @@ def gen3d2(rank2_2d):
                 b_{yx} & b_{yy} & 0 \\
                 0      & 0      & 0
             \end{pmatrix}
+
+    Example
+    -------
+
+    >>> t2d = df.Expression((("1","2"),("3","4")), degree=1)
+    >>> t3d = gen3d2(t2d)
+    >>> print(
+    ...     t3d[0,0]==t2d[0,0] and
+    ...     t3d[0,1]==t2d[0,1] and
+    ...     t3d[0,2]==0 and
+    ...     t3d[1,0]==t2d[1,0] and
+    ...     t3d[1,1]==t2d[1,1] and
+    ...     t3d[1,2]==0 and
+    ...     t3d[2,0]==0 and
+    ...     t3d[2,1]==0 and
+    ...     t3d[2,2]==0
+    ... )
+    True
+
     """
     return df.as_tensor([
         [rank2_2d[0, 0], rank2_2d[0, 1], 0],
@@ -175,6 +224,8 @@ def gen3d2(rank2_2d):
 
 def grad3dOf2(rank2_3d):
     r"""
+    Return 3D gradient of 3D 2-tensor.
+
     Returns the 3D gradient (w.r.t. :math:`x,y,z`)
     :math:`\frac{\partial A_{ij}}{\partial x_{k}}`
     of a 3D :math:`z`-independent rank-2 tensor

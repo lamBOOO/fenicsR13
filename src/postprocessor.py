@@ -1,6 +1,10 @@
 # pylint: disable=invalid-name
 
-"Class to post-process data"
+"""
+Module to store the postprocessor classes.
+
+Currently, only Psotprocessor class present.
+"""
 
 from itertools import chain
 
@@ -10,14 +14,57 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class Postprocessor:
-    "Postprocessor class"
+    """
+    The class for postprocessing.
+
+    The constructor expects a list of data dictionaries of the form:
+
+    .. code-block:: python
+
+        [
+            {
+                'h': 0.9886573325052778,
+                'theta': {'L_2': 0.18459230027019588,
+                'l_inf': 0.11513941287387819},
+                'sx': {'L_2': 0.38232086596749726,
+                'l_inf': 0.30555017240112986},
+                'sy': {'L_2': 0.51913814853123219,
+                'l_inf': 0.2889203116681428}
+            },
+            {
+                'h': 0.6340332990709842,
+                'theta': {'L_2': 0.19952286856390053,
+                'l_inf': 0.18948213107495288},
+                'sx': {'L_2': 0.3528639452958619,
+                'l_inf': 0.30118676712697767},
+                'sy': {'L_2': 0.34778282823921497,
+                'l_inf': 0.30792984640130788}
+            }
+        ]
+
+    Parameters
+    ----------
+    data : list of dicts
+        Data to plot, see above for shape.
+    output_folder : string
+        output folder for PDF plot.
+
+    """
+
     def __init__(self, data, output_folder):
+        """
+        Construct postprocessor.
+
+        Only sets arguments
+        """
         self.data = data
         self.output_folder = output_folder
 
     def plot_errors(self, show_popup):
         """
         Use ``matplotlib`` to plot all errors in a figure.
+
+        A slope marker is added.
 
         Exporting PDFs with:
 
@@ -28,7 +75,6 @@ class Postprocessor:
             matplotlib.use('pdf')
             import matplotlib.pyplot as plt # pylint: disable=C0413
         """
-
         filename = "convergence_plot_" + self.output_folder  + ".pdf"
 
         if not show_popup:
@@ -51,8 +97,11 @@ class Postprocessor:
             plot_i = plt.subplot(plt_sidelength_x, plt_sidelength_y, (i+1))
             for j, etype in enumerate(field[0]):
                 values = [df[etype] for df in field]
+
+                # Plot actual data
                 plt.loglog(h, values, "-o", label=etype)
 
+                # Add slope marker
                 use_top = j == 1
                 bot = np.array([
                     [h[-1], 0.5*values[-1]],
@@ -88,9 +137,12 @@ class Postprocessor:
                     alpha=1.0, ha=h_align, va="center"
                 )
 
+            # Add order slopes
             plt.loglog(h, np.array(2*np.power(h, 1)), "--", label="O(h^1)")
             plt.loglog(h, np.array(0.02*np.power(h, 2)), "--", label="O(h^2)")
             plt.loglog(h, np.array(0.02*np.power(h, 3)), "--", label="O(h^3)")
+
+            # Add information
             plt.xlabel("max(h)")
             plt.ylabel("Error")
             plt.title(key)
@@ -102,7 +154,17 @@ class Postprocessor:
             plt.show()
 
     def write_errors(self):
-        "Writes errors to csv file"
+        r"""
+        Write errors to a csv file.
+
+        The output file (e.g. ``error.csv``) looks like:
+
+        .. code-block:: text
+
+            h,p_L_2,p_l_inf,ux_L_2,ux_l_inf,uy_L_2,uy_l_inf,sigmaxx_L_2,...
+            0.9,0.2,0.2,0.1,0.1,0.2,0.1,0.2,0.5,0.2,0.3,0.2,0.5
+            0.6,0.1,0.1,0.0,0.1,0.1,0.1,0.0,0.3,0.0,0.3,0.0,0.3
+        """
         filename = "errors.csv"
         data = self.data
 

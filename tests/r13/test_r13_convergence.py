@@ -1,5 +1,7 @@
 """
-Module to gather tests for convergence of decoupled r13 system.
+Module to gather tests for convergence of decoupled stress system.
+
+This file is executed by ``pytest`` to have good CI.
 """
 
 import subprocess
@@ -7,7 +9,8 @@ import pytest
 
 class TestR13Convergence(object):
     """
-    Class to bundle all coupled convergence tests.
+    Class to bundle all stress convergence tests.
+
     All tests are compared against reference errors.
     """
 
@@ -16,7 +19,9 @@ class TestR13Convergence(object):
 
     def run_solver(self, inputfile):
         """
-        Runs the solver as subprocess with the given input file.
+        Run the solver as subprocess with the given input file.
+
+        Test fails if subprocess return Exception or error.
         """
         subprocess.check_call([
             "python3", self.solver_path, inputfile
@@ -25,6 +30,7 @@ class TestR13Convergence(object):
     def compare_errors(self, errorsfile, ref_errorsfile):
         """
         Check against reference errors. Compares absolute differences.
+
         Absolute Error allowed: ``1E-10``
         Return exception if diff returns with !=0
         A comparison for complete equalness can be obtained with:
@@ -44,14 +50,15 @@ class TestR13Convergence(object):
     @pytest.mark.skip(reason="Not needed because meshes are in repo")
     def create_meshes(self):
         """
-        Creates the test meshes. Executed before any test of the class.
+        Create the test meshes. Executed before any test of the class.
+
+        Often not needed if meshes are in Git through LFS for reproducability.
         """
         subprocess.check_call(["python3", "create_meshes.py"], cwd="tests/mesh")
 
     def test_r13_1_coeffs_sources_rot_noinflow_p1p1p1p1p1_stab(self):
         r"""
-        Executes full linear R13 system test and check with
-        reference errors.
+        Execute full linear R13 system test and check with reference errors.
 
         ========================= ==============================================
         Parameter     Value
@@ -81,8 +88,7 @@ class TestR13Convergence(object):
 
     def test_r13_1_coeffs_sources_rot_noinflow_p2p2p2p2p2_stab(self):
         r"""
-        Executes full linear R13 system test and check with
-        reference errors.
+        Execute full linear R13 system test and check with reference errors.
 
         ========================= ==============================================
         Parameter     Value
@@ -112,8 +118,7 @@ class TestR13Convergence(object):
 
     def test_r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab(self):
         r"""
-        Executes full linear R13 system test and check with reference errors.
-        Test case is similar to Torrilhon2017.
+        Execute full linear R13 system test and check with reference errors. Test case is similar to Torrilhon2017.
 
         ========================= ==============================================
         Parameter     Value

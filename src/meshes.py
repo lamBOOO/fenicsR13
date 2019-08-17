@@ -27,9 +27,12 @@ class H5Mesh:
 
     def __init__(self, h5_file):
         """
-        TODO.
+        Construct the object.
 
-        TODO1
+        This includes:
+        (#) Read mesh
+        (#) Read subdomains
+        (#) Read boudnaries
         """
         if not os.path.isfile(h5_file):
             raise Exception(f"{h5_file} not found")

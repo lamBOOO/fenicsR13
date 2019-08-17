@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"Script to generate a set of ring meshes"
+"""Script to generate a set of ring meshes."""
 
 import os
 import dolfin as df
@@ -9,8 +9,22 @@ GMSH_PATH = "gmsh"
 GEO_NAME = "ring"
 
 def create_mesh(exponent):
-    "Generates a mesh using gmsh"
+    """
+    Generate a mesh using gmsh.
 
+    Parameters
+    ----------
+    exponent : integer
+        Parameter to supply as ``p`` to ``geo``file. Used to control mesh size
+        via an exponent.
+
+    Returns
+    -------
+    tuple
+        ``(mesh, subdomains, boundaries)`` Often not needed because mesh is
+        written anyways.
+
+    """
     mesh_name = "{}{}".format(GEO_NAME, exponent)
 
     os.system(
