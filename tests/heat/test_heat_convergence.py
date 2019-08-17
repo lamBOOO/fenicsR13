@@ -148,6 +148,3 @@ class TestHeatConvergence(object):
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    @pytest.mark.skip(reason="Not implemented")
-    def test_heat_01_nocoeffs_p1p1_stab(self):
-        "Not implemented"
