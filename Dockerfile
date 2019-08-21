@@ -26,7 +26,6 @@ ENV PATH=/usr/local/gmsh-${GMSH_VERSION}-Linux64-sdk/bin:$PATH
 
 # Install additional programs
 RUN apt-get update && apt-get install -y \
-    # someotherpackages \
     numdiff \
     htop \
     imagemagick
@@ -35,22 +34,3 @@ RUN apt-get update && apt-get install -y \
 # RUN pip install --trusted-host pypi.python.org -r requirements.txt
 COPY requirements.txt /tmp/
 RUN pip install --requirement /tmp/requirements.txt
-
-# USER root
-
-# OLD:
-
-# Download gmsh
-# ADD http://gmsh.info/bin/Linux/gmsh-$GMSH_VERSION-Linux64.tgz /home/fenics
-
-# Download and extract gmsh
-# RUN apt-get update && apt-get install -y cmake curl g++ gfortran libfltk1.3-dev libfreetype6-dev libgl1-mesa-dev liblapack-dev libxi-dev libxmu-dev mesa-common-dev tcl-dev tk-dev
-
-# RUN apt-get update && apt-get install -y libgl1-mesa-dev
-# ADD http://gmsh.info/bin/Linux/gmsh-$GMSH_VERSION-Linux64.tgz /home/fenics/
-# RUN tar -xzf /home/fenics/gmsh-$GMSH_VERSION-Linux64.tgz \
-#   && rm /home/fenics/gmsh-$GMSH_VERSION-Linux64.tgz
-
-# USER root
-
-# RUN apt-get update && apt-get install -y gmsh
