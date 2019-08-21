@@ -1,6 +1,17 @@
 Change log
 ----------
 
+0.4 (2019-08-21)
+~~~~~~~~~~~~~~~~
+
+- Finish documentation
+    - Also includes some ``doctests`` to test for edge cases
+- Introduce develop branch to only have major version at master branch
+- Add relative error calculation
+- Add channel flow example (to test for Knudsen paradox)
+- Fix error calculation for higher-order Ansatz function
+    - The previous error was based on DOFS (P2 elements therefore differ), the new error is based on vertex values
+
 0.3 (2019-08-11)
 ~~~~~~~~~~~~~~~~
 
