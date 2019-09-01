@@ -1,13 +1,26 @@
-# Case name, used as output folder
+# General
+# =======
+# - case_name: Used as output folder
 case_name: channel_flow
 
 # Meshes
 # ======
-# Input files in h5 format.
-# List containing one or more meshes to perform simulation on.
+# - meshes: List of input meshes in h5 format to run simulations on
 meshes:
   - channel5.h5
 
+# Numerical Parameters
+# ====================
+# - elements: Must contain the fields: theta, s, p, u, sigma
+#   - fields: List of FEM parameters (shape, degree)
+#     - shape: Element shape, e.g. Lagrange
+#     - degree: Element degree, e.g. 2
+# - stabilization: Must contain cip
+#   - cip: Collection of Continous Interior Penalty (CIP) parameters
+#     - enable: Enable CIP stabilization
+#     - delta_1: Stabilization of grad(T)*grad(T_test) over edge
+#     - delta_2: Stabilization of grad(u)*grad(u_test) over edge
+#     - delta_3: Stabilization of grad(p)*grad(p_test) over edge
 elements:
   theta:
     shape: Lagrange
@@ -24,36 +37,39 @@ elements:
   sigma:
     shape: Lagrange
     degree: 1
-
-# Stabilization
-# =============
-# - continous interior penalty (cip) with three parameters delta_i
 stabilization:
   cip:
     enable: True
     delta_1: 1.0
     delta_2: 1.0
-    delta_3: 0.01
+    delta_3: 0.1
 
 # Formulation Parameters
 # ======================
-
-# Number of spatial dimensions, currently only two-dimensional.
+# - nsd: Number of spatial dimensions == 2
+# - mode: Formulation mode, one of heat, stress, r13
+# - use_coeffs: Use real R13 coefficients, False only valid in mode==heat
+# - tau: Measure for Knudsen number
+# - xi_tilde: Refaction coefficient in Maxwell accomodation model
+# - heat_source: Heat source function for mode==heat||r13
+# - mass_source: Mass source function for mode==stress||r13
 nsd: 2
-
-# heat, stress, r13
 mode: r13
-
-# Use coefficients: True means R13
 use_coeffs: True
-
-# Knudsen number
-tau: 5.0
-
-# Refaction coefficient
+tau: 1.0
 xi_tilde: 1.0
-# xi_tilde: 0.7978845608 # sqrt(2/pi)
+heat_source: 0
+mass_source: 0
 
+# Boundary Conditions
+# ===================
+# - bcs: Dictionary of all boundary IDs from mesh
+#   - bc_id: must contain theta_w, u_t_w, u_n_w, p_w, gamma_w
+#     - theta_w: Value for temperature at wall
+#     - u_t_w: Value for tangential velocity at wall
+#     - u_n_w: Value for normal velocity at wall
+#     - p_w: Value for pressure at wall
+#     - gamma_w: Inflow-model parameter <=> Weight of pressure prescription
 bcs:
   3001: # bot
     theta_w: 1
@@ -64,7 +80,7 @@ bcs:
   3002: # right
     theta_w: 1
     u_t_w: 0
-    u_n_w: 1
+    u_n_w: 0
     p_w: 0
     gamma_w: pow(10,+3)
   3003: # top
@@ -76,20 +92,22 @@ bcs:
   3004: # left
     theta_w: 1
     u_t_w: 0
-    u_n_w: 1
+    u_n_w: 0
     p_w: 1
     gamma_w: pow(10,+3)
 
-# heat source
-heat_source: 0
-
-# mass source
-mass_source: 0
-
-# Perform convergence study on given set of meshes with exact solution
+# Convergence Study
+# =================
+# - enable: Enable convergence study on given meshes
+# - exact_solution: Path to exact solution in cpp-format to compare errors
+# - plot: Show errors in matplotlib window. PDF output is always per default.
+# - write_systemmatrix: Writes out systemmatrix (LHS) to use for analysis
+# - rescale_pressure: Rescale numerical pressure result to have zero mean
+# - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
 convergence_study:
   enable: False
-  exact_solution: esols/1_coeffs_nosources_norot_inflow.cpp
-  plot: False
+  exact_solution: esols/01_coeffs.cpp
+  plot: False # to avoid error exit code due to $DISPLAY
   write_systemmatrix: False
-  rescale_pressure: False
+  rescale_pressure: True
+  relative_error: True
