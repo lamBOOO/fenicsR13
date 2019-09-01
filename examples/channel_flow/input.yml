@@ -80,7 +80,7 @@ bcs:
   3002: # right
     theta_w: 1
     u_t_w: 0
-    u_n_w: 1
+    u_n_w: 0
     p_w: 0
     gamma_w: pow(10,+3)
   3003: # top
@@ -92,7 +92,7 @@ bcs:
   3004: # left
     theta_w: 1
     u_t_w: 0
-    u_n_w: 1
+    u_n_w: 0
     p_w: 1
     gamma_w: pow(10,+3)
 
