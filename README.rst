@@ -32,27 +32,54 @@ First install `Docker Desktop`_ for your OS. Then:
     docker-compose build fenics
     docker-compose run fenics
 
-    # Execute lid_driven_cavity example
+    ### 1.START) Execute lid_driven_cavity example
+    # Move to folder:
     cd examples/lid_driven_cavity
-    # Create mesh...
+    # Create mesh:
     python3 create_meshes.py
-    # Usage: python3 <path/to/fenicsR13.py> <path/to/input.yml>
+    # Run program with given input file:
     python3 ../../src/fenicsR13.py input.yml
-    # -> Open xdmf-files with Paraview
+    # Go to folder with simulation results (=casename in input.yml)
+    cd lid_driven_cavity
+    # Perform GUI visualization with Paraview:
+    echo "E.g.: Open Paraview > File > Open > u_0.xdmf > Apply filters"
+    # Leave directory:
     cd ../..
+    ### 1.END)
 
-    # Execute channel_flow example
+    ### 2.START) Execute channel_flow example
+    # Move to folder:
     cd examples/channel_flow
+    # Create mesh:
     python3 create_meshes.py
+    # Run program with given input file:
     python3 ../../src/fenicsR13.py input.yml
-    # -> Open xdmf-files with Paraview
+    # Go to folder with simulation results (=casename in input.yml)
+    cd channel_flow
+    # Perform GUI visualization with Paraview:
+    echo "E.g.: Open Paraview > File > Open > u_0.xdmf > Apply filters"
+    # Leave directory:
     cd ../..
+    ### 2.END)
 
-    # Execute convergence test
+    ### 3.START) Execute convergence test
+    # Move to folder:
     cd tests/r13
+    # Meshes already in Git:
+    ls ../mesh
+    # Run program with given input file:
     python3 ../../src/fenicsR13.py inputs/r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.yml
-    # -> Open xdmf-files with Paraview
-    # -> Open convergence_plot and errors.csv in output directory
+    # Go to folder with simulation results (=casename in input.yml)
+    cd r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab
+    # Open errors:
+    cat errors.csv
+    # Open PDF convergence plot:
+    echo "E.g.: Open Adobe Reader > File > Open > convergence_plot_r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.pdf"
+    # Perform GUI visualization with Paraview:
+    echo "E.g.: Open Paraview > File > Open > u_0.xdmf > Apply filters"
+    # Leave directory:
+    cd ../..
+    ### 3.END)
 
     # Parallel execution ("-u" to flash stdout)
     # Usage: mpirun -n <numberOfProcesses> <serialCommand>
@@ -60,9 +87,15 @@ First install `Docker Desktop`_ for your OS. Then:
 
 The main folder of this repository contains a ``Dockerfile`` defining the used environment. Here, we used the optimized and official FEniCS Docker image and include ``Gmsh`` and install some requirements from the ``requirements.txt``. This can take a while, especially the ``Gmsh`` mirror can be quite slow. To avoid very long execution commands (``docker run <..> -v <volume share> <etc..>``), a ``docker-compose.yml`` is used to store all these parameters. ``docker-compose`` acts as an wrapper for the Docker execution.
 
-The ``fenics`` environment (also called *service* in the ``docker-compose.yml``) first has to be build and can be executed afterwards. The steps to perform then read
+The ``fenics`` environment (also called *service* in the ``docker-compose.yml``) first has to be build and can be executed afterwards. The steps to perform read
 
-The whole repository is mounted as a volume under ``/home/fenics/shared`` in the container and should be the default folder on startup. To execute the solver, move to the case folder (e.g. ``/home/fenics/shared/cases/heatSystem``) and execute the script (e.g. ``python3 heat.py``). Output files should be written in that case, e.g. to the ``results`` folder.
+.. code-block:: bash
+
+    # build and run fenics service
+    docker-compose build fenics
+    docker-compose run fenics
+
+The whole repository is mounted as a volume under ``/home/fenics/shared`` in the container and should be the default folder on startup. To execute a simulation case, go to to the case folder (e.g. ``examples/lid_driven_cavity``) and execute the solver main program ``fenicsR13.py`` (which is located in the ``src``-directory in the top level) while specifying the input file as first command line argument. This can be for example ``python3 ../../src/fenicsR13.py inout.yml``. Output files should be written to a folder which is named after the ``case_name`` keyword of the ``input.yml``. Each output field (temperature, pressure,...) has a ``.h5``-file and an ``.xdmf``-file. The XDMF-files can be opened in Paraview to perform visualization.
 
 It is convenient to use a Jupyter sever or a X11 forwarding.
 
