@@ -23,20 +23,10 @@ from postprocessor import Postprocessor
 def print_information():
     r"""
     Print program name and information.
-
-    That is:
-
-    .. code-block:: bash
-
-         __            _          ____  _ _____
-        / _| ___ _ __ (_) ___ ___|  _ \/ |___ /
-        | |_ / _ \ '_ \| |/ __/ __| |_) | | |_ \
-        |  _|  __/ | | | | (__\__ \  _ <| |___) |
-        |_|  \___|_| |_|_|\___|___/_| \_\_|____/
-        Version: v0.4
     """
     print(r"""-> Version: v0.4
--> Maintainer: Lambert Theisen <lambert.theisen@rwth-aachen.de>
+-> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
+-> Contact: Prof. Dr. Manuel Torrilhon <mt@mathcces.rwth-aachen.de>
 -> Website: https://git.rwth-aachen.de/lamBOO/fenicsR13
   __            _          ____  _ _____
  / _| ___ _ __ (_) ___ ___|  _ \/ |___ /
