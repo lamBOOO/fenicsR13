@@ -7,15 +7,7 @@ case_name: lid_driven_cavity
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  # - lid0.h5
-  # - lid1.h5
-  # - lid2.h5
-  # - lid3.h5
-  # - lid4.h5
   - lid5.h5
-  # - lid6.h5
-  # - lid7.h5
-  # - lid8.h5
 
 # Numerical Parameters
 # ====================

@@ -32,5 +32,5 @@ def create_mesh(exponent):
 
     return (mesh, subdomains, boundaries)
 
-for p in range(0+1, 5+1):
+for p in range(5, 5+1):
     create_mesh(p)

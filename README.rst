@@ -32,16 +32,31 @@ First install `Docker Desktop`_ for your OS. Then:
     docker-compose build fenics
     docker-compose run fenics
 
-    # Execute some examples
-    cd fenicsR13/examples/heat
+    # Execute lid_driven_cavity example
+    cd examples/lid_driven_cavity
+    # Create mesh...
+    python3 create_meshes.py
+    # Usage: python3 <path/to/fenicsR13.py> <path/to/input.yml>
+    python3 ../../src/fenicsR13.py input.yml
+    # -> Open xdmf-files with Paraview
+    cd ../..
 
-    # in serial...
-    # usage: python3 <path/to/fenicsR13.py> <path/to/input.yml>
-    python3 ../../src/fenicsR13.py inputs/01_coeffs_p1p1_stab.yml
+    # Execute channel_flow example
+    cd examples/channel_flow
+    python3 create_meshes.py
+    python3 ../../src/fenicsR13.py input.yml
+    # -> Open xdmf-files with Paraview
+    cd ../..
 
-    # in parallel... ("-u" to flash stdout)
-    # usage: mpirun -n <numberOfProcesses> <serialCommand>
-    mpirun -n 4 python3 -u ../../src/fenicsR13.py inputs/01_coeffs_p1p1_stab.yml
+    # Execute convergence test
+    cd tests/r13
+    python3 ../../src/fenicsR13.py inputs/r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.yml
+    # -> Open xdmf-files with Paraview
+    # -> Open convergence_plot and errors.csv in output directory
+
+    # Parallel execution ("-u" to flash stdout)
+    # Usage: mpirun -n <numberOfProcesses> <serialCommand>
+    # E.g.: mpirun -n 4 python3 -u ../../src/fenicsR13.py input.yml
 
 The main folder of this repository contains a ``Dockerfile`` defining the used environment. Here, we used the optimized and official FEniCS Docker image and include ``Gmsh`` and install some requirements from the ``requirements.txt``. This can take a while, especially the ``Gmsh`` mirror can be quite slow. To avoid very long execution commands (``docker run <..> -v <volume share> <etc..>``), a ``docker-compose.yml`` is used to store all these parameters. ``docker-compose`` acts as an wrapper for the Docker execution.
 
