@@ -128,6 +128,12 @@ class Input:
           rescale_pressure: True
           relative_error: True
 
+        # Postprocessing
+        # ==============
+        # - write_pdfs: Write all solution fields as PDF plot
+        postprocessing:
+        write_pdfs: True
+
     Further input examples can be found in the ``tests`` or ``examples``
     folders.
 
@@ -217,6 +223,16 @@ class Input:
             "mass_source": {
                 "anyof": [{"type": "string"}, {"type": "float"}],
                 "required": True,
+            },
+            "postprocessing": {
+                "type": "dict",
+                "required": True,
+                "schema": {
+                    "write_pdfs": {
+                        "type": "boolean",
+                        "required": True
+                    },
+                }
             },
             "convergence_study": {
                 "type": "dict",

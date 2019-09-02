@@ -101,3 +101,9 @@ convergence_study:
   write_systemmatrix: False
   rescale_pressure: True
   relative_error: True
+
+# Postprocessing
+# ==============
+# - write_pdfs: Write all solution fields as PDF plot
+postprocessing:
+  write_pdfs: True

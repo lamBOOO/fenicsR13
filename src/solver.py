@@ -76,6 +76,8 @@ class Solver:
         self.delta_2 = self.params["stabilization"]["cip"]["delta_2"]
         self.delta_3 = self.params["stabilization"]["cip"]["delta_3"]
 
+        self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
+
         # Create boundary field and sources expressions
         self.bcs = copy.deepcopy(self.params["bcs"])
         for edge_id in self.bcs:
@@ -739,7 +741,7 @@ class Solver:
         field_i = df.interpolate(field_, v_field)
 
         difference = df.project(field_e_i - field_i, v_field)
-        self.__write_xdmf("difference_{}".format(name_), difference)
+        self.__write_xdmf("difference_{}".format(name_), difference, False)
 
         dofs = len(field_e_i.split()) or 1
 
@@ -789,7 +791,7 @@ class Solver:
         print(str(name_) + " L_2 error:", errs_f_L2)
         print(str(name_) + " l_inf error:", errs_v_linf)
 
-        self.__write_xdmf(name_ + "_e", field_e_i)
+        self.__write_xdmf(name_ + "_e", field_e_i, False)
 
         return [{
             "L_2": errs_f_L2[i],
@@ -871,7 +873,7 @@ class Solver:
         sols = self.sol
         for field in sols:
             if sols[field] is not None:
-                self.__write_xdmf(field, sols[field])
+                self.__write_xdmf(field, sols[field], self.write_pdfs)
 
     def __write_parameters(self):
         """
@@ -893,11 +895,11 @@ class Solver:
 
         # Heat source
         f_heat = df.interpolate(self.heat_source, V)
-        self.__write_xdmf("f_heat", f_heat)
+        self.__write_xdmf("f_heat", f_heat, False)
 
         # Mass source
         f_mass = df.interpolate(self.mass_source, V)
-        self.__write_xdmf("f_mass", f_mass)
+        self.__write_xdmf("f_mass", f_mass, False)
 
     def __write_discrete_system(self):
         r"""
@@ -971,7 +973,7 @@ class Solver:
             df.assemble(self.form_b)
         )
 
-    def __write_xdmf(self, name, field):
+    def __write_xdmf(self, name, field, write_pdf):
         """
         Write a given field to a XDMF file in the output folder.
 
@@ -981,9 +983,13 @@ class Solver:
                 and is the name of the field in e.g. Paraview.
             field
                 The field to write.
+            write_pdf
+                If true, write a simple PDF plot for all solution fields
         """
-        filename = self.output_folder + name + "_" + str(self.time) + ".xdmf"
-        with df.XDMFFile(self.mesh.mpi_comm(), filename) as file:
+        fname_xdmf = (
+            self.output_folder + name + "_" + str(self.time) + ".xdmf"
+        )
+        with df.XDMFFile(self.mesh.mpi_comm(), fname_xdmf) as file:
             for degree in range(5): # test until degree five
                 # Writing symmetric tensors crashes.
                 # Therefore project symmetric tensor in nonsymmetric space
@@ -1007,3 +1013,30 @@ class Solver:
 
             field.rename(name, name)
             file.write(field, self.time)
+
+        if write_pdf:
+            import matplotlib.pyplot as plt
+            plt.switch_backend('agg')
+            dimension = len(field.value_shape())
+            if dimension < 2:
+                # skip tensors
+                fname_pdf = (
+                    self.output_folder + name + "_" + str(self.time) + ".pdf"
+                )
+                plot = df.plot(field)
+                plt.colorbar(plot)
+                plt.savefig(fname_pdf, dpi=150)
+                plt.close()
+
+            if dimension > 0:
+                # skip scalars
+                components = len(field.split())
+                for i in range(components):
+                    fname_pdf = (
+                        self.output_folder + name + "_" + str(i+1)
+                        + "_" + str(self.time) + ".pdf"
+                    )
+                    plot = df.plot(field.split()[i])
+                    plt.colorbar(plot)
+                    plt.savefig(fname_pdf, dpi=150)
+                    plt.close()

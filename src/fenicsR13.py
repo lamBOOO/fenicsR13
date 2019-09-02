@@ -27,8 +27,7 @@ def main():
     Searches for an ``"input.yml"`` file in the current directory to use as
     input.
 
-    Usage
-    -----
+    Usage:
 
     .. code-block:: bash
 

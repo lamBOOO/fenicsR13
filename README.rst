@@ -41,8 +41,11 @@ First install `Docker Desktop`_ for your OS. Then:
     python3 ../../src/fenicsR13.py input.yml
     # Go to folder with simulation results (=casename in input.yml)
     cd lid_driven_cavity
-    # Perform GUI visualization with Paraview:
+    # Perform GUI visualization on XDMF-files with Paraview:
+    echo "Data files:" $(find . -name "*.xdmf")
     echo "E.g.: Open Paraview > File > Open > u_0.xdmf > Apply filters"
+    # Inspect PDF field plots:
+    echo "Field plots:" $(find . -name "*.pdf")
     # Leave directory:
     cd ../..
     ### 1.END)
@@ -56,8 +59,11 @@ First install `Docker Desktop`_ for your OS. Then:
     python3 ../../src/fenicsR13.py input.yml
     # Go to folder with simulation results (=casename in input.yml)
     cd channel_flow
-    # Perform GUI visualization with Paraview:
+    # Perform GUI visualization on XDMF-files with Paraview:
+    echo "Data files:" $(find . -name "*.xdmf")
     echo "E.g.: Open Paraview > File > Open > u_0.xdmf > Apply filters"
+    # Inspect PDF field plots:
+    echo "Field plots:" $(find . -name "*.pdf")
     # Leave directory:
     cd ../..
     ### 2.END)
@@ -75,7 +81,8 @@ First install `Docker Desktop`_ for your OS. Then:
     cat errors.csv
     # Open PDF convergence plot:
     echo "E.g.: Open Adobe Reader > File > Open > convergence_plot_r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.pdf"
-    # Perform GUI visualization with Paraview:
+    # Perform GUI visualization on XDMF-files with Paraview:
+    echo "Data files:" $(find . -name "*.xdmf")
     echo "E.g.: Open Paraview > File > Open > u_0.xdmf > Apply filters"
     # Leave directory:
     cd ../..
@@ -97,74 +104,19 @@ The ``fenics`` environment (also called *service* in the ``docker-compose.yml``)
 
 The whole repository is mounted as a volume under ``/home/fenics/shared`` in the container and should be the default folder on startup. To execute a simulation case, go to to the case folder (e.g. ``examples/lid_driven_cavity``) and execute the solver main program ``fenicsR13.py`` (which is located in the ``src``-directory in the top level) while specifying the input file as first command line argument. This can be for example ``python3 ../../src/fenicsR13.py inout.yml``. Output files should be written to a folder which is named after the ``case_name`` keyword of the ``input.yml``. Each output field (temperature, pressure,...) has a ``.h5``-file and an ``.xdmf``-file. The XDMF-files can be opened in Paraview to perform visualization.
 
-It is convenient to use a Jupyter sever or a X11 forwarding.
-
-macOS Native FEniCS Installation (not recommended)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-#. Install ``miniconda`` from `here <https://conda.io/projects/conda/en/latest/user-guide/install/macos.html>`_
-    #. If using ``zsh``, add miniconda bins to PATH: ``export PATH="$HOME/ miniconda3/bin:$PATH"`` to ``~/.zshrc``
-    #. Maybe, activation has to be done with executing ``<path to  miniconda>/bin/activate``
-    #. Optional: Create separate coda environment: ``conda creafenics-env``
-#. Install FEniCS using conda: ``conda install -c conda-forge fenics``
-    #. Optional: Install ``matplobib``: ``conda install -c conda-forge  matplotlib``
-    #. Optional: Install ``meshio``: ``conda install -c mrossi meshio``
-    #. Optional (for linting): ``conda install pylint``
-    #. Install mshr with ``conda install -c conda-forge mshr``
-    #. Fix macOS bug in matplotbib: ``mkdir -p ~/.matplotlib; echo  "backend: TkAgg" > ~/.matplotlib/matplotlibrc``
-    #. XCode and command line developer tools msut be installed!
-    #. Optional: Install Jupyter: ``conda install -c anaconda jupyter``
-    #. Optional: Install documentation system: ``conda install -c anaconda  sphinx``
-    #. Optional: ``conda install -c anaconda sympy``
-
-Further Installation Tips
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**Interactive Jupyter Notebooks with Microsoft's Visual Studio Code**
-
-This is the most convenient solution.
-Run a file with ``%run ../../src/fenicsr13.py``
-
-**X11 Window Forwarding on OSX**
-
-See guide_ for the programs to install. Then source the ``open-macos-gui-tunnel.sh`` with ``. open-macos-gui-tunnel``. Afterwards, start the container and run the ``change-matplotbib-backend-tkagg.sh`` script to set the right ``matplotlib``'s output.
-
-.. _guide: http://joshuamccall.com/articles/docker.html
-
-**X11 Window Forwarding on Windows**
-
-A nice guide can be found `here on Dev.to`_.
-
-.. _`here on Dev.to`: https://dev.to/darksmile92/run-gui-app-in-linux-docker-container-on-windows-host-4kde
-
-The steps can be summarized as:
-
-1. Install the package manager `Chocolatey`_.
-
-    .. code-block:: dosbatch
-
-        REM comment: open cmd.exe as admin
-        @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
-
-2. Open ``cmd.exe`` as admin and install `VcXsrv Windows X Server`_.
-
-    .. code-block:: bash
-
-        choco install vcxsrv
-3. Open a X11 server and set the ``ip`` variable (that is used in the ``docker-compose.yml`` when starting the Docker container to set ``export DISPLAY=${ip}:0``).
-
-    .. code-block:: bash
-
-        # home of this repo
-        source sripts/open-windows-gui-tunnel.sh
-
-.. _`Chocolatey`: https://chocolatey.org/
-.. _`VcXsrv Windows X Server`: https://sourceforge.net/projects/vcxsrv/
+It is possible to use a Jupyter sever or a X11 forwarding but this is not recommended anymore. All relevant plots are now written by default without the need for the tricky X11 forwarding or interactive usage with Jupyter.
 
 Documentation
 --------------------------------------------------------------------------------
 
 Documentation using Sphinx is available.
+
+Pre-Build Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Visit the hosted version on `Gitlab Pages`_ or download the artifacts from Gitlab's CI ``pages``-pipeline.
+
+.. _`Gitlab Pages`: https://lamboo.pages.rwth-aachen.de/fenicsR13/
 
 Manual Generation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -176,16 +128,11 @@ Manual Generation
     make html
     # open _build/html/index.html
 
-Pre-Build Version
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Download pre-created artifacts from Gitlab's CI pipeline page. Or visit the
-hosted version on `Gitlab Pages`_.
-
-.. _`Gitlab Pages`: https://lamboo.pages.rwth-aachen.de/fenicsR13/
-
-Developer Notes
+Developer Legacy Notes
 --------------------------------------------------------------------------------
+
+Developer Tips
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Monitor the performance of the program with e.g.:
 
@@ -275,8 +222,70 @@ A example gitlab runner ``config/toml`` in ``~/.gitlab-runner`` can look like:
         pull_policy = "if-not-present"
     [runners.cache]
 
+macOS Native FEniCS Installation (not recommended)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Install ``miniconda`` from `here <https://conda.io/projects/conda/en/latest/user-guide/install/macos.html>`_
+    #. If using ``zsh``, add miniconda bins to PATH: ``export PATH="$HOME/ miniconda3/bin:$PATH"`` to ``~/.zshrc``
+    #. Maybe, activation has to be done with executing ``<path to  miniconda>/bin/activate``
+    #. Optional: Create separate coda environment: ``conda creafenics-env``
+#. Install FEniCS using conda: ``conda install -c conda-forge fenics``
+    #. Optional: Install ``matplobib``: ``conda install -c conda-forge  matplotlib``
+    #. Optional: Install ``meshio``: ``conda install -c mrossi meshio``
+    #. Optional (for linting): ``conda install pylint``
+    #. Install mshr with ``conda install -c conda-forge mshr``
+    #. Fix macOS bug in matplotbib: ``mkdir -p ~/.matplotlib; echo  "backend: TkAgg" > ~/.matplotlib/matplotlibrc``
+    #. XCode and command line developer tools msut be installed!
+    #. Optional: Install Jupyter: ``conda install -c anaconda jupyter``
+    #. Optional: Install documentation system: ``conda install -c anaconda  sphinx``
+    #. Optional: ``conda install -c anaconda sympy``
+
+Further Installation Tips
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Interactive Jupyter Notebooks with Microsoft's Visual Studio Code**
+
+This is the most convenient solution.
+Run a file with ``%run ../../src/fenicsr13.py``
+
+**X11 Window Forwarding on OSX**
+
+See guide_ for the programs to install. Then source the ``open-macos-gui-tunnel.sh`` with ``. open-macos-gui-tunnel``. Afterwards, start the container and run the ``change-matplotbib-backend-tkagg.sh`` script to set the right ``matplotlib``'s output.
+
+.. _guide: http://joshuamccall.com/articles/docker.html
+
+**X11 Window Forwarding on Windows**
+
+A nice guide can be found `here on Dev.to`_.
+
+.. _`here on Dev.to`: https://dev.to/darksmile92/run-gui-app-in-linux-docker-container-on-windows-host-4kde
+
+The steps can be summarized as:
+
+1. Install the package manager `Chocolatey`_.
+
+    .. code-block:: dosbatch
+
+        REM comment: open cmd.exe as admin
+        @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+
+2. Open ``cmd.exe`` as admin and install `VcXsrv Windows X Server`_.
+
+    .. code-block:: bash
+
+        choco install vcxsrv
+3. Open a X11 server and set the ``ip`` variable (that is used in the ``docker-compose.yml`` when starting the Docker container to set ``export DISPLAY=${ip}:0``).
+
+    .. code-block:: bash
+
+        # home of this repo
+        source sripts/open-windows-gui-tunnel.sh
+
+.. _`Chocolatey`: https://chocolatey.org/
+.. _`VcXsrv Windows X Server`: https://sourceforge.net/projects/vcxsrv/
+
 Contact
--------
+--------------------------------------------------------------------------------
 
 .. image:: ./media/mathcces.png
     :width: 400px
