@@ -381,6 +381,4 @@ class Input:
             print(val.errors)
             raise Exception("Parsing error")
 
-        print("Input:\n" + dumps(self.dict, indent=4))
-
-# test = Input("input.yml")
+        print("Input:\n" + dumps(self.dict, indent=None))

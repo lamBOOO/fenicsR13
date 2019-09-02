@@ -20,6 +20,31 @@ from input import Input
 from solver import Solver
 from postprocessor import Postprocessor
 
+def print_information():
+    r"""
+    Print program name and information.
+
+    That is:
+
+    .. code-block:: bash
+
+         __            _          ____  _ _____
+        / _| ___ _ __ (_) ___ ___|  _ \/ |___ /
+        | |_ / _ \ '_ \| |/ __/ __| |_) | | |_ \
+        |  _|  __/ | | | | (__\__ \  _ <| |___) |
+        |_|  \___|_| |_|_|\___|___/_| \_\_|____/
+        Version: v0.4
+    """
+    print(r"""-> Version: v0.4
+-> Maintainer: Lambert Theisen <lambert.theisen@rwth-aachen.de>
+-> Website: https://git.rwth-aachen.de/lamBOO/fenicsR13
+  __            _          ____  _ _____
+ / _| ___ _ __ (_) ___ ___|  _ \/ |___ /
+| |_ / _ \ '_ \| |/ __/ __| |_) | | |_ \
+|  _|  __/ | | | | (__\__ \  _ <| |___) |
+|_|  \___|_| |_|_|\___|___/_| \_\_|____/
+""")
+
 def main():
     """
     Execute the main program.
@@ -37,6 +62,8 @@ def main():
         python3 ../../src.fenicsR13.py heat_01_coeffs_p1p1_stab.yml
 
     """
+    print_information()
+
     # Dolfin settings
     df.set_log_level(100) # 1: all logs
     df.parameters["ghost_mode"] = "shared_vertex"
