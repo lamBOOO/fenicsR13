@@ -28,7 +28,11 @@ First install `Docker Desktop`_ for your OS. Then:
 
 .. code-block:: bash
 
-    # build and run fenics service
+    # Clone Repository and open main folder
+    git clone git@git.rwth-aachen.de:lamBOO/fenicsR13.git
+    cd fenicsR13
+
+    # Build and run fenics service
     docker-compose build fenics
     docker-compose run fenics
 
