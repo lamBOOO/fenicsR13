@@ -19,11 +19,11 @@ above 2.
 import dolfin as df
 import ufl
 
-def dev3d2(rank2_2d):
+def stf3d2(rank2_2d):
     r"""
-    Return the synthetic 3D deviator of a 2D 2-tensor.
+    Return the synthetic 3D symmetric and trace-free part of a 2D 2-tensor.
 
-    Returns the 3D-synthetic 2D deviator
+    Return the synthetic 3D symmetric and trace-free (dev(sym(.)))
     :math:`B \in \mathbb{R}^{2 \times 2}`
     of the 2D 2-tensor
     :math:`A \in \mathbb{R}^{2 \times 2}`.
@@ -69,11 +69,13 @@ def sym3d3(rank3_3d):
     )
     return ufl.as_tensor(symm_ijk, (i, j, k))
 
-def dev3d3(rank3_3d):
+def stf3d3(rank3_3d):
     r"""
-    Return the deviator of a 3D 3-tensor.
+    Return the symmetric and trace-free part of a 3D 3-tensor.
 
-    Returns the deviator :math:`A_{\langle i j k\rangle}` of a rank-3 tensor
+    Return the symmetric and trace-free part of a 3D 3-tensor. (dev(sym(.)))
+
+    Returns the STF part :math:`A_{\langle i j k\rangle}` of a rank-3 tensor
     :math:`A \in \mathbb{R}^{3 \times 3 \times 3}` [TOR2018]_.
 
     .. math::

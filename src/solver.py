@@ -267,7 +267,7 @@ class Solver:
         **Heat**:
 
         .. math::
-            -\frac{24}{5} \tau (\nabla \st)_{\mathrm{dev}} - \Rt &= 0 \\
+            -\frac{24}{5} \tau (\nabla \st)_{\mathrm{STF}} - \Rt &= 0 \\
             \frac{1}{2} \nabla \cdot \Rt + \frac{2}{3\tau} \st + \frac{5}{2}
             \nabla \theta &= 0 \\
             \nabla \cdot \st &= f \\
@@ -278,7 +278,7 @@ class Solver:
 
         .. math::
 
-            (\nabla \underline{\underline{\sigma}})_{\mathrm{dev}} :
+            (\nabla \underline{\underline{\sigma}})_{\mathrm{STF}} :
             \nabla \underline{\underline{\psi}}
 
         for :math:`\theta` and :math:`\st` with a given heat source :math:`f`
@@ -351,7 +351,7 @@ class Solver:
         # Setup both weak forms
         if self.use_coeffs:
             a1 = (
-                + 12/5 * tau * df.inner(to.dev3d2(df.grad(s)), df.grad(r))
+                + 12/5 * tau * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
                 + 2/3 * (1/tau) * df.inner(s, r)
                 - (5/2) * theta * df.div(r)
                 + cpl * df.dot(df.div(sigma), r)
@@ -376,12 +376,12 @@ class Solver:
 
             a3 = (
                 + 2 * tau * df.inner(
-                    to.dev3d3(to.grad3dOf2(to.gen3dTF2(sigma))),
+                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma))),
                     to.grad3dOf2(to.gen3dTF2(psi))
                 )
                 + (1/tau) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
                 - 2 * df.dot(u, df.div(df.sym(psi)))
-                + cpl * 4/5 * df.inner(to.dev3d2(df.grad(s)), psi)
+                + cpl * 4/5 * df.inner(to.stf3d2(df.grad(s)), psi)
             ) * df.dx + (
                 + (
                     + 21/10 * xi_tilde * sigma_nn
@@ -429,7 +429,7 @@ class Solver:
             ])
         else:
             a1 = (
-                tau * df.inner(to.dev3d2(df.grad(s)), df.grad(r))
+                tau * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
                 + (1/tau) * df.inner(s, r)
                 - theta * df.div(r)
             ) * df.dx + (
