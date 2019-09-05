@@ -38,10 +38,10 @@ def stf3d2(rank2_2d):
         B &= (A)_\mathrm{dev} = \frac{1}{2} (A)_\mathrm{sym}
             - \frac{1}{3} \mathrm{tr}(A) I_{2 \times 2}
     """
-    symm = rank2_2d + ufl.transpose(rank2_2d)
+    symm = 1/2 * (rank2_2d + ufl.transpose(rank2_2d))
     return (
-        1/2 * symm
-        - (1/3) * ufl.tr(rank2_2d) * ufl.Identity(2)
+        symm
+        - (1/3) * ufl.tr(symm) * ufl.Identity(2)
     )
 
 def sym3d3(rank3_3d):
