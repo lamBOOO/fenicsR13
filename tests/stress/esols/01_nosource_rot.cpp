@@ -82,8 +82,6 @@ class Velocity : public dolfin::Expression {
         double u_R = a_0 + cos(phi) * a;
         double u_phi = b_0 - sin(phi) * b;
 
-        // https://ocw.mit.edu/courses/aeronautics-and-astronautics/
-        // ...16-07-dynamics-fall-2009/lecture-notes/MIT16_07F09_Lec05.pdf
         double u_x = u_R * cos(phi) - u_phi * sin(phi);
         double u_y = u_R * sin(phi) + u_phi * cos(phi);
 

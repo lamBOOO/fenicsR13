@@ -41,8 +41,6 @@ class Heatflux : public dolfin::Expression {
         double s_R = R - std::pow(R,3)/4. + 1133/(16.*R*(-23 + 80*std::log(5) - 80*std::log(20)));
         double s_phi = 0;
 
-        // https://ocw.mit.edu/courses/aeronautics-and-astronautics/
-        // ...16-07-dynamics-fall-2009/lecture-notes/MIT16_07F09_Lec05.pdf
         double s_x = s_R * cos(phi) - s_phi * sin(phi);
         double s_y = s_R * sin(phi) + s_phi * cos(phi);
 

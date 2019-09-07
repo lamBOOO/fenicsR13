@@ -50,8 +50,6 @@ class Heatflux : public dolfin::Expression {
         double s_R = alpha_0 + cos(phi) * alpha;
         double s_phi = beta_0 - sin(phi) * beta;
 
-        // https://ocw.mit.edu/courses/aeronautics-and-astronautics/
-        // ...16-07-dynamics-fall-2009/lecture-notes/MIT16_07F09_Lec05.pdf
         double s_x = s_R * cos(phi) - s_phi * sin(phi);
         double s_y = s_R * sin(phi) + s_phi * cos(phi);
 
