@@ -380,7 +380,7 @@ class Solver:
                     to.grad3dOf2(to.gen3dTF2(psi))
                 )
                 + (1/tau) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
-                - 2 * df.dot(u, df.div(df.sym(psi)))
+                - 2 * df.dot(u, df.div(psi))
                 + cpl * 4/5 * df.inner(to.stf3d2(df.grad(s)), psi)
             ) * df.dx + (
                 + (
