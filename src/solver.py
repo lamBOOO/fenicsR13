@@ -295,7 +295,7 @@ class Solver:
         mesh = self.mesh
         boundaries = self.boundaries
         bcs = self.bcs
-        tau = self.tau
+        tau = df.Constant(self.tau)
         xi_tilde = self.xi_tilde
         delta_1 = self.delta_1
         delta_2 = self.delta_2
