@@ -71,12 +71,12 @@ class TestR13Convergence(object):
         :math:`v_t^1`             :math:`10.0`
         :math:`v_n^1`             :math:`0`
         :math:`p_w^1`             :math:`0`
-        :math:`\gamma_w^1`        :math:`10^{-3}`
+        :math:`\epsilon_w^1`        :math:`10^{-3}`
         :math:`\theta_w^2`        :math:`0.5`
         :math:`v_t^2`             :math:`0.0`
         :math:`v_n^2`             :math:`0`
         :math:`p_w^2`             :math:`0`
-        :math:`\gamma_w^2`        :math:`10^{-3}`
+        :math:`\epsilon_w^2`        :math:`10^{-3}`
         Elements                  :math:`P_1P_1P_1P_1P_1`
         Stabilization             CIP: :math:`\delta_1,\delta_2=1,\delta_3=0.01`
         ========================= ==============================================
@@ -101,12 +101,12 @@ class TestR13Convergence(object):
         :math:`v_t^1`             :math:`10.0`
         :math:`v_n^1`             :math:`0`
         :math:`p_w^1`             :math:`0`
-        :math:`\gamma_w^1`        :math:`10^{-3}`
+        :math:`\epsilon_w^1`        :math:`10^{-3}`
         :math:`\theta_w^2`        :math:`0.5`
         :math:`v_t^2`             :math:`0.0`
         :math:`v_n^2`             :math:`0`
         :math:`p_w^2`             :math:`0`
-        :math:`\gamma_w^2`        :math:`10^{-3}`
+        :math:`\epsilon_w^2`        :math:`10^{-3}`
         Elements                  :math:`P_2P_2P_2P_2P_2`
         Stabilization             CIP: :math:`\delta_1,\delta_2=1,\delta_3=0.01`
         ========================= ==============================================
@@ -137,12 +137,12 @@ class TestR13Convergence(object):
         :math:`v_t^1`             :math:`0`
         :math:`v_n^1`             :math:`0`
         :math:`p_w^1`             :math:`0`
-        :math:`\gamma_w^1`        :math:`10^{-3}`
+        :math:`\epsilon_w^1`        :math:`10^{-3}`
         :math:`\theta_w^2`        :math:`2.0`
         :math:`v_t^2`             :math:`-1.00 \sin(\phi)`
         :math:`v_n^2`             :math:`+1.00 \cos(\phi)`
         :math:`p_w^2`             :math:`-0.27 \cos(\phi)`
-        :math:`\gamma_w^2`        :math:`10^{3}`
+        :math:`\epsilon_w^2`        :math:`10^{3}`
         Elements                  :math:`P_1P_1P_1P_1P_1`
         Stabilization             CIP: :math:`\delta_1,\delta_2=1,\delta_3=0.01`
         ========================= ==============================================

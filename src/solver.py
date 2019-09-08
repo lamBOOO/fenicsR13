@@ -398,13 +398,13 @@ class Solver:
                     - cpl * 2/5 * s_t
                 ) * psi_nt
             ) * df.ds + 2 * sum([
-                bcs[bc]["gamma_w"] * (p + sigma_nn) * psi_nn * df.ds(bc)
+                bcs[bc]["epsilon_w"] * (p + sigma_nn) * psi_nn * df.ds(bc)
                 for bc in bcs.keys()
             ])
             l3 = sum([
                 - 2.0 * psi_nt * bcs[bc]["u_t_w"] * df.ds(bc)
                 - 2.0 * (
-                    - bcs[bc]["gamma_w"] * bcs[bc]["p_w"]
+                    - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
                     + bcs[bc]["u_n_w"]
                 ) * psi_nn * df.ds(bc)
                 for bc in bcs.keys()
@@ -419,12 +419,12 @@ class Solver:
             a5 = + (
                 df.dot(u, df.grad(q))
             ) * df.dx - sum([
-                bcs[bc]["gamma_w"] * (p + sigma_nn) * q * df.ds(bc)
+                bcs[bc]["epsilon_w"] * (p + sigma_nn) * q * df.ds(bc)
                 for bc in bcs.keys()
             ])
             l5 = - (f_mass * q) * df.dx + sum([
                 (
-                    - bcs[bc]["gamma_w"] * bcs[bc]["p_w"]
+                    - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
                     + bcs[bc]["u_n_w"]
                 ) * q * df.ds(bc)
                 for bc in bcs.keys()

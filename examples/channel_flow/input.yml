@@ -64,37 +64,37 @@ mass_source: 0
 # Boundary Conditions
 # ===================
 # - bcs: Dictionary of all boundary IDs from mesh
-#   - bc_id: must contain theta_w, u_t_w, u_n_w, p_w, gamma_w
+#   - bc_id: must contain theta_w, u_t_w, u_n_w, p_w, epsilon_w
 #     - theta_w: Value for temperature at wall
 #     - u_t_w: Value for tangential velocity at wall
 #     - u_n_w: Value for normal velocity at wall
 #     - p_w: Value for pressure at wall
-#     - gamma_w: Inflow-model parameter <=> Weight of pressure prescription
+#     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
 bcs:
   3001: # bot
     theta_w: 1
     u_t_w: 0
     u_n_w: 0
     p_w: 0
-    gamma_w: pow(10,-3)
+    epsilon_w: pow(10,-3)
   3002: # right
     theta_w: 1
     u_t_w: 0
     u_n_w: 0
     p_w: 0
-    gamma_w: pow(10,+3)
+    epsilon_w: pow(10,+3)
   3003: # top
     theta_w: 1
     u_t_w: 0
     u_n_w: 0
     p_w: 0
-    gamma_w: pow(10,-3)
+    epsilon_w: pow(10,-3)
   3004: # left
     theta_w: 1
     u_t_w: 0
     u_n_w: 0
     p_w: 1
-    gamma_w: pow(10,+3)
+    epsilon_w: pow(10,+3)
 
 # Convergence Study
 # =================

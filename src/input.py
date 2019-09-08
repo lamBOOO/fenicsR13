@@ -92,25 +92,25 @@ class Input:
         # Boundary Conditions
         # ===================
         # - bcs: Dictionary of all boundary IDs from mesh
-        #   - bc_id: must contain theta_w, u_t_w, u_n_w, p_w, gamma_w
+        #   - bc_id: must contain theta_w, u_t_w, u_n_w, p_w, epsilon_w
         #     - theta_w: Value for temperature at wall
         #     - u_t_w: Value for tangential velocity at wall
         #     - u_n_w: Value for normal velocity at wall
         #     - p_w: Value for pressure at wall
-        #     - gamma_w: Inflow-model parameter <=> Weight of pressure
+        #     - epsilon_w: Inflow-model parameter <=> Weight of pressure
         bcs:
           3000:
             theta_w: 1.0
             u_t_w: -10
             u_n_w: 0
             p_w: 0
-            gamma_w: 0
+            epsilon_w: 0
           3100:
             theta_w: 0.5
             u_t_w: 0
             u_n_w: 0
             p_w: 0
-            gamma_w: 0
+            epsilon_w: 0
 
         # Convergence Study
         # =================
@@ -210,7 +210,7 @@ class Input:
                             "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True
                         },
-                        "gamma_w": {
+                        "epsilon_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True
                         },
