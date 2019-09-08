@@ -116,7 +116,7 @@ class TestStressConvergence(object):
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_stress_01_source_rot_p1p2p4_nostab(self):
+    def test_stress_01_source_rot_p1p2p3_nostab(self):
         r"""
         Execute decoupled heat system test and check with reference errors.
 
@@ -126,11 +126,11 @@ class TestStressConvergence(object):
         :math:`\tau`              :math:`0.1`
         :math:`f_{\mathrm{mass}}` :math:`0.4(1-\frac{5R^2}{18\tau^2})\cos(\phi)`
         :math:`v_t^1`             :math:`10.0`
-        Elements                  :math:`P_1P_2P_4`
-        Stabilization             CIP, :math:`\delta_1=1`
+        Elements                  :math:`P_1P_2P_3`
+        Stabilization             CIP, :math:`\delta_2=1, \delta_3=0.01`
         ========================= =============================================
         """
-        name = "stress_01_source_rot_p1p2p4_nostab"
+        name = "stress_01_source_rot_p1p2p3_nostab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
