@@ -488,6 +488,8 @@ class Solver:
             }
 
         """
+        print("Solve..")
+
         if self.mode == "heat":
             w = self.mxd_fspaces["heat"]
         elif self.mode == "stress":
@@ -815,6 +817,8 @@ class Solver:
             dict -- Errors
 
         """
+        print("Calculate errors..")
+
         self.__load_exact_solution()
 
         if self.mode == "heat" or self.mode == "r13":
