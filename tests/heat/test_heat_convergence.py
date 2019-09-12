@@ -63,7 +63,7 @@ class TestHeatConvergence(object):
         ============= =======================
         Parameter     Value
         ============= =======================
-        :math:`\tau`  :math:`0.1`
+        :math:`Kn`    :math:`0.1`
         Formulation   Coefficients
         Elements      :math:`P_1P_1`
         Stabilization CIP, :math:`\delta_1=1`
@@ -82,7 +82,7 @@ class TestHeatConvergence(object):
         ============= =======================
         Parameter     Value
         ============= =======================
-        :math:`\tau`  :math:`10.0`
+        :math:`Kn`    :math:`10.0`
         Formulation   Coefficients
         Elements      :math:`P_2P_2`
         Stabilization CIP, :math:`\delta_1=1`
@@ -101,7 +101,7 @@ class TestHeatConvergence(object):
         ============= =======================
         Parameter     Value
         ============= =======================
-        :math:`\tau`  :math:`0.1`
+        :math:`Kn`    :math:`0.1`
         Formulation   Coefficients
         Elements      :math:`P_2P_2`
         Stabilization CIP, :math:`\delta_1=1`
@@ -120,7 +120,7 @@ class TestHeatConvergence(object):
         ============= =======================
         Parameter     Value
         ============= =======================
-        :math:`\tau`  :math:`0.1`
+        :math:`Kn`    :math:`0.1`
         Formulation   Coefficients
         Elements      :math:`P_2P_1`
         Stabilization CIP, :math:`\delta_1=1`
@@ -139,7 +139,7 @@ class TestHeatConvergence(object):
         ============= =======================
         Parameter     Value
         ============= =======================
-        :math:`\tau`  :math:`0.1`
+        :math:`Kn`    :math:`0.1`
         Formulation   No Coefficients
         Elements      :math:`P_2P_1`
         Stabilization CIP, :math:`\delta_1=1`

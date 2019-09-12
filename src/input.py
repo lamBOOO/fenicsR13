@@ -77,17 +77,17 @@ class Input:
         # - nsd: Number of spatial dimensions == 2
         # - mode: Formulation mode, one of heat, stress, r13
         # - use_coeffs: Use real R13 coefficients, False only valid in heat
-        # - tau: Measure for Knudsen number
+        # - kn: Knudsen numberkn
         # - xi_tilde: Refaction coefficient in Maxwell accomodation model
         # - heat_source: Heat source function for mode==heat||r13
         # - mass_source: Mass source function for mode==stress||r13
         nsd: 2
         mode: r13
         use_coeffs: True
-        tau: 1.0
+        kn: 1.0
         xi_tilde: 1.0
         heat_source: 0
-        mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(tau,2))) * cos(phi)
+        mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(kn,2))) * cos(phi)
 
         # Boundary Conditions
         # ===================
@@ -176,7 +176,7 @@ class Input:
                 "type": "boolean",
                 "required": True,
             },
-            "tau": {
+            "kn": {
                 "type": "float",
                 "required": True,
                 "min": 0.000000001

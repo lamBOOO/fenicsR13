@@ -69,7 +69,7 @@ class Solver:
         self.time = time
         self.mode = params["mode"]
         self.use_coeffs = params["use_coeffs"]
-        self.tau = params["tau"]
+        self.kn = params["kn"]
         self.xi_tilde = params["xi_tilde"]
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
         self.delta_1 = self.params["stabilization"]["cip"]["delta_1"]
@@ -157,7 +157,7 @@ class Solver:
         ============================ ======= =================================
         Radius wrt. to :math:`(0,0)` ``R``   ``sqrt(pow(x[0],2)+pow(x[1],2))``
         Angle wrt. :math:`(0,0)`     ``phi`` ``atan2(x[1],x[0])``
-        Knudsen number               ``tau`` ``self.tau``
+        Knudsen number               ``kn``  ``self.kn``
         ============================ ======= =================================
 
         The following expressions are therefore equal:
@@ -175,11 +175,11 @@ class Solver:
         """
         R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
         phi = df.Expression("atan2(x[1],x[0])", degree=2)
-        tau = self.tau
+        kn = self.kn
         return df.Expression(
             str(cpp_string),
             degree=2,
-            tau=tau,
+            kn=kn,
             phi=phi,
             R=R
         )
@@ -267,8 +267,9 @@ class Solver:
         **Heat**:
 
         .. math::
-            -\frac{24}{5} \tau (\nabla \st)_{\mathrm{STF}} - \Rt &= 0 \\
-            \frac{1}{2} \nabla \cdot \Rt + \frac{2}{3\tau} \st + \frac{5}{2}
+            -\frac{24}{5} \mathrm{Kn} (\nabla \st)_{\mathrm{STF}} - \Rt &= 0 \\
+            \frac{1}{2} \nabla \cdot \Rt + \frac{2}{3\mathrm{Kn}} \st
+            + \frac{5}{2}
             \nabla \theta &= 0 \\
             \nabla \cdot \st &= f \\
 
@@ -282,7 +283,7 @@ class Solver:
             \nabla \underline{\underline{\psi}}
 
         for :math:`\theta` and :math:`\st` with a given heat source :math:`f`
-        and the Knudsen number :math:`\tau`.
+        and the Knudsen number :math:`\mathrm{Kn}`.
 
         """
         # Check if all mesh boundaries have bcs presibed frm input
@@ -295,7 +296,7 @@ class Solver:
         mesh = self.mesh
         boundaries = self.boundaries
         bcs = self.bcs
-        tau = df.Constant(self.tau)
+        kn = df.Constant(self.kn)
         xi_tilde = self.xi_tilde
         delta_1 = self.delta_1
         delta_2 = self.delta_2
@@ -351,8 +352,8 @@ class Solver:
         # Setup both weak forms
         if self.use_coeffs:
             a1 = (
-                + 12/5 * tau * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
-                + 2/3 * (1/tau) * df.inner(s, r)
+                + 12/5 * kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
+                + 2/3 * (1/kn) * df.inner(s, r)
                 - (5/2) * theta * df.div(r)
                 + cpl * df.dot(df.div(sigma), r)
             ) * df.dx + (
@@ -375,11 +376,11 @@ class Solver:
             l2 = - (f_heat * kappa) * df.dx
 
             a3 = (
-                + 2 * tau * df.inner(
+                + 2 * kn * df.inner(
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma))),
                     to.grad3dOf2(to.gen3dTF2(psi))
                 )
-                + (1/tau) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
+                + (1/kn) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
                 - 2 * df.dot(u, df.div(psi))
                 + cpl * 4/5 * df.inner(to.stf3d2(df.grad(s)), psi)
             ) * df.dx + (
@@ -429,8 +430,8 @@ class Solver:
             ])
         else:
             a1 = (
-                tau * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
-                + (1/tau) * df.inner(s, r)
+                kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
+                + (1/kn) * df.inner(s, r)
                 - theta * df.div(r)
             ) * df.dx + (
                 + 1/(xi_tilde) * s_n * r_n

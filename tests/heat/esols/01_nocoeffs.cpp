@@ -10,7 +10,7 @@ namespace py = pybind11;
 
 #include <dolfin/function/Expression.h>
 
-double tau = 0.1;
+double kn = 0.1;
 double C_1 = -0.40855716127979214;
 double C_2 = 2.4471587630476663;
 

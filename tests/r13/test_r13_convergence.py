@@ -40,6 +40,7 @@ class TestR13Convergence(object):
             subprocess.check_call([
                 "diff", "-u", "--strip-trailing-cr", errorsfile, ref_errorsfile
             ], cwd=self.working_dir)
+
         """
         print(subprocess.check_output([
             "numdiff", "-s", "\"\n\r ,\"", "-a", "1E-10",
@@ -63,8 +64,8 @@ class TestR13Convergence(object):
         ========================= ==============================================
         Parameter     Value
         ========================= ==============================================
-        :math:`\tau`              :math:`1.0`
-        :math:`f_{\mathrm{mass}}` :math:`(1-\frac{5R^2}{18\tau^2})\cos(\phi)`
+        :math:`Kn`                :math:`1.0`
+        :math:`f_{\mathrm{mass}}` :math:`(1-\frac{5R^2}{18{Kn}^2})\cos(\phi)`
         :math:`f_{\mathrm{heat}}` :math:`0`
         :math:`\theta_w^1`        :math:`1.0`
         :math:`v_t^1`             :math:`10.0`
@@ -93,8 +94,8 @@ class TestR13Convergence(object):
         ========================= ==============================================
         Parameter     Value
         ========================= ==============================================
-        :math:`\tau`              :math:`1.0`
-        :math:`f_{\mathrm{mass}}` :math:`(1-\frac{5R^2}{18\tau^2})\cos(\phi)`
+        :math:`Kn`                :math:`1.0`
+        :math:`f_{\mathrm{mass}}` :math:`(1-\frac{5R^2}{18{Kn}^2})\cos(\phi)`
         :math:`f_{\mathrm{heat}}` :math:`0`
         :math:`\theta_w^1`        :math:`1.0`
         :math:`v_t^1`             :math:`10.0`
@@ -118,12 +119,18 @@ class TestR13Convergence(object):
 
     def test_r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab(self):
         r"""
-        Execute full linear R13 system test and check with reference errors. Test case is similar to Torrilhon2017.
+        Execute full linear R13 system test and check with reference errors.
+
+        Test case is similar to  [TOR2017]_.
+
+        .. [TOR2017] Torrilhon, M. et al. (2017). “Hierarchical Boltzmann
+            simulations and model error estimation”. In: Journal of
+            Computational Physics 342 (2017), pp. 66–84.
 
         ========================= ==============================================
         Parameter     Value
         ========================= ==============================================
-        :math:`\tau`              :math:`1.0`
+        :math:`Kn`                :math:`1.0`
         :math:`f_{\mathrm{mass}}` :math:`0`
         :math:`f_{\mathrm{heat}}` :math:`0`
         :math:`\theta_w^1`        :math:`1.0`

@@ -63,7 +63,7 @@ class TestStressConvergence(object):
         ========================= =============================================
         Parameter     Value
         ========================= =============================================
-        :math:`\tau`              :math:`0.1`
+        :math:`Kn`                :math:`0.1`
         :math:`f_{\mathrm{mass}}` :math:`0`
         :math:`v_t^1`             :math:`10.0`
         Elements                  :math:`P_1P_1P_1`
@@ -83,8 +83,8 @@ class TestStressConvergence(object):
         ========================= =============================================
         Parameter     Value
         ========================= =============================================
-        :math:`\tau`              :math:`0.1`
-        :math:`f_{\mathrm{mass}}` :math:`0.4(1-\frac{5R^2}{18\tau^2})\cos(\phi)`
+        :math:`Kn`                :math:`0.1`
+        :math:`f_{\mathrm{mass}}` :math:`0.4(1-\frac{5R^2}{18{Kn}^2})\cos(\phi)`
         :math:`v_t^1`             :math:`0`
         Elements                  :math:`P_1P_1P_1`
         Stabilization             CIP, :math:`\delta_2=1, \delta_3=0.01`
@@ -103,8 +103,8 @@ class TestStressConvergence(object):
         ========================= =============================================
         Parameter     Value
         ========================= =============================================
-        :math:`\tau`              :math:`0.1`
-        :math:`f_{\mathrm{mass}}` :math:`0.4(1-\frac{5R^2}{18\tau^2})\cos(\phi)`
+        :math:`Kn`                :math:`0.1`
+        :math:`f_{\mathrm{mass}}` :math:`0.4(1-\frac{5R^2}{18{Kn}^2})\cos(\phi)`
         :math:`v_t^1`             :math:`10.0`
         Elements                  :math:`P_1P_1P_1`
         Stabilization             CIP, :math:`\delta_2=1, \delta_3=0.01`
@@ -123,8 +123,8 @@ class TestStressConvergence(object):
         ========================= =============================================
         Parameter     Value
         ========================= =============================================
-        :math:`\tau`              :math:`0.1`
-        :math:`f_{\mathrm{mass}}` :math:`0.4(1-\frac{5R^2}{18\tau^2})\cos(\phi)`
+        :math:`Kn`                :math:`0.1`
+        :math:`f_{\mathrm{mass}}` :math:`0.4(1-\frac{5R^2}{18{Kn}^2})\cos(\phi)`
         :math:`v_t^1`             :math:`10.0`
         Elements                  :math:`P_1P_2P_3`
         Stabilization             CIP, :math:`\delta_2=1, \delta_3=0.01`
@@ -143,8 +143,8 @@ class TestStressConvergence(object):
         ========================= =============================================
         Parameter     Value
         ========================= =============================================
-        :math:`\tau`              :math:`0.1`
-        :math:`f_{\mathrm{mass}}` :math:`0.4(1-\frac{5R^2}{18\tau^2})\cos(\phi)`
+        :math:`Kn`                :math:`0.1`
+        :math:`f_{\mathrm{mass}}` :math:`0.4(1-\frac{5R^2}{18{Kn}^2})\cos(\phi)`
         :math:`v_t^1`             :math:`10.0`
         Elements                  :math:`P_2P_2P_2`
         Stabilization             CIP, :math:`\delta_2=1, \delta_3=0.01`
@@ -163,8 +163,8 @@ class TestStressConvergence(object):
         ========================= =============================================
         Parameter     Value
         ========================= =============================================
-        :math:`\tau`              :math:`10.0`
-        :math:`f_{\mathrm{mass}}` :math:`0.4(1-\frac{5R^2}{18\tau^2})\cos(\phi)`
+        :math:`Kn`                :math:`10.0`
+        :math:`f_{\mathrm{mass}}` :math:`0.4(1-\frac{5R^2}{18{Kn}^2})\cos(\phi)`
         :math:`v_t^1`             :math:`10.0`
         Elements                  :math:`P_1P_1P_1`
         Stabilization             CIP, :math:`\delta_2=1, \delta_3=0.01`

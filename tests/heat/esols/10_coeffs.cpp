@@ -10,7 +10,7 @@ namespace py = pybind11;
 
 #include <dolfin/function/Expression.h>
 
-double tau = 10.0;
+double kn = 10.0;
 double C_1 = -0.23487596350870713;
 double C_2 = 13.827308558560057;
 
@@ -23,7 +23,7 @@ class Temperature : public dolfin::Expression {
         double R = sqrt(pow(x[0],2)+pow(x[1],2));
         double phi = atan2(x[1],x[0]);
 
-        double c_0 = C_2 + (- (20.0*(C_1)*std::log(R)) + ((5.0/4.0)*std::pow(R, 4)) - (2.0*std::pow(R, 2)*(24.0*std::pow(tau, 2) + 5.0)))/(tau*75.0);
+        double c_0 = C_2 + (- (20.0*(C_1)*std::log(R)) + ((5.0/4.0)*std::pow(R, 4)) - (2.0*std::pow(R, 2)*(24.0*std::pow(kn, 2) + 5.0)))/(kn*75.0);
         double c = 0.0;
 
         double theta = c_0 + cos(phi) * c;

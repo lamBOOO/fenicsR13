@@ -26,7 +26,7 @@ def print_information():
 
     That is:
 
-    .. code-block:: bash
+    .. code-block:: text
 
         -> Version: v0.4
         -> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
@@ -37,6 +37,7 @@ def print_information():
         | |_ / _ \ '_ \| |/ __/ __| |_) | | |_ \
         |  _|  __/ | | | | (__\__ \  _ <| |___) |
         |_|  \___|_| |_|_|\___|___/_| \_\_|____/
+
     """
     print(r"""-> Version: v0.4
 -> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
