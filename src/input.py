@@ -131,6 +131,7 @@ class Input:
         # Postprocessing
         # ==============
         # - write_pdfs: Write all solution fields as PDF plot
+        # - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
         postprocessing:
         write_pdfs: True
 
@@ -231,6 +232,11 @@ class Input:
                     "write_pdfs": {
                         "type": "boolean",
                         "required": True
+                    },
+                    "massflow": {
+                        "type": "list",
+                        "required": True,
+                        "schema": {"type": "integer"}
                     },
                 }
             },

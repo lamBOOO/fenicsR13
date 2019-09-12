@@ -77,6 +77,7 @@ class Solver:
         self.delta_3 = self.params["stabilization"]["cip"]["delta_3"]
 
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
+        self.massflow = self.params["postprocessing"]["massflow"]
 
         # Create boundary field and sources expressions
         self.bcs = copy.deepcopy(self.params["bcs"])
@@ -523,6 +524,16 @@ class Solver:
                 mean_p_fct.assign(df.Constant(mean_p_value))
                 p_i.assign(p_i - mean_p_fct)
                 self.sol["p"] = p_i
+
+        # Calculate mass flows
+        for bc_id in self.massflow:
+            if bc_id not in self.boundaries.array():
+                raise Exception("Massflow: {} is no boundary.".format(bc_id))
+            n = df.FacetNormal(self.mesh)
+            mass_flow_rate = df.assemble(
+                df.inner(self.sol["u"], n)*df.ds(bc_id)
+            )
+            print("mass flow rate of BC", bc_id, ":", mass_flow_rate)
 
     def __load_exact_solution(self):
         """
