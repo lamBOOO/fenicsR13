@@ -14,6 +14,10 @@ fenicsR13
   Repository for Master thesis project regarding FEM simulations for
   non-equilibrium gas dynamics.
 
+.. image:: media/animation.gif
+    :width: 800px
+    :alt: animation
+
 Installation
 --------------------------------------------------------------------------------
 
