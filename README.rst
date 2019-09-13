@@ -68,6 +68,10 @@ First install `Docker Desktop`_ for your OS. Then:
     echo "E.g.: Open Paraview > File > Open > u_0.xdmf > Apply filters"
     # Inspect PDF field plots:
     echo "Field plots:" $(find . -name "*.pdf")
+    # Generate correlation data between Knudsen number and massflow
+    bash postprocessing.sh
+    cat table.csv
+    echo "Knudsen paradox ;-)"
     # Leave directory:
     cd ../..
     ### 2.END)
