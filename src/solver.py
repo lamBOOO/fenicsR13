@@ -879,6 +879,8 @@ class Solver:
         (#) Parameter functions
         (#) System matrices if set in input file
         """
+        print("Write fields..")
+
         self.__write_solutions()
         self.__write_parameters()
         if self.write_systemmatrix:
