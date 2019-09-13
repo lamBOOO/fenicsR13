@@ -39,6 +39,7 @@ build:doc:
     - sphinx-apidoc -o source/tests/heat ../tests/heat
     - sphinx-apidoc -o source/tests/stress ../tests/stress
     - sphinx-apidoc -o source/tests/r13 ../tests/r13
+    - sphinx-apidoc -o source/examples ../examples
     - make html
     - make latex
   artifacts:
