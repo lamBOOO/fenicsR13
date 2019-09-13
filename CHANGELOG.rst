@@ -1,6 +1,26 @@
 Change log
 ----------
 
+0.5 (2019-09-13)
+~~~~~~~~~~~~~~~~
+
+- Add more examples with tests and documentation:
+    - Lid-Driven Cavity
+    - Channel Flow with Knudsen paradox plot
+    - Knudsen pump
+- Add option to perform parameter studies
+- Add massflow reporting option for arbitrary BCs
+- Fix P1P2P4 stress test case
+- Add more printing statement to program output
+- Change formulation:
+    - Rename gamma to epsilon in inflow model
+    - Rename tau to Knudsen to have real dimensionless equations
+    - Replace sym(psi) -> psi because symmetric per definition
+    - Fix stf3d2 for arbitrary
+- Extend documentation:
+    - Extended tutorial
+    - Move legacy notes to bottom of README
+
 0.4 (2019-08-21)
 ~~~~~~~~~~~~~~~~
 
