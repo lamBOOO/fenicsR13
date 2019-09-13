@@ -13,6 +13,7 @@ exact solution.
 
 import sys
 import gc
+import functools as ft
 import dolfin as df
 
 import meshes
@@ -75,43 +76,59 @@ def main():
 
     inputfile = sys.argv[1] if len(sys.argv) == 2 else "input.yml"
 
-    params = Input(inputfile).dict
-    mesh_names = params["meshes"]
+    input_file = Input(inputfile)
+    params = input_file.dict
 
-    convergence_study = params["convergence_study"]["enable"]
-    show_plot = params["convergence_study"]["plot"]
+    # Setup parameter study loop
+    if params["parameter_study"]["enable"]:
+        parameter_values = params["parameter_study"]["parameter_values"]
+        parameter_key = params["parameter_study"]["parameter_key"]
+    else:
+        parameter_values = [""]
+        parameter_key = [""]
+    initial_case_name = params["case_name"]
+    for parameter_value in parameter_values:
+        input_file.set_in_input(parameter_key, parameter_value)
+        params["case_name"] = initial_case_name + str(parameter_value)
+        print("Study", parameter_key, ":", parameter_value)
 
-    data = []
+        # Ususal code:
+        mesh_names = params["meshes"]
 
-    for p, mesh_name in enumerate(mesh_names):
+        convergence_study = params["convergence_study"]["enable"]
+        show_plot = params["convergence_study"]["plot"]
 
-        print("Mesh: " + mesh_name)
+        data = []
 
-        mesh_name = mesh_names[p]
+        for p, mesh_name in enumerate(mesh_names):
 
-        current_mesh = meshes.H5Mesh(mesh_name)
-        solver = Solver(params, current_mesh, p)
+            print("Mesh: " + mesh_name)
 
-        solver.assemble()
-        solver.solve()
-        solver.write()
+            mesh_name = mesh_names[p]
 
-        if convergence_study:
+            current_mesh = meshes.H5Mesh(mesh_name)
+            solver = Solver(params, current_mesh, p)
 
-            errors = solver.calculate_errors()
+            solver.assemble()
+            solver.solve()
+            solver.write()
 
-            data.append({
-                "h": current_mesh.mesh.hmax(),
-                **errors
-            })
+            if convergence_study:
 
-            if p == len(mesh_names)-1: # after last mesh
-                postp = Postprocessor(data, params["case_name"])
-                postp.write_errors()
-                postp.plot_errors(show_plot)
+                errors = solver.calculate_errors()
 
-        solver = None
-        gc.collect()
+                data.append({
+                    "h": current_mesh.mesh.hmax(),
+                    **errors
+                })
+
+                if p == len(mesh_names)-1: # after last mesh
+                    postp = Postprocessor(data, params["case_name"])
+                    postp.write_errors()
+                    postp.plot_errors(show_plot)
+
+            solver = None
+            gc.collect()
 
 if __name__ == '__main__':
     main()

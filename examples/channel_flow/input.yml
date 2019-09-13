@@ -119,3 +119,13 @@ convergence_study:
 postprocessing:
   write_pdfs: True
   massflow: [3002]
+
+# Parameter Study
+# ==============
+# - enable: Enables the study to repeat the simulation with different values
+# - parameter_key: Parameter key as list, e.g. ["elemenets", "p", "degree"]
+# - parameter_values: List of value for parameter, e.g. [0.01,0.1,1,10]
+parameter_study:
+  enable: True
+  parameter_key: ["kn"]
+  parameter_values: [0.05,0.06,0.07,0.08,0.09,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0]

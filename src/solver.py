@@ -6,6 +6,7 @@ Solver module, contains the Solver class.
 For usage examples, see the :class:`solver.Solver` description.
 """
 
+import os
 import copy
 import dolfin as df
 import ufl
@@ -534,6 +535,7 @@ class Solver:
                 df.inner(self.sol["u"], n)*df.ds(bc_id)
             )
             print("mass flow rate of BC", bc_id, ":", mass_flow_rate)
+            self.write_content_to_file("massflow_"+str(bc_id), mass_flow_rate)
 
     def __load_exact_solution(self):
         """
@@ -868,6 +870,13 @@ class Solver:
             ers["sigmayy"] = te[2]
 
         return self.errors
+
+    def write_content_to_file(self, filename, content):
+        """Write content to a file in the output folder."""
+        path = self.output_folder + "/" + filename
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, mode='w') as file:
+             file.write(str(content))
 
     def write(self):
         """

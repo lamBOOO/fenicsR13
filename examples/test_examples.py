@@ -46,8 +46,9 @@ class TestExamples(object):
 
     def test_channel_flow(self):
         r"""
-        Test the channel flow case.
+        Test the channel flow case and generate table with Kn vs. massflow.
         """
         working_dir = "examples/channel_flow"
         self.create_meshes(working_dir)
         self.run_solver("input.yml", working_dir)
+        subprocess.check_call(["bash", "postprocessing.sh"], cwd=working_dir)

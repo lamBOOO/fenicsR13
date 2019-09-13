@@ -4,6 +4,8 @@ Module for input related Classes.
 Contains the Input class.
 """
 
+from functools import reduce
+import operator
 from json import dumps
 import yaml
 from cerberus import Validator
@@ -240,6 +242,24 @@ class Input:
                     },
                 }
             },
+            "parameter_study": {
+                "type": "dict",
+                "required": True,
+                "schema": {
+                    "enable": {
+                        "type": "boolean",
+                        "required": True
+                    },
+                    "parameter_key": {
+                        "type": "list",
+                        "required": True,
+                    },
+                    "parameter_values": {
+                        "type": "list",
+                        "required": True,
+                    },
+                }
+            },
             "convergence_study": {
                 "type": "dict",
                 "required": True,
@@ -388,3 +408,19 @@ class Input:
             raise Exception("Parsing error")
 
         print("Input:\n" + dumps(self.dict, indent=None))
+
+    def get_from_input(self, map_list):
+        """
+        Get value of the input dict by using a list of stacked keys.
+
+        Source: https://stackoverflow.com/questions/14692690/..
+                ..access-nested-dictionary-items-via-a-list-of-keys/37704379
+        """
+        try:
+            return reduce(operator.getitem, map_list, self.dict)
+        except:
+            raise Exception("Dict has no entry with the key:", map_list)
+
+    def set_in_input(self, map_list, value):
+        """Change value of the input dict by using a list of stacked keys."""
+        self.get_from_input(map_list[:-1])[map_list[-1]] = value
