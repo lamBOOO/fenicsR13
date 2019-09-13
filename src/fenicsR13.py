@@ -13,7 +13,6 @@ exact solution.
 
 import sys
 import gc
-import functools as ft
 import dolfin as df
 
 import meshes
