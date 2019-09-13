@@ -137,6 +137,17 @@ class Input:
         postprocessing:
         write_pdfs: True
 
+
+        # Parameter Study
+        # ==============
+        # - enable: Repeat simulation with different p. values (study)
+        # - parameter_key: Key as list, e.g. ["elemenets", "p", "degree"]
+        # - parameter_values: List of value for parameter, e.g. [0.01,0.1,1,10]
+        parameter_study:
+        enable: True
+        parameter_key: ["kn"]
+        parameter_values: [1,2,3]
+
     Further input examples can be found in the ``tests`` or ``examples``
     folders.
 

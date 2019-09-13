@@ -112,8 +112,8 @@ postprocessing:
 
 # Parameter Study
 # ==============
-# - enable: Enables the study to repeat the simulation with different values
-# - parameter_key: Parameter key as list, e.g. ["elemenets", "p", "degree"]
+# - enable: Repeat simulation with different p. values (study)
+# - parameter_key: Key as list, e.g. ["elemenets", "p", "degree"]
 # - parameter_values: List of value for parameter, e.g. [0.01,0.1,1,10]
 parameter_study:
   enable: False
