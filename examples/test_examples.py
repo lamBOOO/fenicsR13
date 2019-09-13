@@ -52,3 +52,11 @@ class TestExamples(object):
         self.create_meshes(working_dir)
         self.run_solver("input.yml", working_dir)
         subprocess.check_call(["bash", "postprocessing.sh"], cwd=working_dir)
+
+    def test_knudsen_pump(self):
+        r"""
+        Test the knudsen pump case.
+        """
+        working_dir = "examples/knudsen_pump"
+        self.create_meshes(working_dir)
+        self.run_solver("input.yml", working_dir)
