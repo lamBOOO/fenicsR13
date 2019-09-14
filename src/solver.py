@@ -299,10 +299,10 @@ class Solver:
         boundaries = self.boundaries
         bcs = self.bcs
         kn = df.Constant(self.kn)
-        xi_tilde = self.xi_tilde
-        delta_1 = self.delta_1
-        delta_2 = self.delta_2
-        delta_3 = self.delta_3
+        xi_tilde = df.Constant(self.xi_tilde)
+        delta_1 = df.Constant(self.delta_1)
+        delta_2 = df.Constant(self.delta_2)
+        delta_3 = df.Constant(self.delta_3)
 
         # Normal and tangential components
         # - tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
