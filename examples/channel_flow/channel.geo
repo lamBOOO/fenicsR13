@@ -8,10 +8,13 @@ res = 100;
 Mesh.CharacteristicLengthMax = 1.0 * 2^(-p);
 Mesh.MshFileVersion = 2.0;
 
-Point(1001) = {0, 0, 0, res};
-Point(1002) = {1, 0, 0, res};
-Point(1003) = {1, 1, 0, res};
-Point(1004) = {0, 1, 0, res};
+length=4;
+height=1;
+
+Point(1001) = {0,      0,      0, res};
+Point(1002) = {length, 0,      0, res};
+Point(1003) = {length, height, 0, res};
+Point(1004) = {0,      height, 0, res};
 
 Line(2001) = {1001,1002};
 Line(2002) = {1002,1003};

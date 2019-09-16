@@ -4,6 +4,10 @@ import numpy as np
 x, y = np.loadtxt("table.csv", delimiter=",", unpack=True)
 
 
+gui = False
+if not gui:
+    plt.switch_backend("agg")
+
 fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1)
 ax.plot(x,y, "-o", label="Channel Flow")
@@ -18,5 +22,4 @@ gui = False
 if gui:
     plt.show()
 else:
-    plt.switch_backend("agg")
     fig.savefig("fig.pdf", dpi=150)
