@@ -804,8 +804,8 @@ class Solver:
             errs_f_L2 = [x/y for x, y in zip(errs_f_L2, max_esols)]
             errs_v_linf = [x/y for x, y in zip(errs_v_linf, max_esols)]
 
-        print(str(name_) + " L_2 error:", errs_f_L2)
-        print(str(name_) + " l_inf error:", errs_v_linf)
+        print("Error " + str(name_) + " L_2:", errs_f_L2)
+        print("Error " + str(name_) + " l_inf:", errs_v_linf)
 
         self.__write_xdmf(name_ + "_e", field_e_i, False)
 
@@ -876,7 +876,8 @@ class Solver:
         path = self.output_folder + "/" + filename
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, mode='w') as file:
-             file.write(str(content))
+            print("Write: {}".format(path))
+            file.write(str(content))
 
     def write(self):
         """
@@ -1039,6 +1040,8 @@ class Solver:
                     break
 
             field.rename(name, name)
+
+            print("Write {}".format(fname_xdmf))
             file.write(field, self.time)
 
         if write_pdf:
@@ -1052,6 +1055,7 @@ class Solver:
                 )
                 plot = df.plot(field)
                 plt.colorbar(plot)
+                print("Write {}".format(fname_pdf))
                 plt.savefig(fname_pdf, dpi=150)
                 plt.close()
 
@@ -1065,5 +1069,6 @@ class Solver:
                     )
                     plot = df.plot(field.split()[i])
                     plt.colorbar(plot)
+                    print("Write {}".format(fname_pdf))
                     plt.savefig(fname_pdf, dpi=150)
                     plt.close()

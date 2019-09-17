@@ -149,7 +149,10 @@ class Postprocessor:
             plt.legend(loc='lower right')
 
         plt.tight_layout()
-        plt.savefig(self.output_folder + "/" + filename, dpi=150)
+
+        output_path = self.output_folder + "/" + filename
+        print("Write {}".format(output_path))
+        plt.savefig(output_path, dpi=150)
         if show_popup:
             plt.show()
 
@@ -166,9 +169,11 @@ class Postprocessor:
             0.6,0.1,0.1,0.0,0.1,0.1,0.1,0.0,0.3,0.0,0.3,0.0,0.3
         """
         filename = "errors.csv"
+        output_path = self.output_folder + "/" + filename
         data = self.data
 
-        with open(self.output_folder + "/" + filename, mode='w') as file:
+        with open(output_path, mode='w') as file:
+            print("Write {}".format(output_path))
             writer = csv.writer(file, delimiter=',', quotechar='"')
 
             # header
