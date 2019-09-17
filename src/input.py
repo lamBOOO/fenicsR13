@@ -22,8 +22,8 @@ class Input:
 
         # General
         # =======
-        # - case_name: Used as output folder
-        case_name: r13_1_coeffs_sources_rot_noinflow_p2p2p2p2p2_stab
+        # - output_folder: Used as output folder
+        output_folder: r13_1_coeffs_sources_rot_noinflow_p2p2p2p2p2_stab
 
         # Meshes
         # ======
@@ -301,7 +301,7 @@ class Input:
                     },
                 }
             },
-            "case_name": {
+            "output_folder": {
                 "type": "string",
                 "required": True,
             },

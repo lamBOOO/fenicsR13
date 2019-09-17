@@ -98,7 +98,7 @@ class Solver:
         self.relative_error = self.params["convergence_study"][
             "relative_error"
         ]
-        self.output_folder = self.params["case_name"] + "/"
+        self.output_folder = self.params["output_folder"] + "/"
         self.var_ranks = {
             "theta": 0,
             "s": 1,

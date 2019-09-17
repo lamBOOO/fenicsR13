@@ -1,7 +1,7 @@
 # General
 # =======
-# - case_name: Used as output folder
-case_name: lid_driven_cavity
+# - output_folder: Used as output folder
+output_folder: results_lid_driven_cavity
 
 # Meshes
 # ======

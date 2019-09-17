@@ -1,7 +1,7 @@
 # General
 # =======
-# - case_name: Used as output folder
-case_name: channel_flow
+# - output_folder: Used as output folder
+output_folder: results_channel_flow
 
 # Meshes
 # ======

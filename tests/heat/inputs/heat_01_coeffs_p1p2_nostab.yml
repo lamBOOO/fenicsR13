@@ -1,7 +1,7 @@
 # General
 # =======
-# - case_name: Used as output folder
-case_name: heat_01_coeffs_p1p2_nostab
+# - output_folder: Used as output folder
+output_folder: heat_01_coeffs_p1p2_nostab
 
 # Meshes
 # ======

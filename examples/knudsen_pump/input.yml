@@ -1,7 +1,7 @@
 # General
 # =======
-# - case_name: Used as output folder
-case_name: knudsen_pump
+# - output_folder: Used as output folder
+output_folder: results_knudsen_pump
 
 # Meshes
 # ======

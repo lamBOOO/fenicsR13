@@ -1,7 +1,7 @@
 # General
 # =======
-# - case_name: Used as output folder
-case_name: stress_01_source_rot_p1p2p3_nostab
+# - output_folder: Used as output folder
+output_folder: stress_01_source_rot_p1p2p3_nostab
 
 # Meshes
 # ======

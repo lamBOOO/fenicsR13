@@ -87,10 +87,10 @@ def main():
     else:
         parameter_values = [""]
         parameter_key = [""]
-    initial_case_name = params["case_name"]
+    initial_output_folder = params["output_folder"]
     for parameter_value in parameter_values:
         input_file.set_in_input(parameter_key, parameter_value)
-        params["case_name"] = initial_case_name + str(parameter_value)
+        params["output_folder"] = initial_output_folder + str(parameter_value)
         print("Study", parameter_key, ":", parameter_value)
 
         # Ususal code:
@@ -124,7 +124,7 @@ def main():
                 })
 
                 if p == len(mesh_names)-1: # after last mesh
-                    postp = Postprocessor(data, params["case_name"])
+                    postp = Postprocessor(data, params["output_folder"])
                     postp.write_errors()
                     postp.plot_errors(show_plot)
 
