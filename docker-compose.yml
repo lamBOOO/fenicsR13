@@ -2,8 +2,6 @@ version: '3.2'
 services:
   fenics:
     build: .
-    environment: # open tunnel first and set ${ip}
-       - DISPLAY=${ip}:0
     working_dir: /home/fenics/shared
     volumes:
       - ~/.gitconfig:/etc/gitconfig:ro # copy Git config to commit correctly
@@ -19,6 +17,9 @@ services:
       - 127.0.0.1:8000:8000
     stdin_open: true
     tty: true
+    ### DEPRECATED:
+    # environment: # open tunnel first and set ${ip}
+    #    - DISPLAY=${ip}:0
 
 volumes:
   instant-cache:
