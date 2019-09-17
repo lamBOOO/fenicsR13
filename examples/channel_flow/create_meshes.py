@@ -8,7 +8,7 @@ import dolfin as df
 GMSH_PATH = "gmsh"
 GEO_NAME = "channel"
 
-def create_mesh(exponent):
+def create_mesh(exponent, remove_intermediate_files=True):
     "Generates a mesh using gmsh"
 
     mesh_name = "{}{}".format(GEO_NAME, exponent)
@@ -29,6 +29,15 @@ def create_mesh(exponent):
     file.write(mesh, "/mesh")
     file.write(subdomains, "/subdomains")
     file.write(boundaries, "/boundaries")
+
+    if remove_intermediate_files:
+        # Remove intermediate files from..
+        # 1) Gmsh:
+        os.remove("{}.msh".format(mesh_name))
+        # 2) dolfin-convert:
+        os.remove("{}.xml".format(mesh_name))
+        os.remove("{}_facet_region.xml".format(mesh_name))
+        os.remove("{}_physical_region.xml".format(mesh_name))
 
     return (mesh, subdomains, boundaries)
 
