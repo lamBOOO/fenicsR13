@@ -1055,6 +1055,9 @@ class Solver:
                 )
                 plot = df.plot(field)
                 plt.colorbar(plot)
+                plt.xlabel("x")
+                plt.ylabel("y")
+                plt.title(field)
                 print("Write {}".format(fname_pdf))
                 plt.savefig(fname_pdf, dpi=150)
                 plt.close()
@@ -1063,12 +1066,16 @@ class Solver:
                 # skip scalars
                 components = len(field.split())
                 for i in range(components):
+                    fieldname = name + "_" + str(i+1)
                     fname_pdf = (
-                        self.output_folder + name + "_" + str(i+1)
+                        self.output_folder + fieldname
                         + "_" + str(self.time) + ".pdf"
                     )
                     plot = df.plot(field.split()[i])
                     plt.colorbar(plot)
+                    plt.xlabel("x")
+                    plt.ylabel("y")
+                    plt.title(fieldname)
                     print("Write {}".format(fname_pdf))
                     plt.savefig(fname_pdf, dpi=150)
                     plt.close()
