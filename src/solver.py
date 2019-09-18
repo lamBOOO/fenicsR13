@@ -8,6 +8,7 @@ For usage examples, see the :class:`solver.Solver` description.
 
 import os
 import copy
+import time as time_module
 import dolfin as df
 import ufl
 import numpy as np
@@ -491,7 +492,7 @@ class Solver:
             }
 
         """
-        print("Solve..")
+
 
         if self.mode == "heat":
             w = self.mxd_fspaces["heat"]
@@ -500,11 +501,15 @@ class Solver:
         elif self.mode == "r13":
             w = self.mxd_fspaces["r13"]
 
+        print("Start solving system..")
+        start_t = time_module.time()
         sol = df.Function(w)
         df.solve(
             self.form_a == self.form_b, sol, [],
             solver_parameters={"linear_solver": "mumps"}
         )
+        end_t = time_module.time()
+        print("Finished solving system in: {}".format(str(end_t - start_t)))
 
         if self.mode == "heat":
             (self.sol["theta"], self.sol["s"]) = sol.split()
