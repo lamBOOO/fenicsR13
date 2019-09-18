@@ -31,8 +31,8 @@ def print_information():
         -> Version: v0.5
         -> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
         -> Contact: Manuel Torrilhon <mt@mathcces.rwth-aachen.de>
-        -> Repository: https://git.rwth-aachen.de/lamBOO/fenicsR13
-        -> Documentation: https://lamboo.pages.rwth-aachen.de/fenicsR13/
+        -> Repository: <https://git.rwth-aachen.de/lamBOO/fenicsR13>
+        -> Documentation: <https://lamboo.pages.rwth-aachen.de/fenicsR13/>
           __            _          ____  _ _____
          / _| ___ _ __ (_) ___ ___|  _ \/ |___ /
         | |_ / _ \ '_ \| |/ __/ __| |_) | | |_ \
@@ -43,8 +43,8 @@ def print_information():
     print(r"""-> Version: v0.5
 -> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
 -> Contact: Manuel Torrilhon <mt@mathcces.rwth-aachen.de>
--> Repository: https://git.rwth-aachen.de/lamBOO/fenicsR13
--> Documentation: https://lamboo.pages.rwth-aachen.de/fenicsR13/
+-> Repository: <https://git.rwth-aachen.de/lamBOO/fenicsR13>
+-> Documentation: <https://lamboo.pages.rwth-aachen.de/fenicsR13/>
   __            _          ____  _ _____
  / _| ___ _ __ (_) ___ ___|  _ \/ |___ /
 | |_ / _ \ '_ \| |/ __/ __| |_) | | |_ \

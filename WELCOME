@@ -2,8 +2,8 @@
 --------------------------------------------------------------------------------
 -> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
 -> Contact: Manuel Torrilhon <mt@mathcces.rwth-aachen.de>
--> Repository: https://git.rwth-aachen.de/lamBOO/fenicsR13
--> Documentation: https://lamboo.pages.rwth-aachen.de/fenicsR13/
+-> Repository: <https://git.rwth-aachen.de/lamBOO/fenicsR13>
+-> Documentation: <https://lamboo.pages.rwth-aachen.de/fenicsR13/>
   __            _          ____  _ _____
  / _| ___ _ __ (_) ___ ___|  _ \/ |___ /
 | |_ / _ \ '_ \| |/ __/ __| |_) | | |_ \
@@ -11,5 +11,6 @@
 |_|  \___|_| |_|_|\___|___/_| \_\_|____/
 
 The base folder of this image is `/home/fenics/shared`, where all fenicsR13 solver files and examples are located. Information and tutorials can be found in the documentation or the `README.rst`.
---------------------------------------------------------------------------------
 
+This solver is based on the FEniCS Project <https://fenicsproject.org/> and its Docker image. Pure FEniCS demos can therefore be found in `/home/fenics/demos`.
+--------------------------------------------------------------------------------
