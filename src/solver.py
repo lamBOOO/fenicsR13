@@ -1048,6 +1048,7 @@ class Solver:
             import matplotlib.pyplot as plt
             plt.switch_backend('agg')
             dimension = len(field.value_shape())
+
             if dimension < 2:
                 # skip tensors
                 fname_pdf = (
@@ -1065,8 +1066,20 @@ class Solver:
             if dimension > 0:
                 # skip scalars
                 components = len(field.split())
+                indexMap = {
+                    1: {
+                        1: "x",
+                        2: "y"
+                    },
+                    2: {
+                        1: "xx",
+                        2: "xy",
+                        3: "yx",
+                        4: "yy",
+                    }
+                }
                 for i in range(components):
-                    fieldname = name + "_" + str(i+1)
+                    fieldname = name + "_" + str(indexMap[dimension][i+1])
                     fname_pdf = (
                         self.output_folder + fieldname
                         + "_" + str(self.time) + ".pdf"
