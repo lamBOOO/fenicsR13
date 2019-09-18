@@ -42,11 +42,11 @@ class TestExamples(object):
 
         Velocity:
 
-        .. image:: /../examples/lid_driven_cavity/1.jpg
+        .. image:: /images/lid_driven_cavity1.jpg
 
         Stress component :math:`\sigma_{xy}`:
 
-        .. image:: /../examples/lid_driven_cavity/2.jpg
+        .. image:: /images/lid_driven_cavity2.jpg
         """
         working_dir = "examples/lid_driven_cavity"
         self.create_meshes(working_dir)
@@ -56,8 +56,8 @@ class TestExamples(object):
         r"""
         Test the channel flow case and generate table with Kn vs. massflow.
 
-        .. image:: /../examples/channel_flow/1.jpg
-        .. image:: /../examples/channel_flow/2.jpg
+        .. image:: /images/channel_flow1.jpg
+        .. image:: /images/channel_flow2.jpg
         """
         working_dir = "examples/channel_flow"
         self.create_meshes(working_dir)
@@ -68,7 +68,7 @@ class TestExamples(object):
         r"""
         Test the knudsen pump case.
 
-        .. image:: /../examples/knudsen_pump/1.jpg
+        .. image:: /images/knudsen_pump1.jpg
         """
         working_dir = "examples/knudsen_pump"
         self.create_meshes(working_dir)
