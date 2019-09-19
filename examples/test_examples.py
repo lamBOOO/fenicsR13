@@ -39,14 +39,6 @@ class TestExamples(object):
     def test_lid_driven_cavity(self):
         r"""
         Test the lid driven cavity case.
-
-        Velocity:
-
-        .. image:: /images/lid_driven_cavity1.jpg
-
-        Stress component :math:`\sigma_{xy}`:
-
-        .. image:: /images/lid_driven_cavity2.jpg
         """
         working_dir = "examples/lid_driven_cavity"
         self.create_meshes(working_dir)
@@ -55,9 +47,6 @@ class TestExamples(object):
     def test_channel_flow(self):
         r"""
         Test the channel flow case and generate table with Kn vs. massflow.
-
-        .. image:: /images/channel_flow1.jpg
-        .. image:: /images/channel_flow2.jpg
         """
         working_dir = "examples/channel_flow"
         self.create_meshes(working_dir)
@@ -67,8 +56,6 @@ class TestExamples(object):
     def test_knudsen_pump(self):
         r"""
         Test the knudsen pump case.
-
-        .. image:: /images/knudsen_pump1.jpg
         """
         working_dir = "examples/knudsen_pump"
         self.create_meshes(working_dir)
