@@ -41,5 +41,5 @@ def create_mesh(exponent, remove_intermediate_files=True):
 
     return (mesh, subdomains, boundaries)
 
-for p in range(0, 5+1):
+for p in range(4, 4+1):
     create_mesh(p)

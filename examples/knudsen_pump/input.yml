@@ -7,7 +7,7 @@ output_folder: results_knudsen_pump
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  - knudsen_pump3.h5
+  - knudsen_pump4.h5
   # - knudsen_pump5.h5
 
 # Numerical Parameters
@@ -73,49 +73,49 @@ mass_source: 0
 #     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
 bcs:
   3010: # inner top
-    theta_w: x[0]/1.0
+    theta_w: 0.5 * x[0] + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3011: # inner left
-    theta_w: -(atan2(x[1],-(x[0]+1.0)))/(M_PI/2.0)
+    theta_w: -0.5 * (atan2(x[1],-(x[0] + 1.0)))/(M_PI/2.0) + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3012: # inner bottom
-    theta_w: -x[0]/1.0
+    theta_w: -0.5 * x[0] + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3013: # inner right
-    theta_w: (atan2(x[1],(x[0]-1.0)))/(M_PI/2.0)
+    theta_w: 0.5 * (atan2(x[1],(x[0]-1.0)))/(M_PI/2.0) + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3020: # outer top
-    theta_w: x[0]/1.0
+    theta_w: 0.5 * x[0] + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3021: # outer left
-    theta_w: -(atan2(x[1],-(x[0]+1.0)))/(M_PI/2.0)
+    theta_w: -0.5 * (atan2(x[1],-(x[0] + 1.0)))/(M_PI/2.0) + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3022: # outer bottom
-    theta_w: -x[0]/1.0
+    theta_w: -0.5 * x[0] + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3023: # outer right
-    theta_w: (atan2(x[1],(x[0]-1.0)))/(M_PI/2.0)
+    theta_w: 0.5 * (atan2(x[1],(x[0]-1.0)))/(M_PI/2.0) + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
