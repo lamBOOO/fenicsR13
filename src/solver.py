@@ -358,16 +358,19 @@ class Solver:
                 + 12/5 * kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
                 + 2/3 * (1/kn) * df.inner(s, r)
                 - (5/2) * theta * df.div(r)
-                + cpl * df.dot(df.div(sigma), r)
+                + cpl * df.dot(df.div(sigma), r) # SAME RESULTS
+                # - cpl * df.inner(sigma, df.grad(r)) # SAME RESULTS
             ) * df.dx + (
                 + (
                     + 5/(4*xi_tilde) * s_n
                     - cpl * 5/8 * sigma_nn
+                    # + cpl * sigma_nn # SAME RESULTS
                 ) * r_n
                 + (
                     + 11/10 * xi_tilde * s_t
                     + cpl * 1/10 * xi_tilde * s_t
                     - cpl * 1/2 * sigma_nt
+                    # + cpl * sigma_nt # SAME RESULTS
                 ) * r_t
             ) * df.ds
             l1 = sum([
