@@ -1,3 +1,4 @@
+Last update: |today|
 
 .. include:: ../README.rst
     :start-after: inclusion-marker
@@ -21,8 +22,3 @@ Contents
     source/tests/stress/modules.rst
     source/tests/r13/modules.rst
     source/examples/modules.rst
-
-Last Update
------------
-
-|today|

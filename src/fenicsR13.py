@@ -66,7 +66,7 @@ def main():
         # Usage: <path_to_program> <input_file>
         # Goto case folder:
         cd tests/heat
-        python3 ../../src.fenicsR13.py heat_01_coeffs_p1p1_stab.yml
+        python3 ../../src/fenicsR13.py inputs/heat_01_coeffs_p1p1_stab.yml
 
     """
     print_information()

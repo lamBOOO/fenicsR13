@@ -61,6 +61,13 @@ class TestR13Convergence(object):
         r"""
         Execute full linear R13 system test and check with reference errors.
 
+        Test case is similar to  [WES2019]_.
+
+        .. [WES2019] A. Westerkamp and M. Torrilhon. “Finite Element Methods
+            for the Linear Regularized 13-Moment Equations Describing Slow
+            Rarefied Gas Flows”. In: Journal of Computational Physics 389
+            (2019).
+
         ========================= ==============================================
         Parameter     Value
         ========================= ==============================================
@@ -71,12 +78,12 @@ class TestR13Convergence(object):
         :math:`v_t^1`             :math:`10.0`
         :math:`v_n^1`             :math:`0`
         :math:`p_w^1`             :math:`0`
-        :math:`\epsilon_w^1`        :math:`10^{-3}`
+        :math:`\epsilon_w^1`      :math:`0`
         :math:`\theta_w^2`        :math:`0.5`
         :math:`v_t^2`             :math:`0.0`
         :math:`v_n^2`             :math:`0`
         :math:`p_w^2`             :math:`0`
-        :math:`\epsilon_w^2`        :math:`10^{-3}`
+        :math:`\epsilon_w^2`      :math:`0`
         Elements                  :math:`P_1P_1P_1P_1P_1`
         Stabilization             CIP: :math:`\delta_1,\delta_2=1,\delta_3=0.01`
         ========================= ==============================================
@@ -91,6 +98,8 @@ class TestR13Convergence(object):
         r"""
         Execute full linear R13 system test and check with reference errors.
 
+        Test case is similar to  [WES2019]_.
+
         ========================= ==============================================
         Parameter     Value
         ========================= ==============================================
@@ -101,12 +110,12 @@ class TestR13Convergence(object):
         :math:`v_t^1`             :math:`10.0`
         :math:`v_n^1`             :math:`0`
         :math:`p_w^1`             :math:`0`
-        :math:`\epsilon_w^1`        :math:`10^{-3}`
+        :math:`\epsilon_w^1`      :math:`0`
         :math:`\theta_w^2`        :math:`0.5`
         :math:`v_t^2`             :math:`0.0`
         :math:`v_n^2`             :math:`0`
         :math:`p_w^2`             :math:`0`
-        :math:`\epsilon_w^2`        :math:`10^{-3}`
+        :math:`\epsilon_w^2`      :math:`0`
         Elements                  :math:`P_2P_2P_2P_2P_2`
         Stabilization             CIP: :math:`\delta_1,\delta_2=1,\delta_3=0.01`
         ========================= ==============================================

@@ -20,19 +20,7 @@ class Solver:
     Class to store the actual solver.
 
     Possible order of methods in context of convergence study
-    (see main program):
-
-    .. digraph:: foo
-
-        "START, mesh=meshes[i=0]" ->
-        "__init__" ->
-        "assemble()" ->
-        "solve()" ->
-        "write()" ->
-        "..." ->
-        "mesh=meshes[i+1]" ->
-        "__init__";
-        "..." -> "END";
+    (see main program): "mesh=meshes[i=0]", "__init__", "assemble()", "solve()", "write()", "...", "mesh=meshes[i+1]", "__init__", "..."
 
     Parameters
     ----------
@@ -263,30 +251,6 @@ class Solver:
 
         .. [TOR2003] H Struchtrup, M Torrilhon (2003). Regularization of
             Grad's 13 moment equations: derivation and linear analysis.
-
-        .. |Rt| mathmacro:: \underline{\underline{R}}
-        .. |st| mathmacro:: \underline{s}
-
-        **Heat**:
-
-        .. math::
-            -\frac{24}{5} \mathrm{Kn} (\nabla \st)_{\mathrm{STF}} - \Rt &= 0 \\
-            \frac{1}{2} \nabla \cdot \Rt + \frac{2}{3\mathrm{Kn}} \st
-            + \frac{5}{2}
-            \nabla \theta &= 0 \\
-            \nabla \cdot \st &= f \\
-
-        **Stress**
-
-        Includes i.a. the term
-
-        .. math::
-
-            (\nabla \underline{\underline{\sigma}})_{\mathrm{STF}} :
-            \nabla \underline{\underline{\psi}}
-
-        for :math:`\theta` and :math:`\st` with a given heat source :math:`f`
-        and the Knudsen number :math:`\mathrm{Kn}`.
 
         """
         # Check if all mesh boundaries have bcs presibed frm input
@@ -701,7 +665,6 @@ class Solver:
 
                 mean = np.mean(scalar_function.compute_vertex_values())
         """
-        #
         v = scalar_function.compute_vertex_values()
         mean = np.mean(v)
         return mean
@@ -750,15 +713,6 @@ class Solver:
         References
         ----------
         .. [1] `DOLFIN documentation <https://fenicsproject.org/docs/dolfin/>`_
-
-        Examples
-        --------
-        Here should be some doctest examples.
-
-        >>> a=1
-        >>> b=2
-        >>> print(a+b)
-        3
 
         """
         field_e_i = df.interpolate(field_e_, v_field)

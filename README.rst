@@ -131,10 +131,15 @@ Manual Generation
 
 .. code-block:: bash
 
+    # cat .gitlab-ci.yml
     cd docs
-    sphinx-apidoc -o source/ ../src
+    sphinx-apidoc -o source/src ../src
+    sphinx-apidoc -o source/tests/heat ../tests/heat
+    sphinx-apidoc -o source/tests/stress ../tests/stress
+    sphinx-apidoc -o source/tests/r13 ../tests/r13
+    sphinx-apidoc -o source/examples ../examples
     make html
-    # open _build/html/index.html
+    make latex
 
 Developer Legacy Notes
 --------------------------------------------------------------------------------
