@@ -1,6 +1,16 @@
 Change log
 ----------
 
+1.0 (2019-09-23)
+~~~~~~~~~~~~~~~~
+
+- Improve examples
+    - Remove auxiliary files, clean cases, improve output plots and change some meshes
+- Add WELCOME screen to Docker container with link to website and documentation
+- Introduce more variables as ``dolfin.Constant()`` for parameters study w.o. compiling
+- Add time measure for linear solve
+- Thesis submission version
+
 0.5 (2019-09-13)
 ~~~~~~~~~~~~~~~~
 
