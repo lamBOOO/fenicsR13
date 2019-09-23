@@ -2,8 +2,6 @@
 
 """
 Module to store the postprocessor classes.
-
-Currently, only Psotprocessor class present.
 """
 
 from itertools import chain

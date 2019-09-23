@@ -172,7 +172,8 @@ Developer Tips
 
 Python notes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Get current work directory
+
+- Get current work directory:
 
     .. code-block:: python
 
@@ -180,7 +181,7 @@ Python notes
         cwd = os.getcwd()
         print(cwd)
 
-- Latex font for matplotlib
+- Latex font for matplotlib:
 
     .. code-block:: python
 
@@ -189,7 +190,7 @@ Python notes
         plt.rc('text', usetex=True)
         plt.rc('font', family='serif')
 
-- Get system path where modules are searched
+- Get system path where modules are searched:
 
     .. code-block:: python
 
@@ -201,6 +202,7 @@ Create new version tag
 1. Add CHANGELOG entry
 2. Adapt version in `conf.py` for docs
 3. Change badge in ``README.rst``
+4. Change version in program information printing
 
 Gitlab CI Setup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -212,7 +214,7 @@ Gitlab CI Setup
 - Run local: ``gitlab-runner exec docker --docker-privileged build`` or with ``build`` replaced by job name
     - maybe local vars have to be change to use local Docker images because ``CI_REGISTRY``,... are not set
 
-A example gitlab runner ``config/toml`` in ``~/.gitlab-runner`` can look like:
+An example gitlab runner ``config/toml`` in ``~/.gitlab-runner`` can look like:
 
 .. code-block:: toml
 
@@ -299,11 +301,6 @@ The steps can be summarized as:
 
 Contact
 --------------------------------------------------------------------------------
-
-.. image:: ./media/mathcces.png
-    :width: 400px
-    :alt: mathcces
-    :target: http://www.mathcces.rwth-aachen.de
 
 :Author:
     | Lambert Theisen

@@ -20,7 +20,15 @@ class Solver:
     Class to store the actual solver.
 
     Possible order of methods in context of convergence study
-    (see main program): "mesh=meshes[i=0]", "__init__", "assemble()", "solve()", "write()", "...", "mesh=meshes[i+1]", "__init__", "..."
+    (see main program):
+    "mesh=meshes[i=0]",
+    "__init__", "assemble()",
+    "solve()",
+    "write()",
+    "...",
+    "mesh=meshes[i+1]",
+    "__init__",
+    "..."
 
     Parameters
     ----------

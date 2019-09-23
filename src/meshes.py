@@ -30,9 +30,11 @@ class H5Mesh:
         Construct the object.
 
         This includes:
-        (#) Read mesh
-        (#) Read subdomains
-        (#) Read boudnaries
+
+            (#) Read mesh
+            (#) Read subdomains
+            (#) Read boudnaries
+
         """
         if not os.path.isfile(h5_file):
             raise Exception(f"{h5_file} not found")
