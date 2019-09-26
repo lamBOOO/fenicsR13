@@ -39,7 +39,6 @@ extensions = [
   'sphinx.ext.mathjax',
   'sphinx.ext.viewcode',
   'sphinx.ext.napoleon', # for numpy and Google docstrings
-  'fluiddoc.mathmacro',
   'sphinx.ext.imgconverter', # for svg usage in latex, but bad output
   'sphinx.ext.graphviz',
 ]

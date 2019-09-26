@@ -1,13 +1,15 @@
-pylint>=2.3.1
-rope>=0.14.0
+# Program related
 pyyaml>=5.1.1
 cerberus>=1.3.1
 pytest>=5.0.1
 pytest-cov>_2.7.1
 Sphinx>=2.1.2
 sphinxcontrib-napoleon>=0.7
+Pygments>=2.4.2
+
+# IDE related (can be skipped)
+pylint>=2.3.1
+rope>=0.14.0
 doc8>=0.8.0
 autopep8>=1.4.4
-fluiddyn>=0.3.1
-Pygments>=2.4.2
 pydocstyle>=4.0.1
