@@ -39,3 +39,4 @@ RUN pip install --requirement /tmp/requirements.txt
 
 # Replace default FEniCS Docker WELCOME screen with custom WELCOME screen
 COPY WELCOME .
+RUN echo "Built: $(date)" >> WELCOME

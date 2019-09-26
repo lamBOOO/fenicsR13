@@ -1,7 +1,7 @@
 // See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
 	"dockerComposeFile": "docker-compose.yml",
-	"service": "fenics",
+	"service": "fenicsr13_debug",
 	"workspaceFolder": "/home/fenics/shared",
 	"extensions": [
 		"ms-python.python",

@@ -1,6 +1,24 @@
 version: '3.2'
+
 services:
-  fenics:
+  fenicsr13_release:
+    image: registry.git.rwth-aachen.de/lamboo/fenicsr13:latest
+    working_dir: /home/fenics/shared
+    volumes:
+      - ~/.gitconfig:/etc/gitconfig:ro # copy Git config to commit correctly
+      - type: bind
+        source: .
+        target: /home/fenics/shared
+      - type: volume
+        source: instant-cache
+        target: /home/fenics/.cache
+        volume:
+          nocopy: true
+    ports:
+      - 127.0.0.1:8000:8000
+    stdin_open: true
+    tty: true
+  fenicsr13_debug:
     build: .
     working_dir: /home/fenics/shared
     volumes:
@@ -17,9 +35,6 @@ services:
       - 127.0.0.1:8000:8000
     stdin_open: true
     tty: true
-    ### DEPRECATED:
-    # environment: # open tunnel first and set ${ip}
-    #    - DISPLAY=${ip}:0
 
 volumes:
   instant-cache:

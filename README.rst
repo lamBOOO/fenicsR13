@@ -32,9 +32,9 @@ First install `Docker Desktop`_ for your OS. Then:
     git clone git@git.rwth-aachen.de:lamBOO/fenicsR13.git
     cd fenicsR13
 
-    # Build and run fenics service
-    docker-compose build fenics
-    docker-compose run fenics
+    # Pull and run fenicsr13_release service
+    docker-compose pull fenicsr13_release
+    docker-compose run fenicsr13_release
 
     ### 1.START) Execute lid_driven_cavity example
     # Move to folder:
