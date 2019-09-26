@@ -12,7 +12,7 @@ ENV GMSH_VERSION 4.4.0
 # Download Install Gmsh SDK with dependecies from Github's dolfinx Dockerfile
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get -qq update && \
-    apt-get -yq --with-new-pkgs -o Dpkg::Options::="--force-confold" upgrade && \
+    # apt-get -yq --with-new-pkgs -o Dpkg::Options::="--force-confold" upgrade && \ # skip 110 package updates/upgrades
     apt-get -y install \
         libglu1 \
         libxcursor-dev \
@@ -25,7 +25,9 @@ RUN cd /usr/local && \
 ENV PATH=/usr/local/gmsh-${GMSH_VERSION}-Linux64-sdk/bin:$PATH
 
 # Install additional programs
-RUN apt-get update && apt-get install -y \
+RUN \
+    apt-get update && \
+    apt-get install -y \
     numdiff \
     htop \
     imagemagick
