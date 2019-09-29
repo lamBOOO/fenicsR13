@@ -11,20 +11,14 @@ fenicsR13
 
 ``#extendedGasDynamics`` ``#using`` ``#FEniCS``
 
-  Repository for Master thesis project regarding FEM simulations for
-  non-equilibrium gas dynamics.
+  Repository for FEM simulations of non-equilibrium gas dynamics based on the Regularized 13-Moment-Equations for rarefied and micro-flows in 2D.
 
 Installation
 --------------------------------------------------------------------------------
 
-It is recommended to use the program within a Docker container.
+This repository contains all main and auxiliary scripts to solve the linear R13 equations for rarefied gas flows with the `FEniCS`_ software in 2D, including examples and some convergence tests.
 
-Docker
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-First install `Docker Desktop`_ for your OS. Then:
-
-.. _`Docker Desktop`: https://www.docker.com/products/docker-desktop
+Download the repository as a `zip-file`_ and un-zip, or use `git`_ with
 
 .. code-block:: bash
 
@@ -32,54 +26,107 @@ First install `Docker Desktop`_ for your OS. Then:
     git clone git@git.rwth-aachen.de:lamBOO/fenicsR13.git
     cd fenicsR13
 
-    # Pull and run fenicsr13_release service
-    docker-compose pull fenicsr13_release
-    docker-compose run fenicsr13_release
 
-    ### 1.START) Execute lid_driven_cavity example
+.. _`FEniCS`: https://fenicsproject.org/
+.. _`zip-file`: https://git.rwth-aachen.de/lamBOO/fenicsR13/-/archive/master/fenicsR13-master.zip
+.. _`git`: https://git-scm.com/
+
+
+Docker
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is recommended to use the program with `Docker`_, a virtualization software available (with free docker account) for `download`_ for most operating systems. Our repository provides a Docker container based on the official FEniCS Docker image which contains all necessities for FEniCS and has been adjusted to solve the R13 equations.
+
+.. _`Docker`: https://en.wikipedia.org/wiki/Docker_(software)
+.. _`download`: https://www.docker.com/products/docker-desktop
+
+Starting the Environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Make sure you installed Docker and it is running on your system. You can start the fenicsR13 compute environment from the root-directory of the repository using the command-line 
+
+.. code-block:: bash
+
+    # Run (and possibly pull) fenicsr13_release service
+    docker-compose run --rm fenicsr13_release
+
+When you run this for the first time, docker will pull (download and extract) the container image from our repository which is roughly 800MB and the download may require some patience. After the initial download the docker image will be stored (2-3 GB) on your system and any new run will start the container immediately. 
+
+The above docker command will start a RedHat-based bash environment. The repository is mounted as a volume under ``/home/fenics/shared`` in the container and should be the default folder on startup. What ever is changed in this folder or its sub-folders will change in the folder on your original system as well. However, any changes outside this folder will be gone after you exit the docker environment.
+
+Running a Simulation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To execute a simulation case, go to to the case folder (e.g. ``examples/lid_driven_cavity``)
+
+.. code-block:: bash
+
     # Move to folder:
     cd examples/lid_driven_cavity
+
+We provide a script to utilize `gmsh`_ and generate a `H5`_ mesh-file from a local geometry file by
+
+.. code-block:: bash
+
     # Create mesh:
     python3 create_meshes.py
+
+To run a simulation execute the solver main program ``fenicsR13.py`` (which is located in the ``src``-directory in the top level) while specifying an input file as first command line argument. 
+
+.. code-block:: bash
+
     # Run program with given input file:
     python3 ../../src/fenicsR13.py input.yml
-    # Go to folder with simulation results (=casename in input.yml)
-    cd lid_driven_cavity
-    # Perform GUI visualization on XDMF-files with Paraview:
-    echo "Data files:" $(find . -name "*.xdmf")
-    echo "E.g.: Open Paraview > File > Open > u_0.xdmf > Apply filters"
-    # Inspect PDF field plots:
-    echo "Field plots:" $(find . -name "*.pdf")
+
+
+Output files will be written to a folder which is named after the ``output_folder`` keyword of the ``input.yml``. For immediate inspection the output folder contains simple visualizations in PDF files for each of the fields (temperature, pressure,...).
+
+The numerical results for each field is ouput into ``h5``-files, including mesh data and with corresponding ``xdmf``-file. The XDMF-files can be opened in Paraview to perform visualization, e.g., with ``Paraview > File > Open > u_0.xdmf > Apply filters`` 
+
+.. _`gmsh`: http://gmsh.info/
+.. _`H5`: https://en.wikipedia.org/wiki/Hierarchical_Data_Format
+
+.. code-block:: bash
+
     # Leave directory:
     cd ../..
-    ### 1.END)
 
-    ### 2.START) Execute channel_flow example
+**Channel Flow Example**
+
+We provide a simple example of a flow through a finite-length channel in 2D.
+
+.. code-block:: bash
+
     # Move to folder:
     cd examples/channel_flow
     # Create mesh:
     python3 create_meshes.py
     # Run program with given input file:
     python3 ../../src/fenicsR13.py input.yml
+
+In the output folder the results can be post-processed to demonstrate the `Knudsen paradox`_ in a simple table.
+
+.. code-block:: bash
+
     # Go to folder with simulation results (=casename in input.yml)
     cd channel_flow
-    # Perform GUI visualization on XDMF-files with Paraview:
-    echo "Data files:" $(find . -name "*.xdmf")
-    echo "E.g.: Open Paraview > File > Open > u_0.xdmf > Apply filters"
-    # Inspect PDF field plots:
-    echo "Field plots:" $(find . -name "*.pdf")
     # Generate correlation data between Knudsen number and massflow
     bash postprocessing.sh
     cat table.csv
-    echo "Knudsen paradox ;-)"
     # Leave directory:
     cd ../..
-    ### 2.END)
 
-    ### 3.START) Execute convergence test
+.. _`Knudsen paradox`: https://en.wikipedia.org/wiki/Knudsen_paradox
+
+**Convergence Study**
+
+We can test the convergence of the R13 discretization on a simple double-cylindrical geometry.
+
+.. code-block:: bash
+
     # Move to folder:
     cd tests/r13
-    # Meshes already in Git:
+    # Meshes are already in Git:
     ls ../mesh
     # Run program with given input file:
     python3 ../../src/fenicsR13.py inputs/r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.yml
@@ -87,30 +134,38 @@ First install `Docker Desktop`_ for your OS. Then:
     cd r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab
     # Open errors:
     cat errors.csv
-    # Open PDF convergence plot:
-    echo "E.g.: Open Adobe Reader > File > Open > convergence_plot_r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.pdf"
-    # Perform GUI visualization on XDMF-files with Paraview:
-    echo "Data files:" $(find . -name "*.xdmf")
-    echo "E.g.: Open Paraview > File > Open > u_0.xdmf > Apply filters"
-    # Leave directory:
-    cd ../..
-    ### 3.END)
+
+
+
+Additional information
+--------------------------------------------------------------------------------
+
+Parallel Execution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+FEniCS allows simple parallelization using MPI
+
+.. code-block:: bash
 
     # Parallel execution ("-u" to flash stdout)
     # Usage: mpirun -n <numberOfProcesses> <serialCommand>
     # E.g.: mpirun -n 4 python3 -u ../../src/fenicsR13.py input.yml
 
+Building the Docker Image Locally
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 The main folder of this repository contains a ``Dockerfile`` defining the used environment. Here, we used the optimized and official FEniCS Docker image and include ``Gmsh`` and install some requirements from the ``requirements.txt``. This can take a while, especially the ``Gmsh`` mirror can be quite slow. To avoid very long execution commands (``docker run <..> -v <volume share> <etc..>``), a ``docker-compose.yml`` is used to store all these parameters. ``docker-compose`` acts as an wrapper for the Docker execution.
 
-The ``fenics`` environment (also called *service* in the ``docker-compose.yml``) first has to be build and can be executed afterwards. The steps to perform read
+The ``fenics`` environment (also called *service* in the ``docker-compose.yml``) first has to be build and can be executed afterwards. The command to build the container is
 
 .. code-block:: bash
 
-    # build and run fenics service
-    docker-compose build fenics
-    docker-compose run fenics
+    # build fenics service
+    docker-compose build fenicsr13_release
 
-The whole repository is mounted as a volume under ``/home/fenics/shared`` in the container and should be the default folder on startup. To execute a simulation case, go to to the case folder (e.g. ``examples/lid_driven_cavity``) and execute the solver main program ``fenicsR13.py`` (which is located in the ``src``-directory in the top level) while specifying the input file as first command line argument. This can be for example ``python3 ../../src/fenicsR13.py inout.yml``. Output files should be written to a folder which is named after the ``output_folder`` keyword of the ``input.yml``. Each output field (temperature, pressure,...) has a ``.h5``-file and an ``.xdmf``-file. The XDMF-files can be opened in Paraview to perform visualization.
+
+Interactive Docker Sessions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is possible to use a Jupyter sever or a X11 forwarding but this is not recommended anymore. All relevant plots are now written by default without the need for the tricky X11 forwarding or interactive usage with Jupyter.
 
@@ -260,7 +315,7 @@ Further Installation Tips
 
 **Interactive Jupyter Notebooks with Microsoft's Visual Studio Code**
 
-This is the most convenient solution.
+This is may be a convenient solution.
 Run a file with ``%run ../../src/fenicsr13.py``
 
 **X11 Window Forwarding on OSX**
