@@ -252,13 +252,32 @@ class Solver:
 
     def assemble(self):
         r"""
-        Assemble the weak form of the system, depending on the mode.
+        Assemble the weak form of the system, depending on the mode. This
+        routine contains the main implementation of a stable variational
+        formulation of the R13 system which allows equal order ansatz
+        spaces for all variables and correctly incorporates the R13
+        boundary conditions.
 
-        The system results from the two dimensional, linearized R13 equations
-        [TOR2003]_.
+        The system of partial differential equations results from the two
+        dimensional, linearized R13 equations of [1]_, that have been
+        derived from Boltzmann's equation as a continuum model for
+        rarefied gas flows. The boundary conditions have been presented
+        in [2]_, while the variational formulation and its stabilization was
+        introduced in [3]_. See also [4]_ for a general review and [5]_ for
+        the modified stable boundary conditions.
 
-        .. [TOR2003] H Struchtrup, M Torrilhon (2003). Regularization of
-            Grad's 13 moment equations: derivation and linear analysis.
+        .. [1] H. Struchtrup, M. Torrilhon (2003). Regularization of
+            Grad's 13 Moment Equations: Derivation and Linear Analysis.
+        .. [2] M. Torrilhon, H. Struchtrup (2007). Boundary Conditions for
+            Regularized 13-Moment-Equations for Micro-Channel-Flows
+        .. [3] A. Westerkamp, M. Torrilhon (2019). Finite Element Methods
+            for the Linear Regularized 13-Moment Equations Describing Slow
+            Rarefied Gas Flows
+        .. [4] M. Torrilhon (2016). Modeling Nonequilibrium Gas Flow Based 
+           on Moment Equations
+        .. [5] M. Torrilhon, N. Sarna (2017). Hierarchical Boltzmann 
+           Simulations and Model Error Estimation
+
 
         """
         # Check if all mesh boundaries have bcs presibed frm input
