@@ -273,9 +273,9 @@ class Solver:
         .. [3] A. Westerkamp, M. Torrilhon (2019). Finite Element Methods
             for the Linear Regularized 13-Moment Equations Describing Slow
             Rarefied Gas Flows
-        .. [4] M. Torrilhon (2016). Modeling Nonequilibrium Gas Flow Based 
+        .. [4] M. Torrilhon (2016). Modeling Nonequilibrium Gas Flow Based
            on Moment Equations
-        .. [5] M. Torrilhon, N. Sarna (2017). Hierarchical Boltzmann 
+        .. [5] M. Torrilhon, N. Sarna (2017). Hierarchical Boltzmann
            Simulations and Model Error Estimation
 
 
@@ -734,12 +734,12 @@ class Solver:
 
         Notes
         -----
-        For other norm types, see DOLFIN documentation [1]_ and search for
+        For other norm types, see DOLFIN documentation [6]_ and search for
         norms.
 
         References
         ----------
-        .. [1] `DOLFIN documentation <https://fenicsproject.org/docs/dolfin/>`_
+        .. [6] `DOLFIN documentation <https://fenicsproject.org/docs/dolfin/>`_
 
         """
         field_e_i = df.interpolate(field_e_, v_field)
