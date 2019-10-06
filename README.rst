@@ -35,22 +35,23 @@ Download the repository as a `zip-file`_ and un-zip, or use `git`_ with
 Docker
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It is recommended to use the program with `Docker`_, a virtualization software available (with free docker account) for `download`_ for most operating systems. Our repository provides a Docker container based on the official FEniCS Docker image which contains all necessities for FEniCS and has been adjusted to solve the R13 equations.
+It is recommended to use the program with `Docker`_, a virtualization software available (with free docker account) for `download`_ for most operating systems. Our repository provides a Docker container based on the official FEniCS Docker image which contains all necessities for FEniCS and has been adjusted to solve the R13 equations. The program `docker-compose`_ is also required.
 
 .. _`Docker`: https://en.wikipedia.org/wiki/Docker_(software)
 .. _`download`: https://www.docker.com/products/docker-desktop
+.. _`docker-compose`: https://docs.docker.com/compose/install/
 
 Starting the Environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Make sure you installed Docker and it is running on your system. You can start the fenicsR13 compute environment from the root-directory of the repository using the command-line 
+Make sure you installed Docker and it is running on your system. You can start the fenicsR13 compute environment from the root-directory of the repository using the command-line
 
 .. code-block:: bash
 
     # Run (and possibly pull) fenicsr13_release service
     docker-compose run --rm fenicsr13_release
 
-When you run this for the first time, docker will pull (download and extract) the container image from our repository which is roughly 800MB and the download may require some patience. After the initial download the docker image will be stored (2-3 GB) on your system and any new run will start the container immediately. 
+When you run this for the first time, docker will pull (download and extract) the container image from our repository which is roughly 800MB and the download may require some patience. After the initial download the docker image will be stored (2-3 GB) on your system and any new run will start the container immediately.
 
 The above docker command will start a RedHat-based bash environment. The repository is mounted as a volume under ``/home/fenics/shared`` in the container and should be the default folder on startup. What ever is changed in this folder or its sub-folders will change in the folder on your original system as well. However, any changes outside this folder will be gone after you exit the docker environment.
 
@@ -71,7 +72,7 @@ We provide a script to utilize `gmsh`_ and generate a `H5`_ mesh-file from a loc
     # Create mesh:
     python3 create_meshes.py
 
-To run a simulation execute the solver main program ``fenicsR13.py`` (which is located in the ``src``-directory in the top level) while specifying an input file as first command line argument. 
+To run a simulation execute the solver main program ``fenicsR13.py`` (which is located in the ``src``-directory in the top level) while specifying an input file as first command line argument.
 
 .. code-block:: bash
 
@@ -81,7 +82,7 @@ To run a simulation execute the solver main program ``fenicsR13.py`` (which is l
 
 Output files will be written to a folder which is named after the ``output_folder`` keyword of the ``input.yml``. For immediate inspection the output folder contains simple visualizations in PDF files for each of the fields (temperature, pressure,...).
 
-The numerical results for each field is ouput into ``h5``-files, including mesh data and with corresponding ``xdmf``-file. The XDMF-files can be opened in Paraview to perform visualization, e.g., with ``Paraview > File > Open > u_0.xdmf > Apply filters`` 
+The numerical results for each field is ouput into ``h5``-files, including mesh data and with corresponding ``xdmf``-file. The XDMF-files can be opened in Paraview to perform visualization, e.g., with ``Paraview > File > Open > u_0.xdmf > Apply filters``
 
 .. _`gmsh`: http://gmsh.info/
 .. _`H5`: https://en.wikipedia.org/wiki/Hierarchical_Data_Format
