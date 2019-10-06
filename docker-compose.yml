@@ -13,8 +13,6 @@ services:
         target: /home/fenics/.cache
         volume:
           nocopy: true
-    ports:
-      - 127.0.0.1:8000:8000
     stdin_open: true
     tty: true
   fenicsr13_debug:
@@ -30,8 +28,6 @@ services:
         target: /home/fenics/.cache
         volume:
           nocopy: true
-    ports:
-      - 127.0.0.1:8000:8000
     stdin_open: true
     tty: true
 
