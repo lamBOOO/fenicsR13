@@ -5,7 +5,6 @@ services:
     image: registry.git.rwth-aachen.de/lamboo/fenicsr13:latest
     working_dir: /home/fenics/shared
     volumes:
-      - ~/.gitconfig:/etc/gitconfig:ro # copy Git config to commit correctly
       - type: bind
         source: .
         target: /home/fenics/shared
