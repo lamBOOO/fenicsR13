@@ -34,7 +34,7 @@ class TestExamples(object):
 
         Often not needed if meshes are in Git through LFS for reproducability.
         """
-        subprocess.check_call(["python3", "create_meshes.py"], cwd=working_dir_)
+        subprocess.check_call("./create_mesh.sh", cwd=working_dir_)
 
     def test_lid_driven_cavity(self):
         r"""

@@ -70,7 +70,7 @@ We provide a script to utilize `gmsh`_ and generate a `H5`_ mesh-file from a loc
 .. code-block:: bash
 
     # Create mesh:
-    python3 create_meshes.py
+    ./create_mesh.sh
 
 To run a simulation execute the solver main program ``fenicsR13.py`` (which is located in the ``src``-directory in the top level) while specifying an input file as first command line argument.
 
@@ -101,7 +101,7 @@ We provide a simple example of a flow through a finite-length channel in 2D.
     # Move to folder:
     cd examples/channel_flow
     # Create mesh:
-    python3 create_meshes.py
+    ./create_mesh.sh
     # Run program with given input file:
     python3 ../../src/fenicsR13.py input.yml
 
