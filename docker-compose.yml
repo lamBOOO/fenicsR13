@@ -16,7 +16,9 @@ services:
     stdin_open: true
     tty: true
   fenicsr13_debug:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     working_dir: /home/fenics/shared
     volumes:
       - ~/.gitconfig:/etc/gitconfig:ro # copy Git config to commit correctly
