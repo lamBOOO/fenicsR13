@@ -78,7 +78,7 @@ test:pytest:
 deploy:latex:
   stage: deploy
   image:
-    name: blang/latex
+    name: blang/latex:ctanfull
     entrypoint: [""]
   dependencies:
     - build:doc
