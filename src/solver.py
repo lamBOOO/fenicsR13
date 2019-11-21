@@ -369,8 +369,8 @@ class Solver:
                 for bc in bcs.keys()
             ])
 
-            a2 = - (df.div(s) * kappa) * df.dx
-            l2 = - (f_heat * kappa) * df.dx
+            a2 = + (df.div(s) * kappa) * df.dx
+            l2 = + (f_heat * kappa) * df.dx
 
             a3 = (
                 + 2 * kn * df.inner(
@@ -412,13 +412,13 @@ class Solver:
             ) * df.dx
             l4 = + df.Constant(0) * df.div(v) * df.dx
 
-            a5 = + (
-                df.dot(u, df.grad(q))
-            ) * df.dx - sum([
+            a5 = (
+                - 1 * df.dot(u, df.grad(q))
+            ) * df.dx + sum([
                 bcs[bc]["epsilon_w"] * (p + sigma_nn) * q * df.ds(bc)
                 for bc in bcs.keys()
             ])
-            l5 = - (f_mass * q) * df.dx + sum([
+            l5 = + (f_mass * q) * df.dx - sum([
                 (
                     - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
                     + bcs[bc]["u_n_w"]
@@ -443,7 +443,7 @@ class Solver:
 
         # stabilization
         if self.use_cip:
-            stab_heat = - (
+            stab_heat = + (
                 delta_1 * h_avg**3 *
                 df.jump(df.grad(theta), n) * df.jump(df.grad(kappa), n)
             ) * df.dS
@@ -451,7 +451,7 @@ class Solver:
             stab_stress = (
                 + delta_2 * h_avg**3 *
                 df.dot(df.jump(df.grad(u), n), df.jump(df.grad(v), n))
-                - delta_3 * h_avg *
+                + delta_3 * h_avg *
                 df.jump(df.grad(p), n) * df.jump(df.grad(q), n)
             ) * df.dS
         else:
@@ -1034,7 +1034,7 @@ class Solver:
             file.write(field, self.time)
 
         if write_pdf:
-            import matplotlib.pyplot as plt
+            import matplotlib.pyplot as plt # pylint: disable=C0415
             plt.switch_backend('agg')
             dimension = len(field.value_shape())
 
