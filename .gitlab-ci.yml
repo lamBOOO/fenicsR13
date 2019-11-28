@@ -78,7 +78,8 @@ test:pytest:
 deploy:latex:
   stage: deploy
   image:
-    name: blang/latex:ctanfull
+    # name: blang/latex:ctanfull # only TexLive 2017
+    name: aergus/latex:latest
     entrypoint: [""]
   dependencies:
     - build:doc
