@@ -343,13 +343,32 @@ class Solver:
         else:
             cpl = 0.0
 
+        # Sub functionals:
+        def b(scalar, vector):
+            return 1 * scalar * df.div(vector) * df.dx
+
+        def c(vector, tensor):
+            return 2/5 * df.inner(tensor, df.grad(vector)) * df.dx
+
+        def cc(vector, tensor):
+            "Should be replaced by c because orthogonality argument" # FIXME
+            return 2/5 * df.inner(tensor, to.stf3d2(df.grad(vector))) * df.dx
+
+        def d(scalar, vector):
+            return 1 * df.inner(vector, df.grad(scalar)) * df.dx
+
+        def e(vector, tensor):
+            return 1 * df.dot(df.div(tensor), vector) * df.dx
+
         # Setup both weak forms
         if self.use_coeffs:
             a1 = (
+                - b(theta, r)
+                - cpl * c(r, sigma) # SAME RESULTS (I)
+            ) + (
                 + 24/25 * kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
                 + 4/15 * (1/kn) * df.inner(s, r)
                 # + cpl * 2/5  * df.dot(df.div(sigma), r) # SAME RESULTS (I)
-                - cpl * c(r, sigma) # SAME RESULTS (I)
             ) * df.dx + (
                 + (
                     + 1/(2*xi_tilde) * s_n
@@ -368,17 +387,18 @@ class Solver:
                 for bc in bcs.keys()
             ])
 
-            a2 = + (df.div(s) * kappa) * df.dx
+            a2 = b(kappa, s)
             l2 = + (f_heat * kappa) * df.dx
 
             a3 = (
+                - e(u, psi)
+                + cpl * cc(s, psi)
+            ) + (
                 + kn * df.inner(
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma))),
                     to.grad3dOf2(to.gen3dTF2(psi))
                 )
                 + (1/(2*kn)) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
-                - 1 * df.dot(u, df.div(psi))
-                + cpl * 2/5 * df.inner(to.stf3d2(df.grad(s)), psi)
             ) * df.dx + (
                 + (
                     + 21/20 * xi_tilde * sigma_nn
@@ -406,14 +426,14 @@ class Solver:
             ])
 
             a4 = (
-                + df.dot(df.div(sigma), v)
-                + df.dot(df.grad(p), v)
-            ) * df.dx
+                e(v, sigma)
+                + d(p, v)
+            )
             l4 = + df.Constant(0) * df.div(v) * df.dx
 
             a5 = (
-                - 1 * df.dot(u, df.grad(q))
-            ) * df.dx + sum([
+                - d(q, u)
+            ) + sum([
                 bcs[bc]["epsilon_w"] * (p + sigma_nn) * q * df.ds(bc)
                 for bc in bcs.keys()
             ])
