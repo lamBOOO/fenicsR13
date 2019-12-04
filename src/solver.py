@@ -348,20 +348,19 @@ class Solver:
             a1 = (
                 + 24/25 * kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
                 + 4/15 * (1/kn) * df.inner(s, r)
-                -  theta * df.div(r)
-                + cpl * 2/5  * df.dot(df.div(sigma), r) # SAME RESULTS (I)
-                # - cpl * 2/5 * df.inner(sigma, df.grad(r)) # SAME RESULTS (I)
+                # + cpl * 2/5  * df.dot(df.div(sigma), r) # SAME RESULTS (I)
+                - cpl * c(r, sigma) # SAME RESULTS (I)
             ) * df.dx + (
                 + (
                     + 1/(2*xi_tilde) * s_n
                     - cpl * 1/4 * sigma_nn
-                    # + cpl * 2/5 * sigma_nn # SAME RESULTS (I)
+                    + cpl * 2/5 * sigma_nn # SAME RESULTS (I)
                 ) * r_n
                 + (
                     + 11/25 * xi_tilde * s_t
                     + cpl * 1/25 * xi_tilde * s_t
                     - cpl * 1/5 * sigma_nt
-                    # + cpl * 2/5 * sigma_nt # SAME RESULTS (I)
+                    + cpl * 2/5 * sigma_nt # SAME RESULTS (I)
                 ) * r_t
             ) * df.ds
             l1 = sum([
