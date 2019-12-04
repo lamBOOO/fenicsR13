@@ -372,33 +372,33 @@ class Solver:
             l2 = + (f_heat * kappa) * df.dx
 
             a3 = (
-                + 2 * kn * df.inner(
+                + kn * df.inner(
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma))),
                     to.grad3dOf2(to.gen3dTF2(psi))
                 )
-                + (1/kn) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
-                - 2 * df.dot(u, df.div(psi))
-                + cpl * 4/5 * df.inner(to.stf3d2(df.grad(s)), psi)
+                + (1/(2*kn)) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
+                - 1 * df.dot(u, df.div(psi))
+                + cpl * 2/5 * df.inner(to.stf3d2(df.grad(s)), psi)
             ) * df.dx + (
                 + (
-                    + 21/10 * xi_tilde * sigma_nn
-                    + cpl * 3/20 * xi_tilde * sigma_nn
-                    - cpl * 3/10  * s_n
+                    + 21/20 * xi_tilde * sigma_nn
+                    + cpl * 3/40 * xi_tilde * sigma_nn
+                    - cpl * 3/20  * s_n
                 ) * psi_nn
-                + 2 * xi_tilde * (
+                + xi_tilde * (
                     (sigma_tt + (1/2)*sigma_nn)*(psi_tt + (1/2)*psi_nn)
                 )
                 + (
-                    + (2/xi_tilde) * sigma_nt
-                    - cpl * 2/5 * s_t
+                    + (1/xi_tilde) * sigma_nt
+                    - cpl * 1/5 * s_t
                 ) * psi_nt
-            ) * df.ds + 2 * sum([
+            ) * df.ds + sum([
                 bcs[bc]["epsilon_w"] * (p + sigma_nn) * psi_nn * df.ds(bc)
                 for bc in bcs.keys()
             ])
             l3 = sum([
-                - 2.0 * psi_nt * bcs[bc]["u_t_w"] * df.ds(bc)
-                - 2.0 * (
+                - 1 * psi_nt * bcs[bc]["u_t_w"] * df.ds(bc)
+                - 1 * (
                     - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
                     + bcs[bc]["u_n_w"]
                 ) * psi_nn * df.ds(bc)
