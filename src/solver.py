@@ -346,26 +346,26 @@ class Solver:
         # Setup both weak forms
         if self.use_coeffs:
             a1 = (
-                + 12/5 * kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
-                + 2/3 * (1/kn) * df.inner(s, r)
-                - (5/2) * theta * df.div(r)
-                + cpl * df.dot(df.div(sigma), r) # SAME RESULTS
-                # - cpl * df.inner(sigma, df.grad(r)) # SAME RESULTS
+                + 24/25 * kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
+                + 4/15 * (1/kn) * df.inner(s, r)
+                -  theta * df.div(r)
+                + cpl * 2/5  * df.dot(df.div(sigma), r) # SAME RESULTS (I)
+                # - cpl * 2/5 * df.inner(sigma, df.grad(r)) # SAME RESULTS (I)
             ) * df.dx + (
                 + (
-                    + 5/(4*xi_tilde) * s_n
-                    - cpl * 5/8 * sigma_nn
-                    # + cpl * sigma_nn # SAME RESULTS
+                    + 1/(2*xi_tilde) * s_n
+                    - cpl * 1/4 * sigma_nn
+                    # + cpl * 2/5 * sigma_nn # SAME RESULTS (I)
                 ) * r_n
                 + (
-                    + 11/10 * xi_tilde * s_t
-                    + cpl * 1/10 * xi_tilde * s_t
-                    - cpl * 1/2 * sigma_nt
-                    # + cpl * sigma_nt # SAME RESULTS
+                    + 11/25 * xi_tilde * s_t
+                    + cpl * 1/25 * xi_tilde * s_t
+                    - cpl * 1/5 * sigma_nt
+                    # + cpl * 2/5 * sigma_nt # SAME RESULTS (I)
                 ) * r_t
             ) * df.ds
             l1 = sum([
-                - 5.0/2.0 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
+                - 1 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
                 for bc in bcs.keys()
             ])
 
