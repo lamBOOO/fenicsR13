@@ -66,7 +66,6 @@ class Solver:
         self.cell = self.mesh.ufl_cell()
         self.time = time
         self.mode = params["mode"]
-        self.use_coeffs = params["use_coeffs"]
         self.kn = params["kn"]
         self.xi_tilde = params["xi_tilde"]
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
@@ -361,104 +360,88 @@ class Solver:
             return 1 * df.dot(df.div(tensor), vector) * df.dx
 
         # Setup both weak forms
-        if self.use_coeffs:
-            a1 = (
-                - b(theta, r)
-                - cpl * c(r, sigma) # SAME RESULTS (I)
-            ) + (
-                + 24/25 * kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
-                + 4/15 * (1/kn) * df.inner(s, r)
-                # + cpl * 2/5  * df.dot(df.div(sigma), r) # SAME RESULTS (I)
-            ) * df.dx + (
-                + (
-                    + 1/(2*xi_tilde) * s_n
-                    - cpl * 1/4 * sigma_nn
-                    + cpl * 2/5 * sigma_nn # SAME RESULTS (I)
-                ) * r_n
-                + (
-                    + 11/25 * xi_tilde * s_t
-                    + cpl * 1/25 * xi_tilde * s_t
-                    - cpl * 1/5 * sigma_nt
-                    + cpl * 2/5 * sigma_nt # SAME RESULTS (I)
-                ) * r_t
-            ) * df.ds
-            l1 = sum([
-                - 1 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
-                for bc in bcs.keys()
-            ])
+        a1 = (
+            - b(theta, r)
+            - cpl * c(r, sigma) # SAME RESULTS (I)
+        ) + (
+            + 24/25 * kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
+            + 4/15 * (1/kn) * df.inner(s, r)
+            # + cpl * 2/5  * df.dot(df.div(sigma), r) # SAME RESULTS (I)
+        ) * df.dx + (
+            + (
+                + 1/(2*xi_tilde) * s_n
+                - cpl * 1/4 * sigma_nn
+                + cpl * 2/5 * sigma_nn # SAME RESULTS (I)
+            ) * r_n
+            + (
+                + 11/25 * xi_tilde * s_t
+                + cpl * 1/25 * xi_tilde * s_t
+                - cpl * 1/5 * sigma_nt
+                + cpl * 2/5 * sigma_nt # SAME RESULTS (I)
+            ) * r_t
+        ) * df.ds
+        l1 = sum([
+            - 1 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
+            for bc in bcs.keys()
+        ])
 
-            a2 = b(kappa, s)
-            l2 = + (f_heat * kappa) * df.dx
+        a2 = b(kappa, s)
+        l2 = + (f_heat * kappa) * df.dx
 
-            a3 = (
-                - e(u, psi)
-                + cpl * cc(s, psi)
-            ) + (
-                + kn * df.inner(
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma))),
-                    to.grad3dOf2(to.gen3dTF2(psi))
-                )
-                + (1/(2*kn)) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
-            ) * df.dx + (
-                + (
-                    + 21/20 * xi_tilde * sigma_nn
-                    + cpl * 3/40 * xi_tilde * sigma_nn
-                    - cpl * 3/20  * s_n
-                ) * psi_nn
-                + xi_tilde * (
-                    (sigma_tt + (1/2)*sigma_nn)*(psi_tt + (1/2)*psi_nn)
-                )
-                + (
-                    + (1/xi_tilde) * sigma_nt
-                    - cpl * 1/5 * s_t
-                ) * psi_nt
-            ) * df.ds + sum([
-                bcs[bc]["epsilon_w"] * (p + sigma_nn) * psi_nn * df.ds(bc)
-                for bc in bcs.keys()
-            ])
-            l3 = sum([
-                - 1 * psi_nt * bcs[bc]["u_t_w"] * df.ds(bc)
-                - 1 * (
-                    - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
-                    + bcs[bc]["u_n_w"]
-                ) * psi_nn * df.ds(bc)
-                for bc in bcs.keys()
-            ])
-
-            a4 = (
-                e(v, sigma)
-                + d(p, v)
+        a3 = (
+            - e(u, psi)
+            + cpl * cc(s, psi)
+        ) + (
+            + kn * df.inner(
+                to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma))),
+                to.grad3dOf2(to.gen3dTF2(psi))
             )
-            l4 = + df.Constant(0) * df.div(v) * df.dx
+            + (1/(2*kn)) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
+        ) * df.dx + (
+            + (
+                + 21/20 * xi_tilde * sigma_nn
+                + cpl * 3/40 * xi_tilde * sigma_nn
+                - cpl * 3/20  * s_n
+            ) * psi_nn
+            + xi_tilde * (
+                (sigma_tt + (1/2)*sigma_nn)*(psi_tt + (1/2)*psi_nn)
+            )
+            + (
+                + (1/xi_tilde) * sigma_nt
+                - cpl * 1/5 * s_t
+            ) * psi_nt
+        ) * df.ds + sum([
+            bcs[bc]["epsilon_w"] * (p + sigma_nn) * psi_nn * df.ds(bc)
+            for bc in bcs.keys()
+        ])
+        l3 = sum([
+            - 1 * psi_nt * bcs[bc]["u_t_w"] * df.ds(bc)
+            - 1 * (
+                - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
+                + bcs[bc]["u_n_w"]
+            ) * psi_nn * df.ds(bc)
+            for bc in bcs.keys()
+        ])
 
-            a5 = (
-                - d(q, u)
-            ) + sum([
-                bcs[bc]["epsilon_w"] * (p + sigma_nn) * q * df.ds(bc)
-                for bc in bcs.keys()
-            ])
-            l5 = + (f_mass * q) * df.dx - sum([
-                (
-                    - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
-                    + bcs[bc]["u_n_w"]
-                ) * q * df.ds(bc)
-                for bc in bcs.keys()
-            ])
-        else:
-            a1 = (
-                kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
-                + (1/kn) * df.inner(s, r)
-                - theta * df.div(r)
-            ) * df.dx + (
-                + 1/(xi_tilde) * s_n * r_n
-                + xi_tilde * s_t * r_t
-            ) * df.ds
-            a2 = - (df.div(s) * kappa) * df.dx
-            l1 = sum([
-                - 1 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
-                for bc in bcs.keys()
-            ])
-            l2 = - (f_heat * kappa) * df.dx
+        a4 = (
+            e(v, sigma)
+            + d(p, v)
+        )
+        l4 = + df.Constant(0) * df.div(v) * df.dx
+
+        a5 = (
+            - d(q, u)
+        ) + sum([
+            bcs[bc]["epsilon_w"] * (p + sigma_nn) * q * df.ds(bc)
+            for bc in bcs.keys()
+        ])
+        l5 = + (f_mass * q) * df.dx - sum([
+            (
+                - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
+                + bcs[bc]["u_n_w"]
+            ) * q * df.ds(bc)
+            for bc in bcs.keys()
+        ])
 
         # stabilization
         if self.use_cip:

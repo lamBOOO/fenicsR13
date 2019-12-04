@@ -64,7 +64,6 @@ class TestHeatConvergence(object):
         Parameter     Value
         ============= =======================
         :math:`Kn`    :math:`0.1`
-        Formulation   Coefficients
         Elements      :math:`P_1P_1`
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
@@ -83,7 +82,6 @@ class TestHeatConvergence(object):
         Parameter     Value
         ============= =======================
         :math:`Kn`    :math:`10.0`
-        Formulation   Coefficients
         Elements      :math:`P_2P_2`
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
@@ -102,7 +100,6 @@ class TestHeatConvergence(object):
         Parameter     Value
         ============= =======================
         :math:`Kn`    :math:`0.1`
-        Formulation   Coefficients
         Elements      :math:`P_2P_2`
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
@@ -121,31 +118,11 @@ class TestHeatConvergence(object):
         Parameter     Value
         ============= =======================
         :math:`Kn`    :math:`0.1`
-        Formulation   Coefficients
         Elements      :math:`P_2P_1`
         Stabilization CIP, :math:`\delta_1=1`
         ============= =======================
         """
         name = "heat_01_coeffs_p1p2_nostab"
-        self.run_solver("inputs/" + name + ".yml")
-        errors = name + "/" + "errors.csv"
-        referrors = "referrors/" + name + "/errors.csv"
-        self.compare_errors(errors, referrors)
-
-    def test_heat_01_nocoeffs_p1p2_nostab(self):
-        r"""
-        Execute decoupled heat system test and check with reference errors.
-
-        ============= =======================
-        Parameter     Value
-        ============= =======================
-        :math:`Kn`    :math:`0.1`
-        Formulation   No Coefficients
-        Elements      :math:`P_2P_1`
-        Stabilization CIP, :math:`\delta_1=1`
-        ============= =======================
-        """
-        name = "heat_01_nocoeffs_p1p2_nostab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
