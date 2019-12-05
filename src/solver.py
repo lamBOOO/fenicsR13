@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,too-many-lines
 
 """
 Solver module, contains the Solver class.
@@ -321,6 +321,15 @@ class Solver:
             (p, u, sigma) = df.TrialFunctions(w_stress)
             (q, v, psi) = df.TestFunctions(w_stress)
 
+        # Setup source functions
+        f_heat = self.heat_source
+        f_mass = self.mass_source
+
+        if self.mode == "r13":
+            cpl = 1.0
+        else:
+            cpl = 0.0
+
         # Setup projections
         s_n = df.dot(s, n)
         r_n = df.dot(r, n)
@@ -332,15 +341,6 @@ class Solver:
         psi_tt = df.dot(psi*t, t)
         sigma_nt = df.dot(sigma*n, t)
         psi_nt = df.dot(psi*n, t)
-
-        # Setup source functions
-        f_heat = self.heat_source
-        f_mass = self.mass_source
-
-        if self.mode == "r13":
-            cpl = 1.0
-        else:
-            cpl = 0.0
 
         # Sub functionals:
         def b(scalar, vector):
