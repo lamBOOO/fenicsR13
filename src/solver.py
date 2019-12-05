@@ -126,8 +126,8 @@ class Solver:
             "stress": None,
             "r13": None,
         }
-        self.form_a = None
-        self.form_b = None
+        self.form_lhs = None
+        self.form_rhs = None
         self.sol = {
             "theta": None,
             "s": None,
@@ -299,10 +299,11 @@ class Solver:
         df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
         df.dS = df.Measure("dS", domain=mesh, subdomain_data=boundaries)
 
+        # Define mesh measuers
         h = df.CellDiameter(mesh)
         h_avg = (h("+") + h("-"))/2.0 # pylint: disable=not-callable
 
-        # Setup function spaces
+        # Setup trial and test functions
         w_heat = self.mxd_fspaces["heat"]
         w_stress = self.mxd_fspaces["stress"]
         w_r13 = self.mxd_fspaces["r13"]
@@ -320,6 +321,7 @@ class Solver:
         f_heat = self.heat_source
         f_mass = self.mass_source
 
+        # Decouple heat/stress switch
         if self.mode == "r13":
             cpl = 1.0
         else:
@@ -375,7 +377,7 @@ class Solver:
         def e(vector, tensor):
             return 1 * df.dot(df.div(tensor), vector) * df.dx
 
-        # Setup both weak forms
+        # Setup all weak forms
         a1 = (
             - b(theta, r)
             - cpl * c(r, sigma) # SAME RESULTS (I)
@@ -451,7 +453,7 @@ class Solver:
             for bc in bcs.keys()
         ])
 
-        # stabilization
+        # Add CIP-stabilization terms to LHS
         if self.use_cip:
             stab_heat = + (
                 delta_1 * h_avg**3 *
@@ -468,16 +470,16 @@ class Solver:
             stab_heat = 0
             stab_stress = 0
 
-        # Combine all equations
+        # Combine all equations to compound weak form
         if self.mode == "heat":
-            self.form_a = a1 + a2 + stab_heat
-            self.form_b = l1 + l2
+            self.form_lhs = a1 + a2 + stab_heat
+            self.form_rhs = l1 + l2
         elif self.mode == "stress":
-            self.form_a = a3 + a4 + a5 + stab_stress
-            self.form_b = l3 + l4 + l5
+            self.form_lhs = a3 + a4 + a5 + stab_stress
+            self.form_rhs = l3 + l4 + l5
         elif self.mode == "r13":
-            self.form_a = a1 + a2 + stab_heat + a3 + a4 + a5 + stab_stress
-            self.form_b = l1 + l2 + l3 + l4 + l5
+            self.form_lhs = a1 + a2 + stab_heat + a3 + a4 + a5 + stab_stress
+            self.form_rhs = l1 + l2 + l3 + l4 + l5
 
     def solve(self):
         """
@@ -509,7 +511,7 @@ class Solver:
         start_t = time_module.time()
         sol = df.Function(w)
         df.solve(
-            self.form_a == self.form_b, sol, [],
+            self.form_lhs == self.form_rhs, sol, [],
             solver_parameters={"linear_solver": "mumps"}
         )
         end_t = time_module.time()
@@ -975,8 +977,8 @@ class Solver:
         Input:...
         >>> msh = H5Mesh("tests/mesh/ring0.h5")
         >>> solver = Solver(params.dict, msh, "0") # "0" means time=0
-        >>> solver.form_a = a
-        >>> solver.form_b = L
+        >>> solver.form_lhs = a
+        >>> solver.form_rhs = L
         >>> solver.output_folder = "./"
         >>> solver._Solver__write_discrete_system()
         >>> print(open("A_0.mat","r").read())
@@ -993,11 +995,11 @@ class Solver:
         file_ending = ".mat"
         np.savetxt(
             self.output_folder + "A_{}".format(self.time) + file_ending,
-            df.assemble(self.form_a).array()
+            df.assemble(self.form_lhs).array()
         )
         np.savetxt(
             self.output_folder + "b_{}".format(self.time) + file_ending,
-            df.assemble(self.form_b)
+            df.assemble(self.form_rhs)
         )
 
     def __write_xdmf(self, name, field, write_pdf):
