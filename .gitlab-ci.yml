@@ -90,6 +90,8 @@ deploy:latex:
     paths:
       - ${DOCS_DIRECTORY}/_build/latex/${DOCS_LATEX_NAME}.pdf
     expire_in: 6 month
+  only:
+    - master
 
 pages:
   stage: deploy
@@ -100,3 +102,5 @@ pages:
   artifacts:
     paths:
       - public
+  only:
+    - master
