@@ -343,19 +343,37 @@ class Solver:
         psi_nt = df.dot(psi*n, t)
 
         # Sub functionals:
+        # 1) Diagonals:
+        def diag1(vector1, vector2):
+            return (
+                # => 24/25*stf(grad)*grad
+                + 24/25 * kn * df.inner(
+                    df.sym(df.grad(vector1)), df.sym(df.grad(vector2))
+                )
+                - 24/75 * kn * df.div(vector1) * df.div(vector2)
+                + 4/15 * (1/kn) * df.inner(vector1, vector2)
+            ) * df.dx
+        def diag2(rank2_1, rank2_2):
+            "Should be symmetrizable similar to (s,r)-term!" #FIXME
+            return (
+                kn * df.inner(
+                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(rank2_1))),
+                    to.grad3dOf2(to.gen3dTF2(rank2_2))
+                )
+                + (1/(2*kn)) * df.inner(
+                    to.gen3dTF2(rank2_1), to.gen3dTF2(rank2_2)
+                )
+            ) * df.dx
+        # 2) Offdiagonals:
         def b(scalar, vector):
             return 1 * scalar * df.div(vector) * df.dx
-
         def c(vector, tensor):
             return 2/5 * df.inner(tensor, df.grad(vector)) * df.dx
-
         def cc(vector, tensor):
             "Should be replaced by c because orthogonality argument" # FIXME
             return 2/5 * df.inner(tensor, to.stf3d2(df.grad(vector))) * df.dx
-
         def d(scalar, vector):
             return 1 * df.inner(vector, df.grad(scalar)) * df.dx
-
         def e(vector, tensor):
             return 1 * df.dot(df.div(tensor), vector) * df.dx
 
@@ -363,11 +381,8 @@ class Solver:
         a1 = (
             - b(theta, r)
             - cpl * c(r, sigma) # SAME RESULTS (I)
+            + diag1(s, r)
         ) + (
-            + 24/25 * kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
-            + 4/15 * (1/kn) * df.inner(s, r)
-            # + cpl * 2/5  * df.dot(df.div(sigma), r) # SAME RESULTS (I)
-        ) * df.dx + (
             + (
                 + 1/(2*xi_tilde) * s_n
                 - cpl * 1/4 * sigma_nn
@@ -386,18 +401,13 @@ class Solver:
         ])
 
         a2 = b(kappa, s)
-        l2 = + (f_heat * kappa) * df.dx
+        l2 = f_heat * kappa * df.dx
 
         a3 = (
             - e(u, psi)
             + cpl * cc(s, psi)
+            + diag2(sigma, psi)
         ) + (
-            + kn * df.inner(
-                to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma))),
-                to.grad3dOf2(to.gen3dTF2(psi))
-            )
-            + (1/(2*kn)) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
-        ) * df.dx + (
             + (
                 + 21/20 * xi_tilde * sigma_nn
                 + cpl * 3/40 * xi_tilde * sigma_nn
