@@ -80,7 +80,7 @@ def stf3d3(rank3_3d):
 
     .. math::
 
-        A_{\langle i j k\rangle}=A_{(i j k)}-\frac{1}{5}\left[A_{(i l)}
+        A_{\langle i j k\rangle}=A_{(i j k)}-\frac{1}{5}\left[A_{(i l l)}
         \delta_{j k}+A_{(l j l)} \delta_{i k}+A_{(l l k)} \delta_{i j}\right]
 
     A gradient :math:`\frac{\partial S_{\langle i j}}{\partial x_{k \rangle}}`
