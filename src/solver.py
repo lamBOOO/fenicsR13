@@ -295,11 +295,6 @@ class Solver:
         delta_2 = df.Constant(self.delta_2)
         delta_3 = df.Constant(self.delta_3)
 
-        # Normal and tangential components
-        # - tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
-        n = df.FacetNormal(mesh)
-        t = ufl.perp(n)
-
         # Define custom measeasure for boundaries
         df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
         df.dS = df.Measure("dS", domain=mesh, subdomain_data=boundaries)
@@ -330,17 +325,20 @@ class Solver:
         else:
             cpl = 0.0
 
-        # Setup projections
-        s_n = df.dot(s, n)
-        r_n = df.dot(r, n)
-        s_t = df.dot(s, t)
-        r_t = df.dot(r, t)
-        sigma_nn = df.dot(sigma*n, n)
-        psi_nn = df.dot(psi*n, n)
-        sigma_tt = df.dot(sigma*t, t)
-        psi_tt = df.dot(psi*t, t)
-        sigma_nt = df.dot(sigma*n, t)
-        psi_nt = df.dot(psi*n, t)
+        # Setup normal/tangential projections
+        # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
+        n_vec = df.FacetNormal(mesh)
+        t_vec = ufl.perp(n_vec)
+        def n(rank1):
+            return df.dot(rank1, n_vec)
+        def t(rank1):
+            return df.dot(rank1, t_vec)
+        def nn(rank2):
+            return df.dot(rank2 * n_vec, n_vec)
+        def tt(rank2):
+            return df.dot(rank2 * t_vec, t_vec)
+        def nt(rank2):
+            return df.dot(rank2 * n_vec, t_vec)
 
         # Sub functionals:
         # 1) Diagonals:
@@ -384,19 +382,19 @@ class Solver:
             + diag1(s, r)
         ) + (
             + (
-                + 1/(2*xi_tilde) * s_n
-                - cpl * 1/4 * sigma_nn
-                + cpl * 2/5 * sigma_nn # SAME RESULTS (I)
-            ) * r_n
+                + 1/(2*xi_tilde) * n(s)
+                - cpl * 1/4 * nn(sigma)
+                + cpl * 2/5 * nn(sigma) # SAME RESULTS (I)
+            ) * n(r)
             + (
-                + 11/25 * xi_tilde * s_t
-                + cpl * 1/25 * xi_tilde * s_t
-                - cpl * 1/5 * sigma_nt
-                + cpl * 2/5 * sigma_nt # SAME RESULTS (I)
-            ) * r_t
+                + 11/25 * xi_tilde * t(s)
+                + cpl * 1/25 * xi_tilde * t(s)
+                - cpl * 1/5 * nt(sigma)
+                + cpl * 2/5 * nt(sigma) # SAME RESULTS (I)
+            ) * t(r)
         ) * df.ds
         l1 = sum([
-            - 1 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
+            - 1 * n(r) * bcs[bc]["theta_w"] * df.ds(bc)
             for bc in bcs.keys()
         ])
 
@@ -409,27 +407,27 @@ class Solver:
             + diag2(sigma, psi)
         ) + (
             + (
-                + 21/20 * xi_tilde * sigma_nn
-                + cpl * 3/40 * xi_tilde * sigma_nn
-                - cpl * 3/20  * s_n
-            ) * psi_nn
+                + 21/20 * xi_tilde * nn(sigma)
+                + cpl * 3/40 * xi_tilde * nn(sigma)
+                - cpl * 3/20  * n(s)
+            ) * nn(psi)
             + xi_tilde * (
-                (sigma_tt + (1/2)*sigma_nn)*(psi_tt + (1/2)*psi_nn)
+                (tt(sigma) + (1/2)*nn(sigma))*(tt(psi) + (1/2)*nn(psi))
             )
             + (
-                + (1/xi_tilde) * sigma_nt
-                - cpl * 1/5 * s_t
-            ) * psi_nt
+                + (1/xi_tilde) * nt(sigma)
+                - cpl * 1/5 * t(s)
+            ) * nt(psi)
         ) * df.ds + sum([
-            bcs[bc]["epsilon_w"] * (p + sigma_nn) * psi_nn * df.ds(bc)
+            bcs[bc]["epsilon_w"] * (p + nn(sigma)) * nn(psi) * df.ds(bc)
             for bc in bcs.keys()
         ])
         l3 = sum([
-            - 1 * psi_nt * bcs[bc]["u_t_w"] * df.ds(bc)
+            - 1 * nt(psi) * bcs[bc]["u_t_w"] * df.ds(bc)
             - 1 * (
                 - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
                 + bcs[bc]["u_n_w"]
-            ) * psi_nn * df.ds(bc)
+            ) * nn(psi) * df.ds(bc)
             for bc in bcs.keys()
         ])
 
@@ -442,7 +440,7 @@ class Solver:
         a5 = (
             - d(q, u)
         ) + sum([
-            bcs[bc]["epsilon_w"] * (p + sigma_nn) * q * df.ds(bc)
+            bcs[bc]["epsilon_w"] * (p + nn(sigma)) * q * df.ds(bc)
             for bc in bcs.keys()
         ])
         l5 = + (f_mass * q) * df.dx - sum([
@@ -457,14 +455,14 @@ class Solver:
         if self.use_cip:
             stab_heat = + (
                 delta_1 * h_avg**3 *
-                df.jump(df.grad(theta), n) * df.jump(df.grad(kappa), n)
+                df.jump(df.grad(theta), n_vec) * df.jump(df.grad(kappa), n_vec)
             ) * df.dS
 
             stab_stress = (
                 + delta_2 * h_avg**3 *
-                df.dot(df.jump(df.grad(u), n), df.jump(df.grad(v), n))
+                df.dot(df.jump(df.grad(u), n_vec), df.jump(df.grad(v), n_vec))
                 + delta_3 * h_avg *
-                df.jump(df.grad(p), n) * df.jump(df.grad(q), n)
+                df.jump(df.grad(p), n_vec) * df.jump(df.grad(q), n_vec)
             ) * df.dS
         else:
             stab_heat = 0
