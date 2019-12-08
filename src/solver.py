@@ -380,19 +380,17 @@ class Solver:
         # Setup all weak forms
         a1 = (
             - b(theta, r)
-            - cpl * c(r, sigma) # SAME RESULTS (I)
+            - cpl * c(r, sigma)
             + diag1(s, r)
         ) + (
             + (
                 + 1/(2*xi_tilde) * n(s)
-                - cpl * 1/4 * nn(sigma)
-                + cpl * 2/5 * nn(sigma) # SAME RESULTS (I)
+                + cpl * 3/20 * nn(sigma)
             ) * n(r)
             + (
                 + 11/25 * xi_tilde * t(s)
                 + cpl * 1/25 * xi_tilde * t(s)
-                - cpl * 1/5 * nt(sigma)
-                + cpl * 2/5 * nt(sigma) # SAME RESULTS (I)
+                + cpl * 1/5 * nt(sigma)
             ) * t(r)
         ) * df.ds
         l1 = sum([
