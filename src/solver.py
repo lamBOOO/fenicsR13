@@ -531,7 +531,10 @@ class Solver:
                 + xi_tilde * cpl * 3/40 * nn(sigma_) * nn(psi_)
                 + xi_tilde * (tt(sigma_) + (1/2) * nn(sigma_)) * (tt(psi_) + (1/2) * nn(psi_))
                 + (1/xi_tilde) * nt(sigma_) * nt(psi_)
-            ) * df.ds
+            ) * df.ds + sum([
+                bcs[bc]["epsilon_w"] * nn(sigma) * nn(psi) * df.ds(bc)
+                for bc in bcs.keys()
+            ])
         def diag3(p, q):
             return sum([
                 bcs[bc]["epsilon_w"] * p * q * df.ds(bc)
@@ -551,6 +554,11 @@ class Solver:
             return 1 * df.inner(vector, df.grad(scalar)) * df.dx
         def e(vector, tensor):
             return 1 * df.dot(df.div(tensor), vector) * df.dx
+        def f(scalar, tensor):
+            return sum([
+                bcs[bc]["epsilon_w"] * scalar * nn(tensor) * df.ds(bc)
+                for bc in bcs.keys()
+            ])
 
         # Setup all equations
         lhs = [None] * 5
@@ -558,15 +566,9 @@ class Solver:
         # 1) Left-hand sides
         lhs[0] = diag1(s, r) - b(theta, r) - cpl * c(r, sigma)
         lhs[1] = b(kappa, s)
-        lhs[2] = diag2(sigma, psi) - e(u, psi) + cpl * c(s, psi) + sum([
-            bcs[bc]["epsilon_w"] * (p + nn(sigma)) * nn(psi) * df.ds(bc)
-            for bc in bcs.keys()
-        ])
+        lhs[2] = diag2(sigma, psi) - e(u, psi) + cpl * c(s, psi) + f(p, psi)
         lhs[3] = e(v, sigma) + d(p, v)
-        lhs[4] = diag3(p, q) - d(q, u) + sum([
-            bcs[bc]["epsilon_w"] * nn(sigma) * q * df.ds(bc)
-            for bc in bcs.keys()
-        ])
+        lhs[4] = diag3(p, q) - d(q, u) + f(q, sigma)
         # 2) Right-hand sides:
         rhs[0] = sum([
             - 1 * n(r) * bcs[bc]["theta_w"] * df.ds(bc)
