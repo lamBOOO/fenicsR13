@@ -344,26 +344,35 @@ class Solver:
 
         # Sub functionals:
         # 1) Diagonals:
-        def diag1(vector1, vector2):
+        def diag1(s_, r_):
             return (
                 # => 24/25*stf(grad)*grad
                 + 24/25 * kn * df.inner(
-                    df.sym(df.grad(vector1)), df.sym(df.grad(vector2))
+                    df.sym(df.grad(s_)), df.sym(df.grad(r_))
                 )
-                - 24/75 * kn * df.div(vector1) * df.div(vector2)
-                + 4/15 * (1/kn) * df.inner(vector1, vector2)
-            ) * df.dx
-        def diag2(rank2_1, rank2_2):
+                - 24/75 * kn * df.div(s_) * df.div(r_)
+                + 4/15 * (1/kn) * df.inner(s_, r_)
+            ) * df.dx + (
+                + 1/(2*xi_tilde) * n(s_) * n(r_)
+                + 11/25 * xi_tilde * t(s_) * t(r_)
+                + cpl * 1/25 * xi_tilde * t(s_) *t(r_)
+            ) * df.ds
+        def diag2(sigma_, psi_):
             "Should be symmetrizable similar to (s,r)-term!" #FIXME
             return (
                 kn * df.inner(
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(rank2_1))),
-                    to.grad3dOf2(to.gen3dTF2(rank2_2))
+                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma_))),
+                    to.grad3dOf2(to.gen3dTF2(psi_))
                 )
                 + (1/(2*kn)) * df.inner(
-                    to.gen3dTF2(rank2_1), to.gen3dTF2(rank2_2)
+                    to.gen3dTF2(sigma_), to.gen3dTF2(psi_)
                 )
-            ) * df.dx
+            ) * df.dx + (
+                + xi_tilde * 21/20 * nn(sigma_) * nn(psi_)
+                + xi_tilde * cpl * 3/40 * nn(sigma_) * nn(psi_)
+                + xi_tilde * (tt(sigma_) + (1/2) * nn(sigma_)) * (tt(psi_) + (1/2) * nn(psi_))
+                + (1/xi_tilde) * nt(sigma_) * nt(psi_)
+            ) * df.ds
         # 2) Offdiagonals:
         def b(scalar, vector):
             return 1 * scalar * df.div(vector) * df.dx
@@ -378,20 +387,9 @@ class Solver:
             return 1 * df.dot(df.div(tensor), vector) * df.dx
 
         # Setup all weak forms
-        a1 = (
-            - b(theta, r)
-            - cpl * c(r, sigma)
-            + diag1(s, r)
-        ) + (
-            + (
-                + 1/(2*xi_tilde) * n(s)
-                + cpl * 3/20 * nn(sigma)
-            ) * n(r)
-            + (
-                + 11/25 * xi_tilde * t(s)
-                + cpl * 1/25 * xi_tilde * t(s)
-                + cpl * 1/5 * nt(sigma)
-            ) * t(r)
+        a1 = diag1(s, r) - b(theta, r) - cpl * c(r, sigma) + (
+            + cpl * 3/20 * nn(sigma) * n(r)
+            + cpl * 1/5 * nt(sigma) * t(r)
         ) * df.ds
         l1 = sum([
             - 1 * n(r) * bcs[bc]["theta_w"] * df.ds(bc)
@@ -401,23 +399,9 @@ class Solver:
         a2 = b(kappa, s)
         l2 = f_heat * kappa * df.dx
 
-        a3 = (
-            - e(u, psi)
-            + cpl * cc(s, psi)
-            + diag2(sigma, psi)
-        ) + (
-            + (
-                + 21/20 * xi_tilde * nn(sigma)
-                + cpl * 3/40 * xi_tilde * nn(sigma)
-                - cpl * 3/20  * n(s)
-            ) * nn(psi)
-            + xi_tilde * (
-                (tt(sigma) + (1/2)*nn(sigma))*(tt(psi) + (1/2)*nn(psi))
-            )
-            + (
-                + (1/xi_tilde) * nt(sigma)
-                - cpl * 1/5 * t(s)
-            ) * nt(psi)
+        a3 = diag2(sigma, psi) - e(u, psi) + cpl * cc(s, psi) + (
+            - cpl * 3/20  * n(s) * nn(psi)
+            - cpl * 1/5 * t(s) * nt(psi)
         ) * df.ds + sum([
             bcs[bc]["epsilon_w"] * (p + nn(sigma)) * nn(psi) * df.ds(bc)
             for bc in bcs.keys()
