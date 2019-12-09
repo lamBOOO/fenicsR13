@@ -277,6 +277,165 @@ class Solver:
         .. [5] M. Torrilhon, N. Sarna (2017). Hierarchical Boltzmann
            Simulations and Model Error Estimation
 
+        Identities:
+
+        - :math:`\boldsymbol{x}_1 \in \mathbb{R}^3`,
+          :math:`\boldsymbol{x}_2 \in \mathbb{R}^{3 \times 3}`,
+          ...
+        - Test function :math:`\boldsymbol{\psi}` is assumed to be
+          symmetric and trace-less:
+
+        .. math::
+
+            \boldsymbol{\psi} : \boldsymbol{I} = 0 \\
+            (\boldsymbol{\psi})_{\text{sym}} = \boldsymbol{\psi}
+
+        - Trace of vector gradient is divergence of vector:
+
+        .. math::
+
+            \langle
+            \boldsymbol{I},\boldsymbol\nabla \boldsymbol{x}_1
+            \rangle
+            =
+            \boldsymbol{I} : \boldsymbol\nabla \boldsymbol{x}_1
+            =
+            \text{div}(\boldsymbol{x}_1)
+
+        - Inner product has orthogonality property with respect to the
+          additive symmetric/skewsymmetric tensor decomposition:
+
+        .. math::
+
+            \begin{align}
+            \langle
+            (\boldsymbol{x}_2)_{\text{sym}}
+            ,
+            \boldsymbol{y}_2
+            \rangle
+            &=
+            \langle
+            (\boldsymbol{x}_2)_{\text{sym}}
+            ,
+            (\boldsymbol{y}_2)_{\text{sym}}
+            +
+            (\boldsymbol{y}_2)_{\text{skew}}
+            \rangle
+            \\
+            &=
+            \langle
+            (\boldsymbol{x}_2)_{\text{sym}}
+            ,
+            (\boldsymbol{y}_2)_{\text{sym}}
+            \rangle
+            +
+            \langle
+            (\boldsymbol{x}_2)_{\text{sym}}
+            ,
+            (\boldsymbol{y}_2)_{\text{skew}}
+            \rangle
+            \\
+            &=
+            \langle
+            (\boldsymbol{x}_2)_{\text{sym}}
+            ,
+            (\boldsymbol{y}_2)_{\text{sym}}
+            \rangle
+            \end{align}
+
+        Tricks of the trade:
+
+        .. math::
+
+            \begin{align}
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{STF}}
+            ,
+            \boldsymbol\nabla \boldsymbol{r}
+            \rangle
+            &=
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
+            -
+            \frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})\boldsymbol{I}
+            ,
+            \boldsymbol\nabla \boldsymbol{r}
+            \rangle
+            \\
+            &=
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
+            ,
+            \boldsymbol\nabla \boldsymbol{r}
+            \rangle
+            -\frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})
+            \langle
+            \boldsymbol{I},(\boldsymbol\nabla \boldsymbol{r})
+            \rangle
+            \\
+            &=
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
+            ,
+            {(\boldsymbol\nabla \boldsymbol{r})}_{\text{sym}}
+            \rangle
+            -\frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})
+            \text{tr}(\boldsymbol\nabla \boldsymbol{r})
+            \\
+            &=
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
+            ,
+            {(\boldsymbol\nabla \boldsymbol{r})}_{\text{sym}}
+            \rangle
+            -\frac13\text{div}(\boldsymbol{s})
+            \text{div}(\boldsymbol{r})
+            \end{align}
+
+        .. math::
+
+            \begin{align}
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{STF}}
+            ,
+            \boldsymbol{\psi}
+            \rangle
+            &=
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
+            -
+            \frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})\boldsymbol{I}
+            ,
+            \boldsymbol{\psi}
+            \rangle
+            \\
+            &=
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
+            ,
+            \boldsymbol{\psi}
+            \rangle
+            -\frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})
+            \langle
+            \boldsymbol{I},\boldsymbol{\psi}
+            \rangle
+            \\
+            &=
+            \langle
+            {\boldsymbol\nabla \boldsymbol{s}}
+            ,
+            {\boldsymbol{\psi}}
+            \rangle
+            -\frac13\text{div}(\boldsymbol{s})
+            \text{tr}(\boldsymbol{\psi})
+            \\
+            &=
+            \langle
+            {\boldsymbol\nabla \boldsymbol{s}}
+            ,
+            {\boldsymbol{\psi}}
+            \rangle
+            \end{align}
 
         """
         # Check if all mesh boundaries have bcs presibed frm input
