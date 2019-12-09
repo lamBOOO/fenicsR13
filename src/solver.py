@@ -514,7 +514,7 @@ class Solver:
             ) * df.dx + (
                 + 1/(2*xi_tilde) * n(s_) * n(r_)
                 + 11/25 * xi_tilde * t(s_) * t(r_)
-                + cpl * 1/25 * xi_tilde * t(s_) *t(r_)
+                + cpl * 1/25 * xi_tilde * t(s_) * t(r_)
             ) * df.ds
         def diag2(sigma_, psi_):
             "Should be symmetrizable similar to (s,r)-term!" #FIXME
@@ -547,21 +547,28 @@ class Solver:
         def e(vector, tensor):
             return 1 * df.dot(df.div(tensor), vector) * df.dx
 
-        # Setup all weak forms
-        a1 = diag1(s, r) - b(theta, r) - cpl * c(r, sigma)
-        l1 = sum([
-            - 1 * n(r) * bcs[bc]["theta_w"] * df.ds(bc)
-            for bc in bcs.keys()
-        ])
-
-        a2 = b(kappa, s)
-        l2 = f_heat * kappa * df.dx
-
-        a3 = diag2(sigma, psi) - e(u, psi) + cpl * c(s, psi) + sum([
+        # Setup all equations
+        lhs = [None] * 5
+        rhs = [None] * 5
+        # 1) Left-hand sides
+        lhs[0] = diag1(s, r) - b(theta, r) - cpl * c(r, sigma)
+        lhs[1] = b(kappa, s)
+        lhs[2] = diag2(sigma, psi) - e(u, psi) + cpl * c(s, psi) + sum([
             bcs[bc]["epsilon_w"] * (p + nn(sigma)) * nn(psi) * df.ds(bc)
             for bc in bcs.keys()
         ])
-        l3 = sum([
+        lhs[3] = e(v, sigma) + d(p, v)
+        lhs[4] = - d(q, u) + sum([
+            bcs[bc]["epsilon_w"] * (p + nn(sigma)) * q * df.ds(bc)
+            for bc in bcs.keys()
+        ])
+        # 2) Right-hand sides:
+        rhs[0] = sum([
+            - 1 * n(r) * bcs[bc]["theta_w"] * df.ds(bc)
+            for bc in bcs.keys()
+        ])
+        rhs[1] = f_heat * kappa * df.dx
+        rhs[2] = sum([
             - 1 * nt(psi) * bcs[bc]["u_t_w"] * df.ds(bc)
             - 1 * (
                 - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
@@ -569,20 +576,8 @@ class Solver:
             ) * nn(psi) * df.ds(bc)
             for bc in bcs.keys()
         ])
-
-        a4 = (
-            e(v, sigma)
-            + d(p, v)
-        )
-        l4 = + df.Constant(0) * df.div(v) * df.dx
-
-        a5 = (
-            - d(q, u)
-        ) + sum([
-            bcs[bc]["epsilon_w"] * (p + nn(sigma)) * q * df.ds(bc)
-            for bc in bcs.keys()
-        ])
-        l5 = + (f_mass * q) * df.dx - sum([
+        rhs[3] = + df.Constant(0) * df.div(v) * df.dx
+        rhs[4] = + (f_mass * q) * df.dx - sum([
             (
                 - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
                 + bcs[bc]["u_n_w"]
@@ -591,9 +586,10 @@ class Solver:
         ])
 
         # Add CIP-stabilization terms to LHS
+        # TODO: Externalize this with: cip_scalar(s1,s2), cip_vector(v1,v2)
         if self.use_cip:
-            stab_heat = + (
-                delta_1 * h_avg**3 *
+            stab_heat = (
+                + delta_1 * h_avg**3 *
                 df.jump(df.grad(theta), n_vec) * df.jump(df.grad(kappa), n_vec)
             ) * df.dS
 
@@ -609,14 +605,14 @@ class Solver:
 
         # Combine all equations to compound weak form
         if self.mode == "heat":
-            self.form_lhs = a1 + a2 + stab_heat
-            self.form_rhs = l1 + l2
+            self.form_lhs = sum(lhs[0:2]) + stab_heat
+            self.form_rhs = sum(rhs[0:2])
         elif self.mode == "stress":
-            self.form_lhs = a3 + a4 + a5 + stab_stress
-            self.form_rhs = l3 + l4 + l5
+            self.form_lhs = sum(lhs[2:5]) + stab_stress
+            self.form_rhs = sum(rhs[2:5])
         elif self.mode == "r13":
-            self.form_lhs = a1 + a2 + stab_heat + a3 + a4 + a5 + stab_stress
-            self.form_rhs = l1 + l2 + l3 + l4 + l5
+            self.form_lhs = sum(lhs) + stab_heat + stab_stress
+            self.form_rhs = sum(rhs)
 
     def solve(self):
         """
