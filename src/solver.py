@@ -482,9 +482,9 @@ class Solver:
 
         # Decouple heat/stress switch
         if self.mode == "r13":
-            cpl = 1.0
+            cpl = 1
         else:
-            cpl = 0.0
+            cpl = 0
 
         # Setup normal/tangential projections
         # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
