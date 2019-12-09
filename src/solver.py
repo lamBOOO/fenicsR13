@@ -567,11 +567,11 @@ class Solver:
         lhs = [None] * 5
         rhs = [None] * 5
         # 1) Left-hand sides
-        lhs[0] = d1(s, r)   -b(theta, r)-c(r, sigma)   +0        +0
-        lhs[1] = b(kappa, s)+0          +0             +0        +0
-        lhs[2] = c(s, psi)  +0          +d2(sigma, psi)-e(u, psi)+f(p, psi)
-        lhs[3] = 0          +0          +e(v, sigma)   +0        +d(p, v)
-        lhs[4] = 0          +0          +f(q, sigma)   -d(q, u)  +d3(p, q)
+        lhs[0] = +1*d1(s, r)   -b(theta, r)-c(r, sigma)   +0        +0
+        lhs[1] = +1*b(kappa, s)+0          +0             +0        +0
+        lhs[2] = +1*c(s, psi)  +0          +d2(sigma, psi)-e(u, psi)+f(p, psi)
+        lhs[3] = +1*0          +0          +e(v, sigma)   +0        +d(p, v)
+        lhs[4] = +1*0          +0          +f(q, sigma)   -d(q, u)  +d3(p, q)
         # 2) Right-hand sides:
         rhs[0] = sum([
             - 1 * n(r) * bcs[bc]["theta_w"] * df.ds(bc)
