@@ -532,6 +532,11 @@ class Solver:
                 + xi_tilde * (tt(sigma_) + (1/2) * nn(sigma_)) * (tt(psi_) + (1/2) * nn(psi_))
                 + (1/xi_tilde) * nt(sigma_) * nt(psi_)
             ) * df.ds
+        def diag3(p, q):
+            return sum([
+                bcs[bc]["epsilon_w"] * p * q * df.ds(bc)
+                for bc in bcs.keys()
+            ])
         # 2) Offdiagonals:
         def b(scalar, vector):
             return 1 * scalar * df.div(vector) * df.dx
@@ -558,8 +563,8 @@ class Solver:
             for bc in bcs.keys()
         ])
         lhs[3] = e(v, sigma) + d(p, v)
-        lhs[4] = - d(q, u) + sum([
-            bcs[bc]["epsilon_w"] * (p + nn(sigma)) * q * df.ds(bc)
+        lhs[4] = diag3(p, q) - d(q, u) + sum([
+            bcs[bc]["epsilon_w"] * nn(sigma) * q * df.ds(bc)
             for bc in bcs.keys()
         ])
         # 2) Right-hand sides:
