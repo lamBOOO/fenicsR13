@@ -503,7 +503,7 @@ class Solver:
 
         # Sub functionals:
         # 1) Diagonals:
-        def diag1(s_, r_):
+        def d1(s_, r_):
             return (
                 # => 24/25*stf(grad)*grad
                 + 24/25 * kn * df.inner(
@@ -516,8 +516,8 @@ class Solver:
                 + 11/25 * xi_tilde * t(s_) * t(r_)
                 + cpl * 1/25 * xi_tilde * t(s_) * t(r_)
             ) * df.ds
-        def diag2(sigma_, psi_):
-            "Should be symmetrizable similar to (s,r)-term!" #FIXME
+        def d2(sigma_, psi_):
+            # FIXME: Should be symmetrizable similar to (s,r)-term!
             return (
                 kn * df.inner(
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma_))),
@@ -529,13 +529,16 @@ class Solver:
             ) * df.dx + (
                 + xi_tilde * 21/20 * nn(sigma_) * nn(psi_)
                 + xi_tilde * cpl * 3/40 * nn(sigma_) * nn(psi_)
-                + xi_tilde * (tt(sigma_) + (1/2) * nn(sigma_)) * (tt(psi_) + (1/2) * nn(psi_))
+                + xi_tilde * (
+                    (tt(sigma_) + (1/2) * nn(sigma_)) *
+                    (tt(psi_) + (1/2) * nn(psi_))
+                )
                 + (1/xi_tilde) * nt(sigma_) * nt(psi_)
             ) * df.ds + sum([
                 bcs[bc]["epsilon_w"] * nn(sigma) * nn(psi) * df.ds(bc)
                 for bc in bcs.keys()
             ])
-        def diag3(p, q):
+        def d3(p, q):
             return sum([
                 bcs[bc]["epsilon_w"] * p * q * df.ds(bc)
                 for bc in bcs.keys()
@@ -564,11 +567,11 @@ class Solver:
         lhs = [None] * 5
         rhs = [None] * 5
         # 1) Left-hand sides
-        lhs[0] = diag1(s, r) - b(theta, r) - cpl * c(r, sigma)
-        lhs[1] = b(kappa, s)
-        lhs[2] = diag2(sigma, psi) - e(u, psi) + cpl * c(s, psi) + f(p, psi)
-        lhs[3] = e(v, sigma) + d(p, v)
-        lhs[4] = diag3(p, q) - d(q, u) + f(q, sigma)
+        lhs[0] = d1(s, r)     -b(theta, r)-cpl*c(r, sigma)+0        +0
+        lhs[1] = b(kappa, s)  +0          +0              +0        +0
+        lhs[2] = cpl*c(s, psi)+0          +d2(sigma, psi) -e(u, psi)+f(p, psi)
+        lhs[3] = 0            +0          +e(v, sigma)    +0        +d(p, v)
+        lhs[4] = 0            +0          +f(q, sigma)    -d(q, u)  +d3(p, q)
         # 2) Right-hand sides:
         rhs[0] = sum([
             - 1 * n(r) * bcs[bc]["theta_w"] * df.ds(bc)
