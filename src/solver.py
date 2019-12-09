@@ -377,20 +377,27 @@ class Solver:
         def b(scalar, vector):
             return 1 * scalar * df.div(vector) * df.dx
         def c(vector, tensor):
-            return 2/5 * df.inner(tensor, df.grad(vector)) * df.dx
+            return (
+                 2/5 * df.inner(tensor, df.grad(vector))
+            ) * df.dx + (
+                - cpl * 3/20 * nn(tensor) * n(vector)
+                - cpl * 1/5 * nt(tensor) * t(vector)
+            ) * df.ds
         def cc(vector, tensor):
             "Should be replaced by c because orthogonality argument" # FIXME
-            return 2/5 * df.inner(tensor, to.stf3d2(df.grad(vector))) * df.dx
+            return (
+                2/5 * df.inner(tensor, to.stf3d2(df.grad(vector)))
+            ) * df.dx + (
+                - cpl * 3/20  * n(vector) * nn(tensor)
+                - cpl * 1/5 * t(vector) * nt(tensor)
+            ) * df.ds
         def d(scalar, vector):
             return 1 * df.inner(vector, df.grad(scalar)) * df.dx
         def e(vector, tensor):
             return 1 * df.dot(df.div(tensor), vector) * df.dx
 
         # Setup all weak forms
-        a1 = diag1(s, r) - b(theta, r) - cpl * c(r, sigma) + (
-            + cpl * 3/20 * nn(sigma) * n(r)
-            + cpl * 1/5 * nt(sigma) * t(r)
-        ) * df.ds
+        a1 = diag1(s, r) - b(theta, r) - cpl * c(r, sigma)
         l1 = sum([
             - 1 * n(r) * bcs[bc]["theta_w"] * df.ds(bc)
             for bc in bcs.keys()
@@ -399,10 +406,7 @@ class Solver:
         a2 = b(kappa, s)
         l2 = f_heat * kappa * df.dx
 
-        a3 = diag2(sigma, psi) - e(u, psi) + cpl * cc(s, psi) + (
-            - cpl * 3/20  * n(s) * nn(psi)
-            - cpl * 1/5 * t(s) * nt(psi)
-        ) * df.ds + sum([
+        a3 = diag2(sigma, psi) - e(u, psi) + cpl * cc(s, psi) + sum([
             bcs[bc]["epsilon_w"] * (p + nn(sigma)) * nn(psi) * df.ds(bc)
             for bc in bcs.keys()
         ])
