@@ -486,6 +486,12 @@ class Solver:
         else:
             cpl = 0
 
+        # Stabilization switch
+        if self.use_cip:
+            cip = 1
+        else:
+            cip = 0
+
         # Setup normal/tangential projections
         # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
         n_vec = df.FacetNormal(mesh)
@@ -562,6 +568,22 @@ class Solver:
                 bcs[bc]["epsilon_w"] * scalar * nn(tensor) * df.ds(bc)
                 for bc in bcs.keys()
             ])
+        # 3) CIP Stabilization:
+        def j_theta():
+            return (
+                + delta_1 * h_avg**3 *
+                df.jump(df.grad(theta), n_vec) * df.jump(df.grad(kappa), n_vec)
+            ) * df.dS
+        def j_u():
+            return (
+                + delta_2 * h_avg**3 *
+                df.dot(df.jump(df.grad(u), n_vec), df.jump(df.grad(v), n_vec))
+            ) * df.dS
+        def j_p():
+            return (
+                + delta_3 * h_avg *
+                df.jump(df.grad(p), n_vec) * df.jump(df.grad(q), n_vec)
+            ) * df.dS
 
         # Setup all equations
         lhs = [None] * 5
@@ -595,33 +617,15 @@ class Solver:
             for bc in bcs.keys()
         ])
 
-        # Add CIP-stabilization terms to LHS
-        # TODO: Externalize this with: cip_scalar(s1,s2), cip_vector(v1,v2)
-        if self.use_cip:
-            stab_heat = (
-                + delta_1 * h_avg**3 *
-                df.jump(df.grad(theta), n_vec) * df.jump(df.grad(kappa), n_vec)
-            ) * df.dS
-
-            stab_stress = (
-                + delta_2 * h_avg**3 *
-                df.dot(df.jump(df.grad(u), n_vec), df.jump(df.grad(v), n_vec))
-                + delta_3 * h_avg *
-                df.jump(df.grad(p), n_vec) * df.jump(df.grad(q), n_vec)
-            ) * df.dS
-        else:
-            stab_heat = 0
-            stab_stress = 0
-
-        # Combine all equations to compound weak form
+        # Combine all equations to compound weak form and add CIP
         if self.mode == "heat":
-            self.form_lhs = sum(lhs[0:2]) + stab_heat
+            self.form_lhs = sum(lhs[0:2]) + cip * j_theta()
             self.form_rhs = sum(rhs[0:2])
         elif self.mode == "stress":
-            self.form_lhs = sum(lhs[2:5]) + stab_stress
+            self.form_lhs = sum(lhs[2:5]) + cip * (j_u() + j_p())
             self.form_rhs = sum(rhs[2:5])
         elif self.mode == "r13":
-            self.form_lhs = sum(lhs) + stab_heat + stab_stress
+            self.form_lhs = sum(lhs) + cip * (j_theta() + j_u() + j_p())
             self.form_rhs = sum(rhs)
 
     def solve(self):
