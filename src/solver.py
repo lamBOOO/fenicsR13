@@ -553,12 +553,12 @@ class Solver:
         def b(scalar, vector):
             return 1 * scalar * df.div(vector) * df.dx
         def c(vector, tensor):
-            return cpl * (
+            return cpl * ((
                 2/5 * df.inner(tensor, df.grad(vector))
             ) * df.dx + (
                 - 3/20 * nn(tensor) * n(vector)
                 - 1/5 * nt(tensor) * t(vector)
-            ) * df.ds
+            ) * df.ds)
         def d(scalar, vector):
             return 1 * df.inner(vector, df.grad(scalar)) * df.dx
         def e(vector, tensor):
