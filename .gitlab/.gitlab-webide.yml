@@ -1,4 +1,5 @@
 terminal:
   image:
     name: $CI_REGISTRY_IMAGE:latest
+    entrypoint: [""]
   script: sleep 60
