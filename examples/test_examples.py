@@ -14,7 +14,7 @@ class TestExamples(object):
     All tests are compared against reference errors.
     """
 
-    solver_path = "../../src/fenicsR13.py"
+    solver_path = "fenicsR13"
 
     def run_solver(self, inputfile, working_dir_):
         """
@@ -23,7 +23,7 @@ class TestExamples(object):
         Test fails if subprocess return Exception or error.
         """
         subprocess.check_call([
-            "python3", self.solver_path, inputfile
+            self.solver_path, inputfile
         ], cwd=working_dir_)
 
     # @pytest.fixture(scope="module", autouse=True)

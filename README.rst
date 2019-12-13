@@ -77,7 +77,7 @@ To run a simulation execute the solver main program ``fenicsR13.py`` (which is l
 .. code-block:: bash
 
     # Run program with given input file:
-    python3 ../../src/fenicsR13.py input.yml
+    fenicsR13 input.yml
 
 
 Output files will be written to a folder which is named after the ``output_folder`` keyword of the ``input.yml``. For immediate inspection the output folder contains simple visualizations in PDF files for each of the fields (temperature, pressure,...).
@@ -103,7 +103,7 @@ We provide a simple example of a flow through a finite-length channel in 2D.
     # Create mesh:
     ./create_mesh.sh
     # Run program with given input file:
-    python3 ../../src/fenicsR13.py input.yml
+    fenicsR13 input.yml
 
 In the output folder the results can be post-processed to demonstrate the `Knudsen paradox`_ in a simple table.
 
@@ -130,7 +130,7 @@ We can test the convergence of the R13 discretization on a simple double-cylindr
     # Meshes are already in Git:
     ls ../mesh
     # Run program with given input file:
-    python3 ../../src/fenicsR13.py inputs/r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.yml
+    fenicsR13 inputs/r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.yml
     # Go to folder with simulation results (=casename in input.yml)
     cd r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab
     # Open errors:
@@ -150,7 +150,7 @@ FEniCS allows simple parallelization using MPI
 
     # Parallel execution ("-u" to flash stdout)
     # Usage: mpirun -n <numberOfProcesses> <serialCommand>
-    # E.g.: mpirun -n 4 python3 -u ../../src/fenicsR13.py input.yml
+    # E.g.: mpirun -n 4 fenicsR13 input.yml
 
 Building the Docker Image Locally
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -207,7 +207,7 @@ Developer Tips
 
     .. code-block:: bash
 
-        htop -p `{ python3 ../../src/fenicsR13.py inputs/1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.yml > /dev/null & } && echo $!`
+        htop -p `{ fenicsR13 inputs/1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.yml > /dev/null & } && echo $!`
 
 - Use doctest with ``python3 -m doctest -v src/meshes.py``
 - Run ``pydocstyle`` once in a while
@@ -317,7 +317,7 @@ Further Installation Tips
 **Interactive Jupyter Notebooks with Microsoft's Visual Studio Code**
 
 This is may be a convenient solution.
-Run a file with ``%run ../../src/fenicsr13.py``
+Run a file with ``%run ../../fenicsr13/fenicsr13.py``
 
 **X11 Window Forwarding on OSX**
 

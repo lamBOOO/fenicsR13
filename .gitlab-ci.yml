@@ -26,7 +26,7 @@ build:environment:
   - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
   # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA # no need
   - docker push $CI_REGISTRY_IMAGE:latest
-  when: manual # skips 15min, but has to be done manually if Dockerfile changes
+  only: tags # skips 15min, but has to be done manually if Dockerfile changes
 
 build:doc:
   stage: build
@@ -48,12 +48,22 @@ build:doc:
       - ${DOCS_DIRECTORY}/_build/latex/
     expire_in: 6 month
 
+build:app:
+  stage: build
+  image:
+    name: $CI_REGISTRY_IMAGE:latest
+    entrypoint: [""]
+  script:
+    - pip install .
+
 # **************************************************************************** #
 # test
 # **************************************************************************** #
 
 .test: # dot means "hidden", acts as base class
   stage: test
+  dependencies:
+    - build:app
   image:
     name: $CI_REGISTRY_IMAGE:latest # use prebuilt image in Gitlab's registry
     entrypoint: [""] # == Repo. Has to be done if Dockerfile has own entrypoint

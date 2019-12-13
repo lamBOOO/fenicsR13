@@ -15,7 +15,7 @@ class TestR13Convergence(object):
     """
 
     working_dir = "tests/r13"
-    solver_path = "../../src/fenicsR13.py"
+    solver_path = "fenicsR13"
 
     def run_solver(self, inputfile):
         """
@@ -24,7 +24,7 @@ class TestR13Convergence(object):
         Test fails if subprocess return Exception or error.
         """
         subprocess.check_call([
-            "python3", self.solver_path, inputfile
+            self.solver_path, inputfile
         ], cwd=self.working_dir)
 
     def compare_errors(self, errorsfile, ref_errorsfile):
