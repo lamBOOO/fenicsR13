@@ -5,13 +5,19 @@
 """
 Converter from geo-format to a mesh in h5-format.
 
+Installation:
+
+.. code-block:: bash
+
+    pip install .
+
 Usage:
 
 .. code-block:: bash
 
     Usage: python3 <path_to_geoToH5.py> <geo_file> <h5_file> \
             [<gmsh cli arguments>]
-    E.g.: python3 ../../src/geoToH5.py lid.geo lid5.h5 "-setnumber p 5"
+    E.g.: geoToH5 lid.geo lid5.h5 "-setnumber p 5"
 """
 
 import os
@@ -29,7 +35,7 @@ def geo_to_h5():
     if not 3 <= len(sys.argv) <= 4:
         print("""
 Usage: python3 <path_to_geoToH5.py> <geo_file> <h5_file> [<gmsh cli arguments>]
-E.g.: python3 ../../src/geoToH5.py lid.geo lid5.h5 "-setnumber p 5"
+E.g.: geoToH5 lid.geo lid5.h5 "-setnumber p 5"
         """)
         return
 
@@ -68,10 +74,3 @@ E.g.: python3 ../../src/geoToH5.py lid.geo lid5.h5 "-setnumber p 5"
     file.write(mesh, "/mesh")
     file.write(subdomains, "/subdomains")
     file.write(boundaries, "/boundaries")
-
-def main():
-    "Execute the converter."
-    geo_to_h5()
-
-if __name__ == '__main__':
-    main()

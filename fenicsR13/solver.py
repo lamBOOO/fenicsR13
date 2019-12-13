@@ -12,7 +12,7 @@ import time as time_module
 import dolfin as df
 import ufl
 import numpy as np
-import tensoroperations as to
+import fenicsR13.tensoroperations as to
 
 
 class Solver:
@@ -47,8 +47,8 @@ class Solver:
     Example
     -------
     >>> # Example usage:
-    >>> from input import Input
-    >>> from meshes import H5Mesh
+    >>> from fenicsR13.input import Input
+    >>> from fenicsR13.meshes import H5Mesh
     >>> params = Input(
     ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
     ... ) # doctest: +ELLIPSIS
@@ -1131,8 +1131,8 @@ class Solver:
         >>> print(rhs.get_local())
         [ 0.25  0.5   0.25]
         >>> # Assign LHS to solver
-        >>> from input import Input
-        >>> from meshes import H5Mesh
+        >>> from fenicsR13.input import Input
+        >>> from fenicsR13.meshes import H5Mesh
         >>> params = Input(
         ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
         ... ) # doctest: +ELLIPSIS

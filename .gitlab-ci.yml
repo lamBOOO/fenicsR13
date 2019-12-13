@@ -20,13 +20,14 @@ stages:
 build:environment:
   stage: build
   before_script:
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-  - docker pull $CI_REGISTRY_IMAGE:latest || true
-  - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
-  # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA # no need
-  - docker push $CI_REGISTRY_IMAGE:latest
-  when: manual # skips 15min, but has to be done manually if Dockerfile changes
+    - docker pull $CI_REGISTRY_IMAGE:latest || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
+    # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA # no need
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - tags # skips 15min, but has to be done manually if Dockerfile changes
 
 build:doc:
   stage: build
@@ -35,11 +36,11 @@ build:doc:
     entrypoint: [""]
   script:
     - cd ${DOCS_DIRECTORY}
-    - sphinx-apidoc -o source/src ../src
-    - sphinx-apidoc -o source/tests/heat ../tests/heat
-    - sphinx-apidoc -o source/tests/stress ../tests/stress
-    - sphinx-apidoc -o source/tests/r13 ../tests/r13
-    - sphinx-apidoc -o source/examples ../examples
+    - sphinx-apidoc -f -o source/fenicsR13 ../fenicsR13
+    - sphinx-apidoc -f -o source/tests/heat ../tests/heat
+    - sphinx-apidoc -f -o source/tests/stress ../tests/stress
+    - sphinx-apidoc -f -o source/tests/r13 ../tests/r13
+    - sphinx-apidoc -f -o source/examples ../examples
     - make html
     - make latex
   artifacts:
@@ -54,6 +55,8 @@ build:doc:
 
 .test: # dot means "hidden", acts as base class
   stage: test
+  before_script:
+    - pip install .
   image:
     name: $CI_REGISTRY_IMAGE:latest # use prebuilt image in Gitlab's registry
     entrypoint: [""] # == Repo. Has to be done if Dockerfile has own entrypoint
@@ -61,10 +64,10 @@ build:doc:
 test:pytest:
   extends: .test
   script:
-  - cd ${APP_DIRECTORY}
-  - pytest
-  - mkdir convergence_plots
-  - cp tests/*/*/convergence_plot* convergence_plots/
+    - cd ${APP_DIRECTORY}
+    - pytest
+    - mkdir convergence_plots
+    - cp tests/*/*/convergence_plot* convergence_plots/
   artifacts:
     paths:
       - ${APP_DIRECTORY}/convergence_plots
