@@ -40,6 +40,7 @@
 		"ms-python.python",
 		"ms-vscode.cpptools",
 		"lextudio.restructuredtext",
-		"ms-azuretools.vscode-docker"
+		"ms-azuretools.vscode-docker",
+		"ritwickdey.liveserver"
 	]
 }
