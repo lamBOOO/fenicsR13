@@ -343,6 +343,16 @@ class Solver:
             \rangle
             \end{align}
 
+        - Inner product of STF tensor with arbitrary tensor:
+
+        .. math::
+
+            T_{i_{1} i_{2} \ldots i_{n} k_{1} \cdots k_{r}}
+            A_{i_{1} i_{2} \ldots i_{n} j_{1} \cdots j_{n}}
+            =
+            T_{i_{1} i_{2} \ldots i_{n} k_{1} \cdots k_{r}}
+            A_{\langle i_{1} i_{2} \ldots i_{n}\rangle j_{1} \cdots j_{n}}
+
         Tricks of the trade:
 
         .. math::
@@ -527,7 +537,7 @@ class Solver:
             return (
                 kn * df.inner(
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma_))),
-                    to.grad3dOf2(to.gen3dTF2(psi_))
+                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(psi_)))
                 )
                 + (1/(2*kn)) * df.inner(
                     to.gen3dTF2(sigma_), to.gen3dTF2(psi_)
