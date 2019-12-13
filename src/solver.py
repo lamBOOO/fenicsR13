@@ -532,8 +532,8 @@ class Solver:
                 + 4/15 * (1/kn) * df.inner(s_, r_)
             ) * df.dx + (
                 + 1/(2*xi_tilde) * n(s_) * n(r_)
-                + 11/25 * xi_tilde * t(s_) * t(r_)
-                + cpl * 1/25 * xi_tilde * t(s_) * t(r_)
+                + 12/25 * xi_tilde * t(s_) * t(r_)
+                - (1-cpl) * 1/25 * xi_tilde * t(s_) * t(r_)
             ) * df.ds
         def d2(sigma_, psi_):
             return (
@@ -545,8 +545,8 @@ class Solver:
                     to.gen3dTF2(sigma_), to.gen3dTF2(psi_)
                 )
             ) * df.dx + (
-                + xi_tilde * 21/20 * nn(sigma_) * nn(psi_)
-                + xi_tilde * cpl * 3/40 * nn(sigma_) * nn(psi_)
+                + xi_tilde * 9/8 * nn(sigma_) * nn(psi_)
+                - xi_tilde * (1-cpl) * 3/40 * nn(sigma_) * nn(psi_)
                 + xi_tilde * (
                     (tt(sigma_) + (1/2) * nn(sigma_)) *
                     (tt(psi_) + (1/2) * nn(psi_))
@@ -650,14 +650,19 @@ class Solver:
 
             # Some solver params
             solver_parameters={
-                'linear_solver': 'gmres', 'preconditioner': 'ilu' # or
-                'linear_solver': 'petsc', 'preconditioner': 'ilu' # or
-                'linear_solver': 'direct' # or
-                'linear_solver': 'mumps'
+                "linear_solver": "gmres", "preconditioner": "ilu" # or
+                "linear_solver": "petsc", "preconditioner": "ilu" # or
+                "linear_solver": "direct" # or
+                "linear_solver": "mumps" # or
+                "linear_solver": "mumps"
             }
+            # List all available solvers:
+            list_linear_solver_methods()
+            list_krylov_solver_preconditioners()
+            # "direct" means "default" means "lu" of default backend
+            print(parameters["linear_algebra_backend"]) # usually PETSc
 
         """
-
 
         if self.mode == "heat":
             w = self.mxd_fspaces["heat"]
@@ -671,7 +676,7 @@ class Solver:
         sol = df.Function(w)
         df.solve(
             self.form_lhs == self.form_rhs, sol, [],
-            solver_parameters={"linear_solver": "mumps"}
+            solver_parameters={"linear_solver": "umfpack"}
         )
         end_t = time_module.time()
         print("Finished solving system in: {}".format(str(end_t - start_t)))
