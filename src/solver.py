@@ -533,7 +533,6 @@ class Solver:
                 + cpl * 1/25 * xi_tilde * t(s_) * t(r_)
             ) * df.ds
         def d2(sigma_, psi_):
-            # FIXME: Should be symmetrizable similar to (s,r)-term!
             return (
                 kn * df.inner(
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma_))),
