@@ -20,13 +20,14 @@ stages:
 build:environment:
   stage: build
   before_script:
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-  - docker pull $CI_REGISTRY_IMAGE:latest || true
-  - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
-  # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA # no need
-  - docker push $CI_REGISTRY_IMAGE:latest
-  only: tags # skips 15min, but has to be done manually if Dockerfile changes
+    - docker pull $CI_REGISTRY_IMAGE:latest || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
+    # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA # no need
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - tags # skips 15min, but has to be done manually if Dockerfile changes
 
 build:doc:
   stage: build
@@ -71,10 +72,10 @@ build:app:
 test:pytest:
   extends: .test
   script:
-  - cd ${APP_DIRECTORY}
-  - pytest
-  - mkdir convergence_plots
-  - cp tests/*/*/convergence_plot* convergence_plots/
+    - cd ${APP_DIRECTORY}
+    - pytest
+    - mkdir convergence_plots
+    - cp tests/*/*/convergence_plot* convergence_plots/
   artifacts:
     paths:
       - ${APP_DIRECTORY}/convergence_plots
