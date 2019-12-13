@@ -7,7 +7,7 @@ Converter from geo-format to a mesh in h5-format.
 
 Installation:
 
-.. coe-block:: bash
+.. code-block:: bash
 
     pip install .
 

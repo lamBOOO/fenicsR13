@@ -36,11 +36,11 @@ build:doc:
     entrypoint: [""]
   script:
     - cd ${DOCS_DIRECTORY}
-    - sphinx-apidoc -o source/src ../src
-    - sphinx-apidoc -o source/tests/heat ../tests/heat
-    - sphinx-apidoc -o source/tests/stress ../tests/stress
-    - sphinx-apidoc -o source/tests/r13 ../tests/r13
-    - sphinx-apidoc -o source/examples ../examples
+    - sphinx-apidoc -f -o source/fenicsR13 ../fenicsR13
+    - sphinx-apidoc -f -o source/tests/heat ../tests/heat
+    - sphinx-apidoc -f -o source/tests/stress ../tests/stress
+    - sphinx-apidoc -f -o source/tests/r13 ../tests/r13
+    - sphinx-apidoc -f -o source/examples ../examples
     - make html
     - make latex
   artifacts:

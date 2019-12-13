@@ -17,7 +17,7 @@ Contents
 .. toctree::
     :glob:
 
-    source/src/modules.rst
+    source/fenicsR13/modules.rst
     source/tests/heat/modules.rst
     source/tests/stress/modules.rst
     source/tests/r13/modules.rst
