@@ -50,6 +50,8 @@ Make sure you installed Docker and it is running on your system. You can start t
 
     # Run (and possibly pull) fenicsr13_release service
     docker-compose run --rm fenicsr13_release
+    # Only for developers, install the lastest version using pipeline
+    # pip install -e .
 
 When you run this for the first time, docker will pull (download and extract) the container image from our repository which is roughly 800MB and the download may require some patience. After the initial download the docker image will be stored (2-3 GB) on your system and any new run will start the container immediately.
 
