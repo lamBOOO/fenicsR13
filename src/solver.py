@@ -553,7 +553,7 @@ class Solver:
                 )
                 + (1/xi_tilde) * nt(sigma_) * nt(psi_)
             ) * df.ds + sum([
-                bcs[bc]["epsilon_w"] * nn(sigma) * nn(psi) * df.ds(bc)
+                bcs[bc]["epsilon_w"] * nn(sigma_) * nn(psi_) * df.ds(bc)
                 for bc in bcs.keys()
             ])
         def d3(p, q):
@@ -1104,10 +1104,8 @@ class Solver:
         .. code-block:: matlab
 
             % Input into MATLAB
-            At = readtable("A.mat");
-            bt = readtable("b.mat");
-            A = table2array(At);
-            b = table2array(bt);
+            A = table2array(readtable("A_0.mat","FileType","text"));
+            b = table2array(readtable("b_0.mat","FileType","text"));
 
         Example
         -------
