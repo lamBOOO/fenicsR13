@@ -471,6 +471,9 @@ class Solver:
         # Define mesh measuers
         h = df.CellDiameter(mesh)
         h_avg = (h("+") + h("-"))/2.0 # pylint: disable=not-callable
+        # TODO: Study this, is it more precise?
+        # fa = df.FacetArea(mesh)
+        # h_avg_new = (fa("+") + fa("-"))/2.0 # pylint: disable=not-callable
 
         # Setup trial and test functions
         w_heat = self.mxd_fspaces["heat"]
