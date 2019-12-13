@@ -49,22 +49,14 @@ build:doc:
       - ${DOCS_DIRECTORY}/_build/latex/
     expire_in: 6 month
 
-build:app:
-  stage: build
-  image:
-    name: $CI_REGISTRY_IMAGE:latest
-    entrypoint: [""]
-  script:
-    - pip install .
-
 # **************************************************************************** #
 # test
 # **************************************************************************** #
 
 .test: # dot means "hidden", acts as base class
   stage: test
-  dependencies:
-    - build:app
+  before_script:
+    - pip install .
   image:
     name: $CI_REGISTRY_IMAGE:latest # use prebuilt image in Gitlab's registry
     entrypoint: [""] # == Repo. Has to be done if Dockerfile has own entrypoint
