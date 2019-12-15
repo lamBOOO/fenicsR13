@@ -28,7 +28,7 @@ def print_information():
 
     .. code-block:: text
 
-        -> Version: v1.0
+        -> Version: v1.1
         -> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
         -> Contact: Manuel Torrilhon <mt@mathcces.rwth-aachen.de>
         -> Repository: <https://git.rwth-aachen.de/lamBOO/fenicsR13>
@@ -40,7 +40,7 @@ def print_information():
         |_|  \___|_| |_|_|\___|___/_| \_\_|____/
 
     """
-    print(r"""-> Version: v1.0
+    print(r"""-> Version: v1.1
 -> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
 -> Contact: Manuel Torrilhon <mt@mathcces.rwth-aachen.de>
 -> Repository: <https://git.rwth-aachen.de/lamBOO/fenicsR13>

@@ -1,6 +1,23 @@
 Change log
 ----------
 
+1.1 (2019-12-15)
+~~~~~~~~~~~~~~~~
+
+- Symmetrize system
+    - Scale the equations to match
+    - Introduce subfunctionals
+    - Subfunctionals are equal for off-diagonal entries
+    - Resolve stf-terms using orthogonality
+    - Make r13 as default in formulation rather than decoupled
+    - Refactor CIP as separate subfunctionals
+    - Add antisymm ring, not used for now but can improve convergence
+- Create package
+    - Move files into separate folder and add setup.py
+    - CI is changed
+    - Installation through "pip install ." in toplevel
+- Clean repository
+
 1.0 (2019-09-23)
 ~~~~~~~~~~~~~~~~
 

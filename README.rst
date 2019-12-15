@@ -258,7 +258,7 @@ Python notes
 Create new version tag
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 1. Add CHANGELOG entry
-2. Adapt version in `conf.py` for docs
+2. Adapt version in `conf.py` for docs and `setup.py` for package
 3. Change badge in ``README.rst``
 4. Change version in program information printing
 
@@ -381,7 +381,7 @@ Contact
     :target: https://git.rwth-aachen.de/lamboo/fenicsR13/pipelines
     :alt: Test coverage
 
-.. |version| image:: https://img.shields.io/badge/version-v1.0-blue.svg
+.. |version| image:: https://img.shields.io/badge/version-v1.1-blue.svg
     :target: https://git.rwth-aachen.de/lamBOO/fenicsR13/-/tags
     :alt: Documentation Website
 
