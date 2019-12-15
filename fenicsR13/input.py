@@ -164,8 +164,12 @@ class Input:
 
     def __init__(self, yaml_file):
         """Construct the Input class."""
-        with open(yaml_file, "r") as stream:
-            self.dict = yaml.safe_load(stream)
+        try:
+            with open(yaml_file, "r") as stream:
+                self.dict = yaml.safe_load(stream)
+        except FileNotFoundError:
+            print(f"[Error] The input file {yaml_file} is not found.\n")
+            raise
 
         val = Validator()
         input_schema = {
