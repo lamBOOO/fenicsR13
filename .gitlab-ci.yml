@@ -26,6 +26,9 @@ build:environment:
     - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
     # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA # no need
     - docker push $CI_REGISTRY_IMAGE:latest
+  rules:
+    - if: '$CI_COMMIT_TAG != null' # always run for tags
+    - when: manual
   only:
     - tags # skips 15min, but has to be done manually if Dockerfile changes
 
@@ -95,6 +98,7 @@ deploy:latex:
     expire_in: 6 month
   only:
     - master
+    - tags
 
 pages:
   stage: deploy
@@ -107,3 +111,4 @@ pages:
       - public
   only:
     - master
+    - tags
