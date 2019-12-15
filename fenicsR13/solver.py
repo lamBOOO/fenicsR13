@@ -286,14 +286,12 @@ class Solver:
           symmetric and trace-less:
 
         .. math::
-
             \boldsymbol{\psi} : \boldsymbol{I} = 0 \\
             (\boldsymbol{\psi})_{\text{sym}} = \boldsymbol{\psi}
 
         - Trace of vector gradient is divergence of vector:
 
         .. math::
-
             \langle
             \boldsymbol{I},\boldsymbol\nabla \boldsymbol{x}_1
             \rangle
@@ -306,8 +304,6 @@ class Solver:
           additive symmetric/skewsymmetric tensor decomposition:
 
         .. math::
-
-            \begin{align}
             \langle
             (\boldsymbol{x}_2)_{\text{sym}}
             ,
@@ -341,7 +337,6 @@ class Solver:
             ,
             (\boldsymbol{y}_2)_{\text{sym}}
             \rangle
-            \end{align}
 
         - Inner product of STF tensor with arbitrary tensor:
 
@@ -356,8 +351,6 @@ class Solver:
         Tricks of the trade:
 
         .. math::
-
-            \begin{align}
             \langle
             {(\boldsymbol\nabla \boldsymbol{s})}_{\text{STF}}
             ,
@@ -400,11 +393,8 @@ class Solver:
             \rangle
             -\frac13\text{div}(\boldsymbol{s})
             \text{div}(\boldsymbol{r})
-            \end{align}
 
         .. math::
-
-            \begin{align}
             \langle
             {(\boldsymbol\nabla \boldsymbol{s})}_{\text{STF}}
             ,
@@ -445,7 +435,6 @@ class Solver:
             ,
             {\boldsymbol{\psi}}
             \rangle
-            \end{align}
 
         """
         # Check if all mesh boundaries have bcs presibed frm input

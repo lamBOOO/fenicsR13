@@ -29,7 +29,6 @@ def stf3d2(rank2_2d):
     :math:`A \in \mathbb{R}^{2 \times 2}`.
 
     .. math::
-
         A &= \begin{pmatrix}
                 a_{xx} & a_{xy} \\
                 a_{yx} & a_{yy}
@@ -52,7 +51,6 @@ def sym3d3(rank3_3d):
     :math:`A \in \mathbb{R}^{3 \times 3 \times 3}` [STR2005]_ [TOR2018]_.
 
     .. math::
-
         A_{(i j k)}=\frac{1}{6}\left(
             A_{i j k}+A_{i k j}+A_{j i k}+A_{j k i}+A_{k i j}+A_{k j i}
         \right)
@@ -79,7 +77,6 @@ def stf3d3(rank3_3d):
     :math:`A \in \mathbb{R}^{3 \times 3 \times 3}` [TOR2018]_.
 
     .. math::
-
         A_{\langle i j k\rangle}=A_{(i j k)}-\frac{1}{5}\left[A_{(i l l)}
         \delta_{j k}+A_{(l j l)} \delta_{i k}+A_{(l l k)} \delta_{i j}\right]
 
@@ -88,7 +85,6 @@ def stf3d3(rank3_3d):
     deviator [STR2005]_:
 
     .. math::
-
         \frac{\partial S_{\langle i j}}{\partial x_{k \rangle}}
         =&
         \frac{1}{3}\left(
@@ -139,7 +135,6 @@ def gen3dTF2(rank2_2d):
     :math:`B \in \mathbb{R}^{2 \times 2}`.
 
     .. math::
-
         B &= \begin{pmatrix}
                 b_{xx} & b_{xy} \\
                 b_{yx} & b_{yy}
@@ -187,7 +182,6 @@ def gen3d2(rank2_2d):
     The 3D-components are set to zero.
 
     .. math::
-
         B &= \begin{pmatrix}
                 b_{xx} & b_{xy} \\
                 b_{yx} & b_{yy}
@@ -235,7 +229,6 @@ def grad3dOf2(rank2_3d):
     where
 
     .. math::
-
         A_{ij} = \begin{pmatrix}
                     a_{xx}(x,y) & a_{xy}(x,y) & a_{xz}(x,y) \\
                     a_{yx}(x,y) & a_{yy}(x,y) & a_{yz}(x,y) \\
@@ -247,7 +240,6 @@ def grad3dOf2(rank2_3d):
     where
 
     .. math::
-
         \frac{\partial A_{ij}}{\partial x_{1}}
         =
         \frac{\partial A_{ij}}{\partial x}
