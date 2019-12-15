@@ -469,8 +469,8 @@ class Solver:
         df.dS = df.Measure("dS", domain=mesh, subdomain_data=boundaries)
 
         # Define mesh measuers
-        h = df.CellDiameter(mesh)
-        h_avg = (h("+") + h("-"))/2.0 # pylint: disable=not-callable
+        h_msh = df.CellDiameter(mesh)
+        h_avg = (h_msh("+") + h_msh("-"))/2.0 # pylint: disable=not-callable
         # TODO: Study this, is it more precise?
         # fa = df.FacetArea(mesh)
         # h_avg_new = (fa("+") + fa("-"))/2.0 # pylint: disable=not-callable
@@ -522,7 +522,7 @@ class Solver:
 
         # Sub functionals:
         # 1) Diagonals:
-        def d1(s_, r_):
+        def a(s_, r_):
             return (
                 # => 24/25*stf(grad)*grad
                 + 24/25 * kn * df.inner(
@@ -535,7 +535,7 @@ class Solver:
                 + 12/25 * xi_tilde * t(s_) * t(r_)
                 - (1-cpl) * 1/25 * xi_tilde * t(s_) * t(r_)
             ) * df.ds
-        def d2(sigma_, psi_):
+        def d(sigma_, psi_):
             return (
                 kn * df.inner(
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma_))),
@@ -556,7 +556,7 @@ class Solver:
                 bcs[bc]["epsilon_w"] * nn(sigma_) * nn(psi_) * df.ds(bc)
                 for bc in bcs.keys()
             ])
-        def d3(p, q):
+        def h(p, q):
             return sum([
                 bcs[bc]["epsilon_w"] * p * q * df.ds(bc)
                 for bc in bcs.keys()
@@ -571,8 +571,6 @@ class Solver:
                 - 3/20 * nn(tensor) * n(vector)
                 - 1/5 * nt(tensor) * t(vector)
             ) * df.ds)
-        def d(scalar, vector):
-            return 1 * df.inner(vector, df.grad(scalar)) * df.dx
         def e(vector, tensor):
             return 1 * df.dot(df.div(tensor), vector) * df.dx
         def f(scalar, tensor):
@@ -580,6 +578,8 @@ class Solver:
                 bcs[bc]["epsilon_w"] * scalar * nn(tensor) * df.ds(bc)
                 for bc in bcs.keys()
             ])
+        def g(scalar, vector):
+            return 1 * df.inner(vector, df.grad(scalar)) * df.dx
         # 3) CIP Stabilization:
         def j_theta():
             return (
@@ -601,11 +601,11 @@ class Solver:
         lhs = [None] * 5
         rhs = [None] * 5
         # 1) Left-hand sides
-        lhs[0] = +1*d1(s, r)   -b(theta, r)-c(r, sigma)   +0        +0
-        lhs[1] = +1*b(kappa, s)+0          +0             +0        +0
-        lhs[2] = +1*c(s, psi)  +0          +d2(sigma, psi)-e(u, psi)+f(p, psi)
-        lhs[3] = +1*0          +0          +e(v, sigma)   +0        +d(p, v)
-        lhs[4] = +1*0          +0          +f(q, sigma)   -d(q, u)  +d3(p, q)
+        lhs[0] = +1*a(s, r)    -b(theta, r)-c(r, sigma)  +0        +0
+        lhs[1] = +1*b(kappa, s)+0          +0            +0        +0
+        lhs[2] = +1*c(s, psi)  +0          +d(sigma, psi)-e(u, psi)+f(p, psi)
+        lhs[3] = +1*0          +0          +e(v, sigma)  +0        +g(p, v)
+        lhs[4] = +1*0          +0          +f(q, sigma)  -g(q, u)  +h(p, q)
         # 2) Right-hand sides:
         rhs[0] = sum([
             - 1 * n(r) * bcs[bc]["theta_w"] * df.ds(bc)
