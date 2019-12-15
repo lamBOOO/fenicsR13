@@ -68,7 +68,7 @@ test:pytest:
   extends: .test
   script:
     - cd ${APP_DIRECTORY}
-    - pytest
+    - pytest -v
     - mkdir convergence_plots
     - cp tests/*/*/convergence_plot* convergence_plots/
   artifacts:
