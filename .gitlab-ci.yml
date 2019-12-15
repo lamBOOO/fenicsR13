@@ -29,7 +29,7 @@ build:environment:
   rules:
     - if: '$CI_COMMIT_TAG != null' # always run for tags
       when: always
-    - when: manual
+  when: manual
 
 build:doc:
   stage: build
