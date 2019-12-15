@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,too-many-lines
 
 """
 Solver module, contains the Solver class.
@@ -12,7 +12,7 @@ import time as time_module
 import dolfin as df
 import ufl
 import numpy as np
-import tensoroperations as to
+import fenicsR13.tensoroperations as to
 
 
 class Solver:
@@ -47,8 +47,8 @@ class Solver:
     Example
     -------
     >>> # Example usage:
-    >>> from input import Input
-    >>> from meshes import H5Mesh
+    >>> from fenicsR13.input import Input
+    >>> from fenicsR13.meshes import H5Mesh
     >>> params = Input(
     ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
     ... ) # doctest: +ELLIPSIS
@@ -66,7 +66,6 @@ class Solver:
         self.cell = self.mesh.ufl_cell()
         self.time = time
         self.mode = params["mode"]
-        self.use_coeffs = params["use_coeffs"]
         self.kn = params["kn"]
         self.xi_tilde = params["xi_tilde"]
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
@@ -127,8 +126,8 @@ class Solver:
             "stress": None,
             "r13": None,
         }
-        self.form_a = None
-        self.form_b = None
+        self.form_lhs = None
+        self.form_rhs = None
         self.sol = {
             "theta": None,
             "s": None,
@@ -278,6 +277,175 @@ class Solver:
         .. [5] M. Torrilhon, N. Sarna (2017). Hierarchical Boltzmann
            Simulations and Model Error Estimation
 
+        Identities:
+
+        - :math:`\boldsymbol{x}_1 \in \mathbb{R}^3`,
+          :math:`\boldsymbol{x}_2 \in \mathbb{R}^{3 \times 3}`,
+          ...
+        - Test function :math:`\boldsymbol{\psi}` is assumed to be
+          symmetric and trace-less:
+
+        .. math::
+
+            \boldsymbol{\psi} : \boldsymbol{I} = 0 \\
+            (\boldsymbol{\psi})_{\text{sym}} = \boldsymbol{\psi}
+
+        - Trace of vector gradient is divergence of vector:
+
+        .. math::
+
+            \langle
+            \boldsymbol{I},\boldsymbol\nabla \boldsymbol{x}_1
+            \rangle
+            =
+            \boldsymbol{I} : \boldsymbol\nabla \boldsymbol{x}_1
+            =
+            \text{div}(\boldsymbol{x}_1)
+
+        - Inner product has orthogonality property with respect to the
+          additive symmetric/skewsymmetric tensor decomposition:
+
+        .. math::
+
+            \begin{align}
+            \langle
+            (\boldsymbol{x}_2)_{\text{sym}}
+            ,
+            \boldsymbol{y}_2
+            \rangle
+            &=
+            \langle
+            (\boldsymbol{x}_2)_{\text{sym}}
+            ,
+            (\boldsymbol{y}_2)_{\text{sym}}
+            +
+            (\boldsymbol{y}_2)_{\text{skew}}
+            \rangle
+            \\
+            &=
+            \langle
+            (\boldsymbol{x}_2)_{\text{sym}}
+            ,
+            (\boldsymbol{y}_2)_{\text{sym}}
+            \rangle
+            +
+            \langle
+            (\boldsymbol{x}_2)_{\text{sym}}
+            ,
+            (\boldsymbol{y}_2)_{\text{skew}}
+            \rangle
+            \\
+            &=
+            \langle
+            (\boldsymbol{x}_2)_{\text{sym}}
+            ,
+            (\boldsymbol{y}_2)_{\text{sym}}
+            \rangle
+            \end{align}
+
+        - Inner product of STF tensor with arbitrary tensor:
+
+        .. math::
+
+            T_{i_{1} i_{2} \ldots i_{n} k_{1} \cdots k_{r}}
+            A_{i_{1} i_{2} \ldots i_{n} j_{1} \cdots j_{n}}
+            =
+            T_{i_{1} i_{2} \ldots i_{n} k_{1} \cdots k_{r}}
+            A_{\langle i_{1} i_{2} \ldots i_{n}\rangle j_{1} \cdots j_{n}}
+
+        Tricks of the trade:
+
+        .. math::
+
+            \begin{align}
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{STF}}
+            ,
+            \boldsymbol\nabla \boldsymbol{r}
+            \rangle
+            &=
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
+            -
+            \frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})\boldsymbol{I}
+            ,
+            \boldsymbol\nabla \boldsymbol{r}
+            \rangle
+            \\
+            &=
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
+            ,
+            \boldsymbol\nabla \boldsymbol{r}
+            \rangle
+            -\frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})
+            \langle
+            \boldsymbol{I},(\boldsymbol\nabla \boldsymbol{r})
+            \rangle
+            \\
+            &=
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
+            ,
+            {(\boldsymbol\nabla \boldsymbol{r})}_{\text{sym}}
+            \rangle
+            -\frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})
+            \text{tr}(\boldsymbol\nabla \boldsymbol{r})
+            \\
+            &=
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
+            ,
+            {(\boldsymbol\nabla \boldsymbol{r})}_{\text{sym}}
+            \rangle
+            -\frac13\text{div}(\boldsymbol{s})
+            \text{div}(\boldsymbol{r})
+            \end{align}
+
+        .. math::
+
+            \begin{align}
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{STF}}
+            ,
+            \boldsymbol{\psi}
+            \rangle
+            &=
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
+            -
+            \frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})\boldsymbol{I}
+            ,
+            \boldsymbol{\psi}
+            \rangle
+            \\
+            &=
+            \langle
+            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
+            ,
+            \boldsymbol{\psi}
+            \rangle
+            -\frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})
+            \langle
+            \boldsymbol{I},\boldsymbol{\psi}
+            \rangle
+            \\
+            &=
+            \langle
+            {\boldsymbol\nabla \boldsymbol{s}}
+            ,
+            {\boldsymbol{\psi}}
+            \rangle
+            -\frac13\text{div}(\boldsymbol{s})
+            \text{tr}(\boldsymbol{\psi})
+            \\
+            &=
+            \langle
+            {\boldsymbol\nabla \boldsymbol{s}}
+            ,
+            {\boldsymbol{\psi}}
+            \rangle
+            \end{align}
 
         """
         # Check if all mesh boundaries have bcs presibed frm input
@@ -296,19 +464,18 @@ class Solver:
         delta_2 = df.Constant(self.delta_2)
         delta_3 = df.Constant(self.delta_3)
 
-        # Normal and tangential components
-        # - tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
-        n = df.FacetNormal(mesh)
-        t = ufl.perp(n)
-
         # Define custom measeasure for boundaries
         df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
         df.dS = df.Measure("dS", domain=mesh, subdomain_data=boundaries)
 
-        h = df.CellDiameter(mesh)
-        h_avg = (h("+") + h("-"))/2.0 # pylint: disable=not-callable
+        # Define mesh measuers
+        h_msh = df.CellDiameter(mesh)
+        h_avg = (h_msh("+") + h_msh("-"))/2.0 # pylint: disable=not-callable
+        # TODO: Study this, is it more precise?
+        # fa = df.FacetArea(mesh)
+        # h_avg_new = (fa("+") + fa("-"))/2.0 # pylint: disable=not-callable
 
-        # Setup function spaces
+        # Setup trial and test functions
         w_heat = self.mxd_fspaces["heat"]
         w_stress = self.mxd_fspaces["stress"]
         w_r13 = self.mxd_fspaces["r13"]
@@ -322,152 +489,156 @@ class Solver:
             (p, u, sigma) = df.TrialFunctions(w_stress)
             (q, v, psi) = df.TestFunctions(w_stress)
 
-        # Setup projections
-        s_n = df.dot(s, n)
-        r_n = df.dot(r, n)
-        s_t = df.dot(s, t)
-        r_t = df.dot(r, t)
-        sigma_nn = df.dot(sigma*n, n)
-        psi_nn = df.dot(psi*n, n)
-        sigma_tt = df.dot(sigma*t, t)
-        psi_tt = df.dot(psi*t, t)
-        sigma_nt = df.dot(sigma*n, t)
-        psi_nt = df.dot(psi*n, t)
-
         # Setup source functions
         f_heat = self.heat_source
         f_mass = self.mass_source
 
+        # Decouple heat/stress switch
         if self.mode == "r13":
-            cpl = 1.0
+            cpl = 1
         else:
-            cpl = 0.0
+            cpl = 0
 
-        # Setup both weak forms
-        if self.use_coeffs:
-            a1 = (
-                + 12/5 * kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
-                + 2/3 * (1/kn) * df.inner(s, r)
-                - (5/2) * theta * df.div(r)
-                + cpl * df.dot(df.div(sigma), r) # SAME RESULTS
-                # - cpl * df.inner(sigma, df.grad(r)) # SAME RESULTS
-            ) * df.dx + (
-                + (
-                    + 5/(4*xi_tilde) * s_n
-                    - cpl * 5/8 * sigma_nn
-                    # + cpl * sigma_nn # SAME RESULTS
-                ) * r_n
-                + (
-                    + 11/10 * xi_tilde * s_t
-                    + cpl * 1/10 * xi_tilde * s_t
-                    - cpl * 1/2 * sigma_nt
-                    # + cpl * sigma_nt # SAME RESULTS
-                ) * r_t
-            ) * df.ds
-            l1 = sum([
-                - 5.0/2.0 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
-                for bc in bcs.keys()
-            ])
-
-            a2 = + (df.div(s) * kappa) * df.dx
-            l2 = + (f_heat * kappa) * df.dx
-
-            a3 = (
-                + 2 * kn * df.inner(
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma))),
-                    to.grad3dOf2(to.gen3dTF2(psi))
-                )
-                + (1/kn) * df.inner(to.gen3dTF2(sigma), to.gen3dTF2(psi))
-                - 2 * df.dot(u, df.div(psi))
-                + cpl * 4/5 * df.inner(to.stf3d2(df.grad(s)), psi)
-            ) * df.dx + (
-                + (
-                    + 21/10 * xi_tilde * sigma_nn
-                    + cpl * 3/20 * xi_tilde * sigma_nn
-                    - cpl * 3/10  * s_n
-                ) * psi_nn
-                + 2 * xi_tilde * (
-                    (sigma_tt + (1/2)*sigma_nn)*(psi_tt + (1/2)*psi_nn)
-                )
-                + (
-                    + (2/xi_tilde) * sigma_nt
-                    - cpl * 2/5 * s_t
-                ) * psi_nt
-            ) * df.ds + 2 * sum([
-                bcs[bc]["epsilon_w"] * (p + sigma_nn) * psi_nn * df.ds(bc)
-                for bc in bcs.keys()
-            ])
-            l3 = sum([
-                - 2.0 * psi_nt * bcs[bc]["u_t_w"] * df.ds(bc)
-                - 2.0 * (
-                    - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
-                    + bcs[bc]["u_n_w"]
-                ) * psi_nn * df.ds(bc)
-                for bc in bcs.keys()
-            ])
-
-            a4 = (
-                + df.dot(df.div(sigma), v)
-                + df.dot(df.grad(p), v)
-            ) * df.dx
-            l4 = + df.Constant(0) * df.div(v) * df.dx
-
-            a5 = (
-                - 1 * df.dot(u, df.grad(q))
-            ) * df.dx + sum([
-                bcs[bc]["epsilon_w"] * (p + sigma_nn) * q * df.ds(bc)
-                for bc in bcs.keys()
-            ])
-            l5 = + (f_mass * q) * df.dx - sum([
-                (
-                    - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
-                    + bcs[bc]["u_n_w"]
-                ) * q * df.ds(bc)
-                for bc in bcs.keys()
-            ])
-        else:
-            a1 = (
-                kn * df.inner(to.stf3d2(df.grad(s)), df.grad(r))
-                + (1/kn) * df.inner(s, r)
-                - theta * df.div(r)
-            ) * df.dx + (
-                + 1/(xi_tilde) * s_n * r_n
-                + xi_tilde * s_t * r_t
-            ) * df.ds
-            a2 = - (df.div(s) * kappa) * df.dx
-            l1 = sum([
-                - 1 * r_n * bcs[bc]["theta_w"] * df.ds(bc)
-                for bc in bcs.keys()
-            ])
-            l2 = - (f_heat * kappa) * df.dx
-
-        # stabilization
+        # Stabilization switch
         if self.use_cip:
-            stab_heat = + (
-                delta_1 * h_avg**3 *
-                df.jump(df.grad(theta), n) * df.jump(df.grad(kappa), n)
-            ) * df.dS
-
-            stab_stress = (
-                + delta_2 * h_avg**3 *
-                df.dot(df.jump(df.grad(u), n), df.jump(df.grad(v), n))
-                + delta_3 * h_avg *
-                df.jump(df.grad(p), n) * df.jump(df.grad(q), n)
-            ) * df.dS
+            cip = 1
         else:
-            stab_heat = 0
-            stab_stress = 0
+            cip = 0
 
-        # Combine all equations
+        # Setup normal/tangential projections
+        # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
+        n_vec = df.FacetNormal(mesh)
+        t_vec = ufl.perp(n_vec)
+        def n(rank1):
+            return df.dot(rank1, n_vec)
+        def t(rank1):
+            return df.dot(rank1, t_vec)
+        def nn(rank2):
+            return df.dot(rank2 * n_vec, n_vec)
+        def tt(rank2):
+            return df.dot(rank2 * t_vec, t_vec)
+        def nt(rank2):
+            return df.dot(rank2 * n_vec, t_vec)
+
+        # Sub functionals:
+        # 1) Diagonals:
+        def a(s_, r_):
+            return (
+                # => 24/25*stf(grad)*grad
+                + 24/25 * kn * df.inner(
+                    df.sym(df.grad(s_)), df.sym(df.grad(r_))
+                )
+                - 24/75 * kn * df.div(s_) * df.div(r_)
+                + 4/15 * (1/kn) * df.inner(s_, r_)
+            ) * df.dx + (
+                + 1/(2*xi_tilde) * n(s_) * n(r_)
+                + 12/25 * xi_tilde * t(s_) * t(r_)
+                - (1-cpl) * 1/25 * xi_tilde * t(s_) * t(r_)
+            ) * df.ds
+        def d(sigma_, psi_):
+            return (
+                kn * df.inner(
+                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma_))),
+                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(psi_)))
+                )
+                + (1/(2*kn)) * df.inner(
+                    to.gen3dTF2(sigma_), to.gen3dTF2(psi_)
+                )
+            ) * df.dx + (
+                + xi_tilde * 9/8 * nn(sigma_) * nn(psi_)
+                - xi_tilde * (1-cpl) * 3/40 * nn(sigma_) * nn(psi_)
+                + xi_tilde * (
+                    (tt(sigma_) + (1/2) * nn(sigma_)) *
+                    (tt(psi_) + (1/2) * nn(psi_))
+                )
+                + (1/xi_tilde) * nt(sigma_) * nt(psi_)
+            ) * df.ds + sum([
+                bcs[bc]["epsilon_w"] * nn(sigma_) * nn(psi_) * df.ds(bc)
+                for bc in bcs.keys()
+            ])
+        def h(p, q):
+            return sum([
+                bcs[bc]["epsilon_w"] * p * q * df.ds(bc)
+                for bc in bcs.keys()
+            ])
+        # 2) Offdiagonals:
+        def b(scalar, vector):
+            return 1 * scalar * df.div(vector) * df.dx
+        def c(vector, tensor):
+            return cpl * ((
+                2/5 * df.inner(tensor, df.grad(vector))
+            ) * df.dx + (
+                - 3/20 * nn(tensor) * n(vector)
+                - 1/5 * nt(tensor) * t(vector)
+            ) * df.ds)
+        def e(vector, tensor):
+            return 1 * df.dot(df.div(tensor), vector) * df.dx
+        def f(scalar, tensor):
+            return sum([
+                bcs[bc]["epsilon_w"] * scalar * nn(tensor) * df.ds(bc)
+                for bc in bcs.keys()
+            ])
+        def g(scalar, vector):
+            return 1 * df.inner(vector, df.grad(scalar)) * df.dx
+        # 3) CIP Stabilization:
+        def j_theta():
+            return (
+                + delta_1 * h_avg**3 *
+                df.jump(df.grad(theta), n_vec) * df.jump(df.grad(kappa), n_vec)
+            ) * df.dS
+        def j_u():
+            return (
+                + delta_2 * h_avg**3 *
+                df.dot(df.jump(df.grad(u), n_vec), df.jump(df.grad(v), n_vec))
+            ) * df.dS
+        def j_p():
+            return (
+                + delta_3 * h_avg *
+                df.jump(df.grad(p), n_vec) * df.jump(df.grad(q), n_vec)
+            ) * df.dS
+
+        # Setup all equations
+        lhs = [None] * 5
+        rhs = [None] * 5
+        # 1) Left-hand sides
+        lhs[0] = +1*a(s, r)    -b(theta, r)-c(r, sigma)  +0        +0
+        lhs[1] = +1*b(kappa, s)+0          +0            +0        +0
+        lhs[2] = +1*c(s, psi)  +0          +d(sigma, psi)-e(u, psi)+f(p, psi)
+        lhs[3] = +1*0          +0          +e(v, sigma)  +0        +g(p, v)
+        lhs[4] = +1*0          +0          +f(q, sigma)  -g(q, u)  +h(p, q)
+        # 2) Right-hand sides:
+        rhs[0] = sum([
+            - 1 * n(r) * bcs[bc]["theta_w"] * df.ds(bc)
+            for bc in bcs.keys()
+        ])
+        rhs[1] = f_heat * kappa * df.dx
+        rhs[2] = sum([
+            - 1 * nt(psi) * bcs[bc]["u_t_w"] * df.ds(bc)
+            - 1 * (
+                - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
+                + bcs[bc]["u_n_w"]
+            ) * nn(psi) * df.ds(bc)
+            for bc in bcs.keys()
+        ])
+        rhs[3] = + df.Constant(0) * df.div(v) * df.dx
+        rhs[4] = + (f_mass * q) * df.dx - sum([
+            (
+                - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
+                + bcs[bc]["u_n_w"]
+            ) * q * df.ds(bc)
+            for bc in bcs.keys()
+        ])
+
+        # Combine all equations to compound weak form and add CIP
         if self.mode == "heat":
-            self.form_a = a1 + a2 + stab_heat
-            self.form_b = l1 + l2
+            self.form_lhs = sum(lhs[0:2]) + cip * j_theta()
+            self.form_rhs = sum(rhs[0:2])
         elif self.mode == "stress":
-            self.form_a = a3 + a4 + a5 + stab_stress
-            self.form_b = l3 + l4 + l5
+            self.form_lhs = sum(lhs[2:5]) + cip * (j_u() + j_p())
+            self.form_rhs = sum(rhs[2:5])
         elif self.mode == "r13":
-            self.form_a = a1 + a2 + stab_heat + a3 + a4 + a5 + stab_stress
-            self.form_b = l1 + l2 + l3 + l4 + l5
+            self.form_lhs = sum(lhs) + cip * (j_theta() + j_u() + j_p())
+            self.form_rhs = sum(rhs)
 
     def solve(self):
         """
@@ -479,14 +650,19 @@ class Solver:
 
             # Some solver params
             solver_parameters={
-                'linear_solver': 'gmres', 'preconditioner': 'ilu' # or
-                'linear_solver': 'petsc', 'preconditioner': 'ilu' # or
-                'linear_solver': 'direct' # or
-                'linear_solver': 'mumps'
+                "linear_solver": "gmres", "preconditioner": "ilu" # or
+                "linear_solver": "petsc", "preconditioner": "ilu" # or
+                "linear_solver": "direct" # or
+                "linear_solver": "mumps" # or
+                "linear_solver": "mumps"
             }
+            # List all available solvers:
+            list_linear_solver_methods()
+            list_krylov_solver_preconditioners()
+            # "direct" means "default" means "lu" of default backend
+            print(parameters["linear_algebra_backend"]) # usually PETSc
 
         """
-
 
         if self.mode == "heat":
             w = self.mxd_fspaces["heat"]
@@ -499,8 +675,8 @@ class Solver:
         start_t = time_module.time()
         sol = df.Function(w)
         df.solve(
-            self.form_a == self.form_b, sol, [],
-            solver_parameters={"linear_solver": "mumps"}
+            self.form_lhs == self.form_rhs, sol, [],
+            solver_parameters={"linear_solver": "umfpack"}
         )
         end_t = time_module.time()
         print("Finished solving system in: {}".format(str(end_t - start_t)))
@@ -933,10 +1109,8 @@ class Solver:
         .. code-block:: matlab
 
             % Input into MATLAB
-            At = readtable("A.mat");
-            bt = readtable("b.mat");
-            A = table2array(At);
-            b = table2array(bt);
+            A = table2array(readtable("A_0.mat","FileType","text"));
+            b = table2array(readtable("b_0.mat","FileType","text"));
 
         Example
         -------
@@ -957,16 +1131,16 @@ class Solver:
         >>> print(rhs.get_local())
         [ 0.25  0.5   0.25]
         >>> # Assign LHS to solver
-        >>> from input import Input
-        >>> from meshes import H5Mesh
+        >>> from fenicsR13.input import Input
+        >>> from fenicsR13.meshes import H5Mesh
         >>> params = Input(
         ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
         ... ) # doctest: +ELLIPSIS
         Input:...
         >>> msh = H5Mesh("tests/mesh/ring0.h5")
         >>> solver = Solver(params.dict, msh, "0") # "0" means time=0
-        >>> solver.form_a = a
-        >>> solver.form_b = L
+        >>> solver.form_lhs = a
+        >>> solver.form_rhs = L
         >>> solver.output_folder = "./"
         >>> solver._Solver__write_discrete_system()
         >>> print(open("A_0.mat","r").read())
@@ -983,11 +1157,11 @@ class Solver:
         file_ending = ".mat"
         np.savetxt(
             self.output_folder + "A_{}".format(self.time) + file_ending,
-            df.assemble(self.form_a).array()
+            df.assemble(self.form_lhs).array()
         )
         np.savetxt(
             self.output_folder + "b_{}".format(self.time) + file_ending,
-            df.assemble(self.form_b)
+            df.assemble(self.form_rhs)
         )
 
     def __write_xdmf(self, name, field, write_pdf):

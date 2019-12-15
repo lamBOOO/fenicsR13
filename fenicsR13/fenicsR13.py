@@ -15,10 +15,10 @@ import sys
 import gc
 import dolfin as df
 
-import meshes
-from input import Input
-from solver import Solver
-from postprocessor import Postprocessor
+from fenicsR13.meshes import H5Mesh
+from fenicsR13.input import Input
+from fenicsR13.solver import Solver
+from fenicsR13.postprocessor import Postprocessor
 
 def print_information():
     r"""
@@ -28,7 +28,7 @@ def print_information():
 
     .. code-block:: text
 
-        -> Version: v1.0
+        -> Version: v1.1
         -> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
         -> Contact: Manuel Torrilhon <mt@mathcces.rwth-aachen.de>
         -> Repository: <https://git.rwth-aachen.de/lamBOO/fenicsR13>
@@ -40,7 +40,7 @@ def print_information():
         |_|  \___|_| |_|_|\___|___/_| \_\_|____/
 
     """
-    print(r"""-> Version: v1.0
+    print(r"""-> Version: v1.1
 -> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
 -> Contact: Manuel Torrilhon <mt@mathcces.rwth-aachen.de>
 -> Repository: <https://git.rwth-aachen.de/lamBOO/fenicsR13>
@@ -63,10 +63,13 @@ def main():
 
     .. code-block:: bash
 
+        # Install fenicsR13
+        pip install .
+
         # Usage: <path_to_program> <input_file>
         # Goto case folder:
         cd tests/r13
-        python3 ../../src/fenicsR13.py inputs/ \
+        fenicsR13 inputs/ \
           r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.yml
 
     """
@@ -108,7 +111,7 @@ def main():
 
             mesh_name = mesh_names[p]
 
-            current_mesh = meshes.H5Mesh(mesh_name)
+            current_mesh = H5Mesh(mesh_name)
             solver = Solver(params, current_mesh, p)
 
             solver.assemble()

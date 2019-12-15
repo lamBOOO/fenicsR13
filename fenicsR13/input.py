@@ -78,14 +78,12 @@ class Input:
         # ======================
         # - nsd: Number of spatial dimensions == 2
         # - mode: Formulation mode, one of heat, stress, r13
-        # - use_coeffs: Use real R13 coefficients, False only valid in heat
         # - kn: Knudsen numberkn
         # - xi_tilde: Refaction coefficient in Maxwell accomodation model
         # - heat_source: Heat source function for mode==heat||r13
         # - mass_source: Mass source function for mode==stress||r13
         nsd: 2
         mode: r13
-        use_coeffs: True
         kn: 1.0
         xi_tilde: 1.0
         heat_source: 0
@@ -166,8 +164,12 @@ class Input:
 
     def __init__(self, yaml_file):
         """Construct the Input class."""
-        with open(yaml_file, "r") as stream:
-            self.dict = yaml.safe_load(stream)
+        try:
+            with open(yaml_file, "r") as stream:
+                self.dict = yaml.safe_load(stream)
+        except FileNotFoundError:
+            print(f"[Error] The input file {yaml_file} is not found.\n")
+            raise
 
         val = Validator()
         input_schema = {
@@ -185,10 +187,6 @@ class Input:
                 "type": "string",
                 "required": True,
                 "allowed": ["heat", "stress", "r13"]
-            },
-            "use_coeffs": {
-                "type": "boolean",
-                "required": True,
             },
             "kn": {
                 "type": "float",

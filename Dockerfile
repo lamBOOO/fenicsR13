@@ -37,6 +37,10 @@ RUN \
 COPY requirements.txt /tmp/
 RUN pip install --requirement /tmp/requirements.txt
 
+# Install the fenicsR13 package (puts it into the PATH)
+COPY . /tmp/
+RUN pip install --editable /tmp/.
+
 # Replace default FEniCS Docker WELCOME screen with custom WELCOME screen
 COPY WELCOME .
 RUN echo "Built: $(date)" >> WELCOME
