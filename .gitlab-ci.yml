@@ -56,7 +56,7 @@ build:doc:
 .test: # dot means "hidden", acts as base class
   stage: test
   before_script:
-    - pip install .
+    - pip install -e . # local install to have right coverage
   image:
     name: $CI_REGISTRY_IMAGE:latest # use prebuilt image in Gitlab's registry
     entrypoint: [""] # == Repo. Has to be done if Dockerfile has own entrypoint
