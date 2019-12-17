@@ -518,6 +518,8 @@ class Solver:
                     df.sym(df.grad(s_)), df.sym(df.grad(r_))
                 )
                 - 24/75 * kn * df.div(s_) * df.div(r_)
+                # For Delta-term, works for R13 but fails for heat:
+                # + 4/5 * kn * df.div(s_) * df.div(r_)
                 + 4/15 * (1/kn) * df.inner(s_, r_)
             ) * df.dx + (
                 + 1/(2*xi_tilde) * n(s_) * n(r_)
