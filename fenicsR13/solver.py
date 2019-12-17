@@ -596,24 +596,24 @@ class Solver:
         lhs[3] = +1*0          +0          +e(v, sigma)  +0        +g(p, v)
         lhs[4] = +1*0          +0          +f(q, sigma)  -g(q, u)  +h(p, q)
         # 2) Right-hand sides:
-        rhs[0] = sum([
-            - 1 * n(r) * bcs[bc]["theta_w"] * df.ds(bc)
+        rhs[0] = - sum([
+            n(r) * bcs[bc]["theta_w"] * df.ds(bc)
             for bc in bcs.keys()
         ])
         rhs[1] = f_heat * kappa * df.dx
-        rhs[2] = sum([
-            - 1 * nt(psi) * bcs[bc]["u_t_w"] * df.ds(bc)
-            - 1 * (
-                - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
+        rhs[2] = - sum([
+            nt(psi) * bcs[bc]["u_t_w"] * df.ds(bc)
+            + (
                 + bcs[bc]["u_n_w"]
+                - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
             ) * nn(psi) * df.ds(bc)
             for bc in bcs.keys()
         ])
         rhs[3] = + df.Constant(0) * df.div(v) * df.dx
         rhs[4] = + (f_mass * q) * df.dx - sum([
             (
-                - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
                 + bcs[bc]["u_n_w"]
+                - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
             ) * q * df.ds(bc)
             for bc in bcs.keys()
         ])
