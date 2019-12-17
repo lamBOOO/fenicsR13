@@ -521,8 +521,8 @@ class Solver:
                 + 4/15 * (1/kn) * df.inner(s_, r_)
             ) * df.dx + (
                 + 1/(2*xi_tilde) * n(s_) * n(r_)
-                + 12/25 * xi_tilde * t(s_) * t(r_)
-                - (1-cpl) * 1/25 * xi_tilde * t(s_) * t(r_)
+                + 11/25 * xi_tilde * t(s_) * t(r_)
+                + cpl * 1/25 * xi_tilde * t(s_) * t(r_)
             ) * df.ds
         def d(sigma_, psi_):
             return (
@@ -534,8 +534,8 @@ class Solver:
                     to.gen3dTF2(sigma_), to.gen3dTF2(psi_)
                 )
             ) * df.dx + (
-                + xi_tilde * 9/8 * nn(sigma_) * nn(psi_)
-                - xi_tilde * (1-cpl) * 3/40 * nn(sigma_) * nn(psi_)
+                + xi_tilde * 21/20 * nn(sigma_) * nn(psi_)
+                + xi_tilde * cpl * 3/40 * nn(sigma_) * nn(psi_)
                 + xi_tilde * (
                     (tt(sigma_) + (1/2) * nn(sigma_)) *
                     (tt(psi_) + (1/2) * nn(psi_))
@@ -648,6 +648,19 @@ class Solver:
             # List all available solvers:
             list_linear_solver_methods()
             list_krylov_solver_preconditioners()
+            Solver method  |  Description
+
+            bicgstab  | Biconjugate gradient stabilized method
+            cg        | Conjugate gradient method
+            default   | default linear solver
+            gmres     | Generalized minimal residual method
+            minres    | Minimal residual method
+            mumps     | MUMPS (MUltifrontal Massively Parallel Sparse Direct)
+            petsc     | PETSc built in LU solver
+            richardson| Richardson method
+            superlu   | SuperLU
+            tfqmr     | Transpose-free quasi-minimal residual method
+            umfpack   | UMFPACK (Unsymmetric MultiFrontal sparse LU factoriz.)
             # "direct" means "default" means "lu" of default backend
             print(parameters["linear_algebra_backend"]) # usually PETSc
 
@@ -665,7 +678,7 @@ class Solver:
         sol = df.Function(w)
         df.solve(
             self.form_lhs == self.form_rhs, sol, [],
-            solver_parameters={"linear_solver": "umfpack"}
+            solver_parameters={"linear_solver": "mumps"}
         )
         end_t = time_module.time()
         print("Finished solving system in: {}".format(str(end_t - start_t)))
