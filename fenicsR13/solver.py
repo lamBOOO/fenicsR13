@@ -172,7 +172,6 @@ class Solver:
                 phi=dolfin.Expression("atan2(x[1],x[0])", degree=2),
             )
         """
-        # FIXME: Add x and y and vars to avoid x[0]
         R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
         phi = df.Expression("atan2(x[1],x[0])", degree=2)
         kn = self.kn
@@ -202,7 +201,6 @@ class Solver:
         --------
         _Solver__createMacroScaExpr
         """
-        # FIXME: Add x and y and vars to avoid x[0]
         R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
         phi = df.Expression("atan2(x[1],x[0])", degree=2)
         kn = self.kn
