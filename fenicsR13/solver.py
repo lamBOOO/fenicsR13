@@ -80,11 +80,12 @@ class Solver:
         self.bcs = copy.deepcopy(self.params["bcs"])
         for edge_id in self.bcs:
             for field in self.bcs[edge_id].keys():
-                self.bcs[edge_id][field] = self.__createMacroExpr(
+                self.bcs[edge_id][field] = self.__createMacroScaExpr(
                     self.bcs[edge_id][field]
                 )
-        self.heat_source = self.__createMacroExpr(self.params["heat_source"])
-        self.mass_source = self.__createMacroExpr(self.params["mass_source"])
+        self.heat_source = self.__createMacroScaExpr(self.params["heat_source"])
+        self.mass_source = self.__createMacroScaExpr(self.params["mass_source"])
+        self.body_force = self.__createMacroVecExpr(self.params["body_force"])
 
         self.exact_solution = self.params["convergence_study"]["exact_solution"]
         self.write_systemmatrix = self.params["convergence_study"][
@@ -144,9 +145,9 @@ class Solver:
         }
         self.errors = {}
 
-    def __createMacroExpr(self, cpp_string):
+    def __createMacroScaExpr(self, cpp_string):
         """
-        Return a DOLFIN expression with predefined macros.
+        Return a DOLFIN scalar expression with predefined macros.
 
         These macros include:
 
@@ -163,7 +164,7 @@ class Solver:
         .. code-block:: python
 
             # expr1 is equal to expr2
-            expr1 = self.__createMacroExpr("R*cos(phi)")
+            expr1 = self.__createMacroScaExpr("R*cos(phi)")
             expr2 = dolfin.Expression(
                 "R*cos(phi)",
                 degree=2,
@@ -171,6 +172,7 @@ class Solver:
                 phi=dolfin.Expression("atan2(x[1],x[0])", degree=2),
             )
         """
+        # FIXME: Add x and y and vars to avoid x[0]
         R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
         phi = df.Expression("atan2(x[1],x[0])", degree=2)
         kn = self.kn
@@ -181,6 +183,40 @@ class Solver:
             phi=phi,
             R=R
         )
+
+    def __createMacroVecExpr(self, cpp_strings):
+        """
+        Return a DOLFIN vector expression with predefined macros.
+
+        These macros include:
+
+        ============================ ======= =================================
+        Name                         Macro   CPP Replacement
+        ============================ ======= =================================
+        Radius wrt. to :math:`(0,0)` ``R``   ``sqrt(pow(x[0],2)+pow(x[1],2))``
+        Angle wrt. :math:`(0,0)`     ``phi`` ``atan2(x[1],x[0])``
+        Knudsen number               ``kn``  ``self.kn``
+        ============================ ======= =================================
+
+        See Also
+        --------
+        _Solver__createMacroScaExpr
+        """
+        # FIXME: Add x and y and vars to avoid x[0]
+        R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+        phi = df.Expression("atan2(x[1],x[0])", degree=2)
+        kn = self.kn
+        cpp_strings = [str(i) for i in cpp_strings]
+        if len(cpp_strings) == 2:
+            return df.Expression(
+                cpp_strings, # strange that no cast to list is needed
+                degree=2,
+                kn=kn,
+                phi=phi,
+                R=R
+            )
+        else:
+            raise Exception("Only 2d body force allowed")
 
     def __setup_function_spaces(self):
         """
@@ -460,6 +496,7 @@ class Solver:
         # Define mesh measuers
         h_msh = df.CellDiameter(mesh)
         h_avg = (h_msh("+") + h_msh("-"))/2.0 # pylint: disable=not-callable
+
         # TODO: Study this, is it more precise?
         # fa = df.FacetArea(mesh)
         # h_avg_new = (fa("+") + fa("-"))/2.0 # pylint: disable=not-callable
@@ -481,6 +518,7 @@ class Solver:
         # Setup source functions
         f_heat = self.heat_source
         f_mass = self.mass_source
+        f_body = self.body_force
 
         # Decouple heat/stress switch
         if self.mode == "r13":
@@ -611,7 +649,7 @@ class Solver:
             ) * nn(psi) * df.ds(bc)
             for bc in bcs.keys()
         ])
-        rhs[3] = + df.Constant(0) * df.div(v) * df.dx
+        rhs[3] = + df.dot(f_body, v) * df.dx
         rhs[4] = + (f_mass * q) * df.dx - sum([
             (
                 + bcs[bc]["u_n_w"]
@@ -1080,6 +1118,7 @@ class Solver:
 
         (#) Heat source as `f_mass`
         (#) Mass Source as `f_heat`
+        (#) Body force as `f_body`
 
         The parameter functions are internally interpolated into a :math:`P_1`
         space before writing.
@@ -1087,16 +1126,22 @@ class Solver:
         # Interpolation setup
         el_str = "Lagrange"
         deg = 1
-        el = df.FiniteElement(el_str, degree=deg, cell=self.cell)
-        V = df.FunctionSpace(self.mesh, el)
+        el_s = df.FiniteElement(el_str, degree=deg, cell=self.cell)
+        el_v = df.VectorElement(el_str, degree=deg, cell=self.cell)
+        V_s = df.FunctionSpace(self.mesh, el_s)
+        V_v = df.FunctionSpace(self.mesh, el_v)
 
         # Heat source
-        f_heat = df.interpolate(self.heat_source, V)
+        f_heat = df.interpolate(self.heat_source, V_s)
         self.__write_xdmf("f_heat", f_heat, False)
 
         # Mass source
-        f_mass = df.interpolate(self.mass_source, V)
+        f_mass = df.interpolate(self.mass_source, V_s)
         self.__write_xdmf("f_mass", f_mass, False)
+
+        # Body force
+        f_body = df.interpolate(self.body_force, V_v)
+        self.__write_xdmf("f_body", f_body, False)
 
     def __write_discrete_system(self):
         r"""

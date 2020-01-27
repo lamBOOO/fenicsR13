@@ -59,12 +59,14 @@ stabilization:
 # - xi_tilde: Refaction coefficient in Maxwell accomodation model
 # - heat_source: Heat source function for mode==heat||r13
 # - mass_source: Mass source function for mode==stress||r13
+# - body_force: Body force for mode==stress||r13
 nsd: 2
 mode: stress
 kn: 0.1
 xi_tilde: 1.0
 heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
 mass_source: 2.0/5.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(kn,2))) * cos(phi)
+body_force: [0,0]
 
 # Boundary Conditions
 # ===================
