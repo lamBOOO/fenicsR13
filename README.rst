@@ -101,7 +101,7 @@ We provide a simple example of a flow through a finite-length channel in 2D.
 .. code-block:: bash
 
     # Move to folder:
-    cd examples/channel_flow
+    cd examples/channel_flow_force
     # Create mesh:
     ./create_mesh.sh
     # Run program with given input file:
@@ -112,7 +112,7 @@ In the output folder the results can be post-processed to demonstrate the `Knuds
 .. code-block:: bash
 
     # Go to folder with simulation results (=casename in input.yml)
-    cd channel_flow
+    cd channel_flow_force
     # Generate correlation data between Knudsen number and massflow
     bash postprocessing.sh
     cat table.csv

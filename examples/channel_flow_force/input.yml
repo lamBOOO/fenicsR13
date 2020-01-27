@@ -1,0 +1,131 @@
+# General
+# =======
+# - output_folder: Used as output folder
+output_folder: results_channel_flow_force
+
+# Meshes
+# ======
+# - meshes: List of input meshes in h5 format to run simulations on
+meshes:
+  - channel5.h5
+
+# Numerical Parameters
+# ====================
+# - elements: Must contain the fields: theta, s, p, u, sigma
+#   - fields: List of FEM parameters (shape, degree)
+#     - shape: Element shape, e.g. Lagrange
+#     - degree: Element degree, e.g. 2
+# - stabilization: Must contain cip
+#   - cip: Collection of Continous Interior Penalty (CIP) parameters
+#     - enable: Enable CIP stabilization
+#     - delta_1: Stabilization of grad(T)*grad(T_test) over edge
+#     - delta_2: Stabilization of grad(u)*grad(u_test) over edge
+#     - delta_3: Stabilization of grad(p)*grad(p_test) over edge
+elements:
+  theta:
+    shape: Lagrange
+    degree: 1
+  s:
+    shape: Lagrange
+    degree: 1
+  p:
+    shape: Lagrange
+    degree: 1
+  u:
+    shape: Lagrange
+    degree: 1
+  sigma:
+    shape: Lagrange
+    degree: 1
+stabilization:
+  cip:
+    enable: True
+    delta_1: 1.0
+    delta_2: 1.0
+    delta_3: 0.1
+
+# Formulation Parameters
+# ======================
+# - nsd: Number of spatial dimensions == 2
+# - mode: Formulation mode, one of heat, stress, r13
+# - kn: Knudsen number
+# - xi_tilde: Refaction coefficient in Maxwell accomodation model
+# - heat_source: Heat source function for mode==heat||r13
+# - mass_source: Mass source function for mode==stress||r13
+# - body_force: Body force for mode==stress||r13
+nsd: 2
+mode: r13
+kn: 1.0
+xi_tilde: 1.0
+heat_source: 0
+mass_source: 0
+body_force: [1,0]
+
+# Boundary Conditions
+# ===================
+# - bcs: Dictionary of all boundary IDs from mesh
+#   - bc_id: must contain theta_w, u_t_w, u_n_w, p_w, epsilon_w
+#     - theta_w: Value for temperature at wall
+#     - u_t_w: Value for tangential velocity at wall
+#     - u_n_w: Value for normal velocity at wall
+#     - p_w: Value for pressure at wall
+#     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
+bcs:
+  3001: # bot
+    theta_w: 1
+    u_t_w: 0
+    u_n_w: 0
+    p_w: 0 # No pressure gradient, flow shall be bodyforce-induced!
+    epsilon_w: pow(10,-3)
+  3002: # right
+    theta_w: 1
+    u_t_w: 0
+    u_n_w: 0 # No slip
+    p_w: 0
+    epsilon_w: pow(10,+3) # No slip
+  3003: # top
+    theta_w: 1
+    u_t_w: 0
+    u_n_w: 0
+    p_w: 0 # No pressure gradient, flow shall be bodyforce-induced!
+    epsilon_w: pow(10,-3)
+  3004: # left
+    theta_w: 1
+    u_t_w: 0
+    u_n_w: 0 # No slip
+    p_w: 0
+    epsilon_w: pow(10,+3) # No slip
+
+# Convergence Study
+# =================
+# - enable: Enable convergence study on given meshes
+# - exact_solution: Path to exact solution in cpp-format to compare errors
+# - plot: Show errors in matplotlib window. PDF output is always per default.
+# - write_systemmatrix: Writes out systemmatrix (LHS) to use for analysis
+# - rescale_pressure: Rescale numerical pressure result to have zero mean
+# - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
+convergence_study:
+  enable: False
+  exact_solution: esols/01_coeffs.cpp
+  plot: False # to avoid error exit code due to $DISPLAY
+  write_systemmatrix: False
+  rescale_pressure: True
+  relative_error: True
+
+# Postprocessing
+# ==============
+# - write_pdfs: Write all solution fields as PDF plot
+# - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
+postprocessing:
+  write_pdfs: True
+  massflow: [3002]
+
+# Parameter Study
+# ==============
+# - enable: Repeat simulation with different p. values (study)
+# - parameter_key: Key as list, e.g. ["elemenets", "p", "degree"]
+# - parameter_values: List of value for parameter, e.g. [0.01,0.1,1,10]
+parameter_study:
+  enable: True
+  parameter_key: ["kn"]
+  parameter_values: [0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]
