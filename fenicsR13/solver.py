@@ -579,7 +579,7 @@ class Solver:
                     (tt(psi_) + (1/2) * nn(psi_))
                 )
                 + (1/xi_tilde) * nt(sigma_) * nt(psi_)
-            ) * df.ds + sum([
+            ) * df.ds + sum([ # TODO: Fix inflow with minus
                 bcs[bc]["epsilon_w"] * nn(sigma_) * nn(psi_) * df.ds(bc)
                 for bc in bcs.keys()
             ])
@@ -628,6 +628,7 @@ class Solver:
         lhs = [None] * 5
         rhs = [None] * 5
         # 1) Left-hand sides
+        # TODO: Fix inflow with minus in lhs4 before f
         lhs[0] = +1*a(s, r)    -b(theta, r)-c(r, sigma)  +0        +0
         lhs[1] = +1*b(kappa, s)+0          +0            +0        +0
         lhs[2] = +1*c(s, psi)  +0          +d(sigma, psi)-e(u, psi)+f(p, psi)
