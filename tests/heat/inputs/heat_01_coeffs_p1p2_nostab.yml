@@ -65,7 +65,7 @@ mode: heat
 kn: 0.1
 xi_tilde: 1.0
 heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
-mass_source: 2.0/5.0 * (1.0 - (5.0*std::pow(sqrt(pow(x[0],2)+pow(x[1],2)),2))/(18.0*pow(kn,2))) * std::cos(phi)
+mass_source: 0
 body_force: [0,0]
 
 # Boundary Conditions

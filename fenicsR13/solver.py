@@ -641,7 +641,8 @@ class Solver:
             n(r) * bcs[bc]["theta_w"] * df.ds(bc)
             for bc in bcs.keys()
         ])
-        rhs[1] = f_heat * kappa * df.dx
+        # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
+        rhs[1] = (f_heat-f_mass) * kappa * df.dx
         rhs[2] = - sum([
             nt(psi) * bcs[bc]["u_t_w"] * df.ds(bc)
             + (
