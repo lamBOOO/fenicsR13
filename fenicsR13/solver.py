@@ -548,6 +548,8 @@ class Solver:
         # Sub functionals:
         # 1) Diagonals:
         def a(s_, r_):
+            # Notes:
+            # 4/5-24/75 = (60-24)/75 = 36/75 = 12/25
             return (
                 # => 24/25*stf(grad)*grad
                 + 24/25 * kn * df.inner(
