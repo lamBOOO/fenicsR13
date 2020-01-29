@@ -41,6 +41,7 @@
 		"ms-vscode.cpptools",
 		"lextudio.restructuredtext",
 		"ms-azuretools.vscode-docker",
-		"ritwickdey.liveserver"
+		"ritwickdey.liveserver",
+		"eamodio.gitlens"
 	]
 }
