@@ -67,7 +67,7 @@ class Solver:
         self.time = time
         self.mode = params["mode"]
         self.kn = params["kn"]
-        self.xi_tilde = params["xi_tilde"]
+        self.chi_tilde = params["chi_tilde"]
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
         self.delta_1 = self.params["stabilization"]["cip"]["delta_1"]
         self.delta_2 = self.params["stabilization"]["cip"]["delta_2"]
@@ -482,7 +482,7 @@ class Solver:
         boundaries = self.boundaries
         bcs = self.bcs
         kn = df.Constant(self.kn)
-        xi_tilde = df.Constant(self.xi_tilde)
+        chi_tilde = df.Constant(self.chi_tilde)
         delta_1 = df.Constant(self.delta_1)
         delta_2 = df.Constant(self.delta_2)
         delta_3 = df.Constant(self.delta_3)
@@ -560,11 +560,13 @@ class Solver:
                 + 4/5 * cpl * kn * df.div(s_) * df.div(r_)
                 + 4/15 * (1/kn) * df.inner(s_, r_)
             ) * df.dx + (
-                + 1/(2*xi_tilde) * n(s_) * n(r_)
-                + 11/25 * xi_tilde * t(s_) * t(r_)
-                + cpl * 1/25 * xi_tilde * t(s_) * t(r_)
+                + 1/(2*chi_tilde) * n(s_) * n(r_)
+                + 11/25 * chi_tilde * t(s_) * t(r_)
+                + cpl * 1/25 * chi_tilde * t(s_) * t(r_)
             ) * df.ds
         def d(sigma_, psi_):
+            # Notes:
+            # 21/20+3/40=45/40=9/8
             return (
                 kn * df.inner(
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma_))),
@@ -574,13 +576,13 @@ class Solver:
                     to.gen3dTF2(sigma_), to.gen3dTF2(psi_)
                 )
             ) * df.dx + (
-                + xi_tilde * 21/20 * nn(sigma_) * nn(psi_)
-                + xi_tilde * cpl * 3/40 * nn(sigma_) * nn(psi_)
-                + xi_tilde * (
+                + chi_tilde * 21/20 * nn(sigma_) * nn(psi_)
+                + chi_tilde * cpl * 3/40 * nn(sigma_) * nn(psi_)
+                + chi_tilde * (
                     (tt(sigma_) + (1/2) * nn(sigma_)) *
                     (tt(psi_) + (1/2) * nn(psi_))
                 )
-                + (1/xi_tilde) * nt(sigma_) * nt(psi_)
+                + (1/chi_tilde) * nt(sigma_) * nt(psi_)
             ) * df.ds + sum([ # TODO: Fix inflow with minus
                 bcs[bc]["epsilon_w"] * nn(sigma_) * nn(psi_) * df.ds(bc)
                 for bc in bcs.keys()
