@@ -48,9 +48,9 @@ class Input:
         # - stabilization: Must contain cip
         #   - cip: Collection of Continous Interior Penalty (CIP) parameters
         #     - enable: Enable CIP stabilization
-        #     - delta_1: Stabilization of grad(T)*grad(T_test) over edge
-        #     - delta_2: Stabilization of grad(u)*grad(u_test) over edge
-        #     - delta_3: Stabilization of grad(p)*grad(p_test) over edge
+        #     - delta_theta: Stabilization of grad(T)*grad(T_test) over edge
+        #     - delta_u: Stabilization of grad(u)*grad(u_test) over edge
+        #     - delta_p: Stabilization of grad(p)*grad(p_test) over edge
         elements:
           theta:
             shape: Lagrange
@@ -70,9 +70,9 @@ class Input:
         stabilization:
           cip:
             enable: True
-            delta_1: 1.0
-            delta_2: 1.0
-            delta_3: 0.01
+            delta_theta: 1.0
+            delta_u: 1.0
+            delta_p: 0.01
 
         # Formulation Parameters
         # ======================
@@ -321,15 +321,15 @@ class Input:
                             "type": "boolean",
                             "required": True
                         },
-                        "delta_1": {
+                        "delta_theta": {
                             "type": "float",
                             "required": True
                         },
-                        "delta_2": {
+                        "delta_u": {
                             "type": "float",
                             "required": True
                         },
-                        "delta_3": {
+                        "delta_p": {
                             "type": "float",
                             "required": True
                         },

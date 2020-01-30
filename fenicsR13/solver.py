@@ -69,9 +69,9 @@ class Solver:
         self.kn = params["kn"]
         self.chi_tilde = params["chi_tilde"]
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
-        self.delta_1 = self.params["stabilization"]["cip"]["delta_1"]
-        self.delta_2 = self.params["stabilization"]["cip"]["delta_2"]
-        self.delta_3 = self.params["stabilization"]["cip"]["delta_3"]
+        self.delta_theta = self.params["stabilization"]["cip"]["delta_theta"]
+        self.delta_u = self.params["stabilization"]["cip"]["delta_u"]
+        self.delta_p = self.params["stabilization"]["cip"]["delta_p"]
 
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
         self.massflow = self.params["postprocessing"]["massflow"]
@@ -483,9 +483,9 @@ class Solver:
         bcs = self.bcs
         kn = df.Constant(self.kn)
         chi_tilde = df.Constant(self.chi_tilde)
-        delta_1 = df.Constant(self.delta_1)
-        delta_2 = df.Constant(self.delta_2)
-        delta_3 = df.Constant(self.delta_3)
+        delta_theta = df.Constant(self.delta_theta)
+        delta_u = df.Constant(self.delta_u)
+        delta_p = df.Constant(self.delta_p)
 
         # Define custom measeasure for boundaries
         df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
@@ -614,17 +614,17 @@ class Solver:
         # 3) CIP Stabilization:
         def j_theta():
             return (
-                + delta_1 * h_avg**3 *
+                + delta_theta * h_avg**3 *
                 df.jump(df.grad(theta), n_vec) * df.jump(df.grad(kappa), n_vec)
             ) * df.dS
         def j_u():
             return (
-                + delta_2 * h_avg**3 *
+                + delta_u * h_avg**3 *
                 df.dot(df.jump(df.grad(u), n_vec), df.jump(df.grad(v), n_vec))
             ) * df.dS
         def j_p():
             return (
-                + delta_3 * h_avg *
+                + delta_p * h_avg *
                 df.jump(df.grad(p), n_vec) * df.jump(df.grad(q), n_vec)
             ) * df.dS
 
