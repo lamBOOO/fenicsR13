@@ -584,12 +584,12 @@ class Solver:
                 )
                 + (1/chi_tilde) * nt(sigma_) * nt(psi_)
             ) * df.ds + sum([ # TODO: Fix inflow with minus
-                bcs[bc]["epsilon_w"] * nn(sigma_) * nn(psi_) * df.ds(bc)
+                bcs[bc]["epsilon_w"] * chi_tilde * nn(sigma_) * nn(psi_) * df.ds(bc)
                 for bc in bcs.keys()
             ])
         def h(p, q):
             return sum([
-                bcs[bc]["epsilon_w"] * p * q * df.ds(bc)
+                bcs[bc]["epsilon_w"] * chi_tilde * p * q * df.ds(bc)
                 for bc in bcs.keys()
             ])
         # 2) Offdiagonals:
@@ -606,7 +606,7 @@ class Solver:
             return 1 * df.dot(df.div(tensor), vector) * df.dx
         def f(scalar, tensor):
             return sum([
-                bcs[bc]["epsilon_w"] * scalar * nn(tensor) * df.ds(bc)
+                bcs[bc]["epsilon_w"] * chi_tilde * scalar * nn(tensor) * df.ds(bc)
                 for bc in bcs.keys()
             ])
         def g(scalar, vector):
@@ -649,7 +649,7 @@ class Solver:
             nt(psi) * bcs[bc]["u_t_w"] * df.ds(bc)
             + (
                 + bcs[bc]["u_n_w"]
-                - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
+                - bcs[bc]["epsilon_w"] * chi_tilde * bcs[bc]["p_w"]
             ) * nn(psi) * df.ds(bc)
             for bc in bcs.keys()
         ])
@@ -657,7 +657,7 @@ class Solver:
         rhs[4] = + (f_mass * q) * df.dx - sum([
             (
                 + bcs[bc]["u_n_w"]
-                - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
+                - bcs[bc]["epsilon_w"] * chi_tilde * bcs[bc]["p_w"]
             ) * q * df.ds(bc)
             for bc in bcs.keys()
         ])
