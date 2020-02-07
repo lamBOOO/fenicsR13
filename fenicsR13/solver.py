@@ -1167,6 +1167,12 @@ class Solver:
             A = table2array(readtable("A_0.mat","FileType","text"));
             b = table2array(readtable("b_0.mat","FileType","text"));
 
+        Julia:
+
+        .. code-block:: julia
+
+            A = readdlm("A_0.mat", ' ', Float64, '\n')
+
         Example
         -------
         >>> # Construct LHS
