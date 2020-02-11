@@ -583,7 +583,7 @@ class Solver:
                     (tt(psi_) + (1/2) * nn(psi_))
                 )
                 + (1/chi_tilde) * nt(sigma_) * nt(psi_)
-            ) * df.ds - sum([ # Changed inflow condition => minus
+            ) * df.ds + sum([ # Changed inflow condition => minus
                 bcs[bc]["epsilon_w"] * chi_tilde * nn(sigma_) * nn(psi_) *
                 df.ds(bc)
                 for bc in bcs.keys()
@@ -639,7 +639,7 @@ class Solver:
         lhs[1] = +1*b(kappa, s)+0          +0            +0        +0
         lhs[2] = +1*c(s, psi)  +0          +d(sigma, psi)-e(u, psi)+f(p, psi)
         lhs[3] = +1*0          +0          +e(v, sigma)  +0        +g(p, v)
-        lhs[4] = +1*0          +0          -f(q, sigma)  -g(q, u)  +h(p, q)
+        lhs[4] = +1*0          +0          +f(q, sigma)  -g(q, u)  +h(p, q)
         # 2) Right-hand sides:
         rhs[0] = - sum([
             n(r) * bcs[bc]["theta_w"] * df.ds(bc)
