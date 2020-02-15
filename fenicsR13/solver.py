@@ -1,4 +1,5 @@
 # pylint: disable=invalid-name,too-many-lines
+# pylint: disable=not-callable
 
 """
 Solver module, contains the Solver class.
@@ -487,17 +488,17 @@ class Solver:
         delta_u = df.Constant(self.delta_u)
         delta_p = df.Constant(self.delta_p)
 
-        # Define custom measeasure for boundaries
+        # Define custom measeasures for boundary edges and inner edges
         df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
         df.dS = df.Measure("dS", domain=mesh, subdomain_data=boundaries)
 
         # Define mesh measuers
         h_msh = df.CellDiameter(mesh)
-        h_avg = (h_msh("+") + h_msh("-"))/2.0 # pylint: disable=not-callable
+        h_avg = (h_msh("+") + h_msh("-"))/2.0
 
         # TODO: Study this, is it more precise?
         # fa = df.FacetArea(mesh)
-        # h_avg_new = (fa("+") + fa("-"))/2.0 # pylint: disable=not-callable
+        # h_avg_new = (fa("+") + fa("-"))/2.0
 
         # Setup trial and test functions
         w_heat = self.mxd_fspaces["heat"]
