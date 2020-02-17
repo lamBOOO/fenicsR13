@@ -48,9 +48,9 @@ class Input:
         # - stabilization: Must contain cip
         #   - cip: Collection of Continous Interior Penalty (CIP) parameters
         #     - enable: Enable CIP stabilization
-        #     - delta_1: Stabilization of grad(T)*grad(T_test) over edge
-        #     - delta_2: Stabilization of grad(u)*grad(u_test) over edge
-        #     - delta_3: Stabilization of grad(p)*grad(p_test) over edge
+        #     - delta_theta: Stabilization of grad(T)*grad(T_test) over edge
+        #     - delta_u: Stabilization of grad(u)*grad(u_test) over edge
+        #     - delta_p: Stabilization of grad(p)*grad(p_test) over edge
         elements:
           theta:
             shape: Lagrange
@@ -70,24 +70,26 @@ class Input:
         stabilization:
           cip:
             enable: True
-            delta_1: 1.0
-            delta_2: 1.0
-            delta_3: 0.01
+            delta_theta: 1.0
+            delta_u: 1.0
+            delta_p: 0.01
 
         # Formulation Parameters
         # ======================
         # - nsd: Number of spatial dimensions == 2
         # - mode: Formulation mode, one of heat, stress, r13
         # - kn: Knudsen numberkn
-        # - xi_tilde: Refaction coefficient in Maxwell accomodation model
+        # - chi_tilde: Refaction coefficient in Maxwell accomodation model
         # - heat_source: Heat source function for mode==heat||r13
         # - mass_source: Mass source function for mode==stress||r13
+        # - body_force: Body force for mode==stress||r13
         nsd: 2
         mode: r13
         kn: 1.0
-        xi_tilde: 1.0
+        chi_tilde: 1.0
         heat_source: 0
         mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(kn,2))) * cos(phi)
+        body_force: [0,0]
 
         # Boundary Conditions
         # ===================
@@ -193,7 +195,7 @@ class Input:
                 "required": True,
                 "min": 0.000000001
             },
-            "xi_tilde": {
+            "chi_tilde": {
                 "type": "float",
                 "required": True,
                 "min": 0.000000001
@@ -235,6 +237,11 @@ class Input:
             "mass_source": {
                 "anyof": [{"type": "string"}, {"type": "float"}],
                 "required": True,
+            },
+            "body_force": {
+                "type": "list",
+                "required": True,
+                "schema": {"anyof": [{"type": "string"}, {"type": "float"}]}
             },
             "postprocessing": {
                 "type": "dict",
@@ -314,15 +321,15 @@ class Input:
                             "type": "boolean",
                             "required": True
                         },
-                        "delta_1": {
+                        "delta_theta": {
                             "type": "float",
                             "required": True
                         },
-                        "delta_2": {
+                        "delta_u": {
                             "type": "float",
                             "required": True
                         },
-                        "delta_3": {
+                        "delta_p": {
                             "type": "float",
                             "required": True
                         },

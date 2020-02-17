@@ -44,11 +44,23 @@ class TestExamples(object):
         self.create_meshes(working_dir)
         self.run_solver("input.yml", working_dir)
 
-    def test_channel_flow(self):
+    @pytest.mark.skip(reason="Skip, needs too much time")
+    def test_channel_flow_pressure(self):
         r"""
-        Test the channel flow case and generate table with Kn vs. massflow.
+        Test the pressure-induced channel flow case
+        and generate table with Kn vs. massflow.
         """
-        working_dir = "examples/channel_flow"
+        working_dir = "examples/channel_flow_pressure"
+        self.create_meshes(working_dir)
+        self.run_solver("input.yml", working_dir)
+        subprocess.check_call(["bash", "postprocessing.sh"], cwd=working_dir)
+
+    def test_channel_flow_force(self):
+        r"""
+        Test the force-induced channel flow case
+        and generate table with Kn vs. massflow.
+        """
+        working_dir = "examples/channel_flow_force"
         self.create_meshes(working_dir)
         self.run_solver("input.yml", working_dir)
         subprocess.check_call(["bash", "postprocessing.sh"], cwd=working_dir)

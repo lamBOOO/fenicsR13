@@ -26,9 +26,9 @@ meshes:
 # - stabilization: Must contain cip
 #   - cip: Collection of Continous Interior Penalty (CIP) parameters
 #     - enable: Enable CIP stabilization
-#     - delta_1: Stabilization of grad(T)*grad(T_test) over edge
-#     - delta_2: Stabilization of grad(u)*grad(u_test) over edge
-#     - delta_3: Stabilization of grad(p)*grad(p_test) over edge
+#     - delta_theta: Stabilization of grad(T)*grad(T_test) over edge
+#     - delta_u: Stabilization of grad(u)*grad(u_test) over edge
+#     - delta_p: Stabilization of grad(p)*grad(p_test) over edge
 elements:
   theta:
     shape: Lagrange
@@ -48,24 +48,26 @@ elements:
 stabilization:
   cip:
     enable: True
-    delta_1: 1.0
-    delta_2: 1.0
-    delta_3: 0.01
+    delta_theta: 1.0
+    delta_u: 1.0
+    delta_p: 0.01
 
 # Formulation Parameters
 # ======================
 # - nsd: Number of spatial dimensions == 2
 # - mode: Formulation mode, one of heat, stress, r13
 # - kn: Knudsen numberkn
-# - xi_tilde: Refaction coefficient in Maxwell accomodation model
+# - chi_tilde: Refaction coefficient in Maxwell accomodation model
 # - heat_source: Heat source function for mode==heat||r13
 # - mass_source: Mass source function for mode==stress||r13
+# - body_force: Body force for mode==stress||r13
 nsd: 2
 mode: r13
 kn: 1.0
-xi_tilde: 1.0
+chi_tilde: 1.0
 heat_source: 0
 mass_source: 0
+body_force: [0,0]
 
 # Boundary Conditions
 # ===================
@@ -100,7 +102,7 @@ bcs:
 # - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
 convergence_study:
   enable: True
-  exact_solution: esols/1_coeffs_nosources_norot_inflow.cpp
+  exact_solution: esols/1_coeffs_nosources_norot_inflow_positive.cpp
   plot: False
   write_systemmatrix: False
   rescale_pressure: False

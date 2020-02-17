@@ -1,6 +1,19 @@
 Change log
 ----------
 
+1.2 (2020-02-17)
+~~~~~~~~~~~~~~~~
+
+- Change system:
+    - Change RHS for energy coupling consistency
+    - Add delta term
+    - Add body force
+    - Add div(u) coupling to energy balance (also change RHS for elimination)
+    - Rename deltas and chi_tilde
+- Add body froce driven channel flow
+- Add P2P1P1P2P1 R13 validation case
+- Revert to MUMPS solver
+
 1.1 (2019-12-15)
 ~~~~~~~~~~~~~~~~
 

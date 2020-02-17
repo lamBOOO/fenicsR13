@@ -1,4 +1,5 @@
 # pylint: disable=invalid-name,too-many-lines
+# pylint: disable=not-callable
 
 """
 Solver module, contains the Solver class.
@@ -67,11 +68,11 @@ class Solver:
         self.time = time
         self.mode = params["mode"]
         self.kn = params["kn"]
-        self.xi_tilde = params["xi_tilde"]
+        self.chi_tilde = params["chi_tilde"]
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
-        self.delta_1 = self.params["stabilization"]["cip"]["delta_1"]
-        self.delta_2 = self.params["stabilization"]["cip"]["delta_2"]
-        self.delta_3 = self.params["stabilization"]["cip"]["delta_3"]
+        self.delta_theta = self.params["stabilization"]["cip"]["delta_theta"]
+        self.delta_u = self.params["stabilization"]["cip"]["delta_u"]
+        self.delta_p = self.params["stabilization"]["cip"]["delta_p"]
 
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
         self.massflow = self.params["postprocessing"]["massflow"]
@@ -80,11 +81,12 @@ class Solver:
         self.bcs = copy.deepcopy(self.params["bcs"])
         for edge_id in self.bcs:
             for field in self.bcs[edge_id].keys():
-                self.bcs[edge_id][field] = self.__createMacroExpr(
+                self.bcs[edge_id][field] = self.__createMacroScaExpr(
                     self.bcs[edge_id][field]
                 )
-        self.heat_source = self.__createMacroExpr(self.params["heat_source"])
-        self.mass_source = self.__createMacroExpr(self.params["mass_source"])
+        self.heat_source = self.__createMacroScaExpr(self.params["heat_source"])
+        self.mass_source = self.__createMacroScaExpr(self.params["mass_source"])
+        self.body_force = self.__createMacroVecExpr(self.params["body_force"])
 
         self.exact_solution = self.params["convergence_study"]["exact_solution"]
         self.write_systemmatrix = self.params["convergence_study"][
@@ -144,9 +146,9 @@ class Solver:
         }
         self.errors = {}
 
-    def __createMacroExpr(self, cpp_string):
+    def __createMacroScaExpr(self, cpp_string):
         """
-        Return a DOLFIN expression with predefined macros.
+        Return a DOLFIN scalar expression with predefined macros.
 
         These macros include:
 
@@ -163,7 +165,7 @@ class Solver:
         .. code-block:: python
 
             # expr1 is equal to expr2
-            expr1 = self.__createMacroExpr("R*cos(phi)")
+            expr1 = self.__createMacroScaExpr("R*cos(phi)")
             expr2 = dolfin.Expression(
                 "R*cos(phi)",
                 degree=2,
@@ -181,6 +183,39 @@ class Solver:
             phi=phi,
             R=R
         )
+
+    def __createMacroVecExpr(self, cpp_strings):
+        """
+        Return a DOLFIN vector expression with predefined macros.
+
+        These macros include:
+
+        ============================ ======= =================================
+        Name                         Macro   CPP Replacement
+        ============================ ======= =================================
+        Radius wrt. to :math:`(0,0)` ``R``   ``sqrt(pow(x[0],2)+pow(x[1],2))``
+        Angle wrt. :math:`(0,0)`     ``phi`` ``atan2(x[1],x[0])``
+        Knudsen number               ``kn``  ``self.kn``
+        ============================ ======= =================================
+
+        See Also
+        --------
+        _Solver__createMacroScaExpr
+        """
+        R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+        phi = df.Expression("atan2(x[1],x[0])", degree=2)
+        kn = self.kn
+        cpp_strings = [str(i) for i in cpp_strings]
+        if len(cpp_strings) == 2:
+            return df.Expression(
+                cpp_strings, # strange that no cast to list is needed
+                degree=2,
+                kn=kn,
+                phi=phi,
+                R=R
+            )
+        else:
+            raise Exception("Only 2d body force allowed")
 
     def __setup_function_spaces(self):
         """
@@ -448,21 +483,22 @@ class Solver:
         boundaries = self.boundaries
         bcs = self.bcs
         kn = df.Constant(self.kn)
-        xi_tilde = df.Constant(self.xi_tilde)
-        delta_1 = df.Constant(self.delta_1)
-        delta_2 = df.Constant(self.delta_2)
-        delta_3 = df.Constant(self.delta_3)
+        chi_tilde = df.Constant(self.chi_tilde)
+        delta_theta = df.Constant(self.delta_theta)
+        delta_u = df.Constant(self.delta_u)
+        delta_p = df.Constant(self.delta_p)
 
-        # Define custom measeasure for boundaries
+        # Define custom measeasures for boundary edges and inner edges
         df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
         df.dS = df.Measure("dS", domain=mesh, subdomain_data=boundaries)
 
         # Define mesh measuers
         h_msh = df.CellDiameter(mesh)
-        h_avg = (h_msh("+") + h_msh("-"))/2.0 # pylint: disable=not-callable
+        h_avg = (h_msh("+") + h_msh("-"))/2.0
+
         # TODO: Study this, is it more precise?
         # fa = df.FacetArea(mesh)
-        # h_avg_new = (fa("+") + fa("-"))/2.0 # pylint: disable=not-callable
+        # h_avg_new = (fa("+") + fa("-"))/2.0
 
         # Setup trial and test functions
         w_heat = self.mxd_fspaces["heat"]
@@ -481,6 +517,7 @@ class Solver:
         # Setup source functions
         f_heat = self.heat_source
         f_mass = self.mass_source
+        f_body = self.body_force
 
         # Decouple heat/stress switch
         if self.mode == "r13":
@@ -512,19 +549,25 @@ class Solver:
         # Sub functionals:
         # 1) Diagonals:
         def a(s_, r_):
+            # Notes:
+            # 4/5-24/75 = (60-24)/75 = 36/75 = 12/25
             return (
                 # => 24/25*stf(grad)*grad
                 + 24/25 * kn * df.inner(
                     df.sym(df.grad(s_)), df.sym(df.grad(r_))
                 )
                 - 24/75 * kn * df.div(s_) * df.div(r_)
+                # For Delta-term, works for R13 but fails for heat:
+                + 4/5 * cpl * kn * df.div(s_) * df.div(r_)
                 + 4/15 * (1/kn) * df.inner(s_, r_)
             ) * df.dx + (
-                + 1/(2*xi_tilde) * n(s_) * n(r_)
-                + 12/25 * xi_tilde * t(s_) * t(r_)
-                - (1-cpl) * 1/25 * xi_tilde * t(s_) * t(r_)
+                + 1/(2*chi_tilde) * n(s_) * n(r_)
+                + 11/25 * chi_tilde * t(s_) * t(r_)
+                + cpl * 1/25 * chi_tilde * t(s_) * t(r_)
             ) * df.ds
         def d(sigma_, psi_):
+            # Notes:
+            # 21/20+3/40=45/40=9/8
             return (
                 kn * df.inner(
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma_))),
@@ -534,20 +577,21 @@ class Solver:
                     to.gen3dTF2(sigma_), to.gen3dTF2(psi_)
                 )
             ) * df.dx + (
-                + xi_tilde * 9/8 * nn(sigma_) * nn(psi_)
-                - xi_tilde * (1-cpl) * 3/40 * nn(sigma_) * nn(psi_)
-                + xi_tilde * (
+                + chi_tilde * 21/20 * nn(sigma_) * nn(psi_)
+                + chi_tilde * cpl * 3/40 * nn(sigma_) * nn(psi_)
+                + chi_tilde * (
                     (tt(sigma_) + (1/2) * nn(sigma_)) *
                     (tt(psi_) + (1/2) * nn(psi_))
                 )
-                + (1/xi_tilde) * nt(sigma_) * nt(psi_)
-            ) * df.ds + sum([
-                bcs[bc]["epsilon_w"] * nn(sigma_) * nn(psi_) * df.ds(bc)
+                + (1/chi_tilde) * nt(sigma_) * nt(psi_)
+            ) * df.ds + sum([ # Changed inflow condition => minus
+                bcs[bc]["epsilon_w"] * chi_tilde * nn(sigma_) * nn(psi_) *
+                df.ds(bc)
                 for bc in bcs.keys()
             ])
         def h(p, q):
             return sum([
-                bcs[bc]["epsilon_w"] * p * q * df.ds(bc)
+                bcs[bc]["epsilon_w"] * chi_tilde * p * q * df.ds(bc)
                 for bc in bcs.keys()
             ])
         # 2) Offdiagonals:
@@ -564,7 +608,8 @@ class Solver:
             return 1 * df.dot(df.div(tensor), vector) * df.dx
         def f(scalar, tensor):
             return sum([
-                bcs[bc]["epsilon_w"] * scalar * nn(tensor) * df.ds(bc)
+                bcs[bc]["epsilon_w"] * chi_tilde * scalar * nn(tensor) *
+                df.ds(bc)
                 for bc in bcs.keys()
             ])
         def g(scalar, vector):
@@ -572,17 +617,17 @@ class Solver:
         # 3) CIP Stabilization:
         def j_theta():
             return (
-                + delta_1 * h_avg**3 *
+                + delta_theta * h_avg**3 *
                 df.jump(df.grad(theta), n_vec) * df.jump(df.grad(kappa), n_vec)
             ) * df.dS
         def j_u():
             return (
-                + delta_2 * h_avg**3 *
+                + delta_u * h_avg**3 *
                 df.dot(df.jump(df.grad(u), n_vec), df.jump(df.grad(v), n_vec))
             ) * df.dS
         def j_p():
             return (
-                + delta_3 * h_avg *
+                + delta_p * h_avg *
                 df.jump(df.grad(p), n_vec) * df.jump(df.grad(q), n_vec)
             ) * df.dS
 
@@ -590,30 +635,32 @@ class Solver:
         lhs = [None] * 5
         rhs = [None] * 5
         # 1) Left-hand sides
+        # Changed inflow condition => minus before f(q, sigma)
         lhs[0] = +1*a(s, r)    -b(theta, r)-c(r, sigma)  +0        +0
         lhs[1] = +1*b(kappa, s)+0          +0            +0        +0
         lhs[2] = +1*c(s, psi)  +0          +d(sigma, psi)-e(u, psi)+f(p, psi)
         lhs[3] = +1*0          +0          +e(v, sigma)  +0        +g(p, v)
         lhs[4] = +1*0          +0          +f(q, sigma)  -g(q, u)  +h(p, q)
         # 2) Right-hand sides:
-        rhs[0] = sum([
-            - 1 * n(r) * bcs[bc]["theta_w"] * df.ds(bc)
+        rhs[0] = - sum([
+            n(r) * bcs[bc]["theta_w"] * df.ds(bc)
             for bc in bcs.keys()
         ])
-        rhs[1] = f_heat * kappa * df.dx
-        rhs[2] = sum([
-            - 1 * nt(psi) * bcs[bc]["u_t_w"] * df.ds(bc)
-            - 1 * (
-                - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
+        # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
+        rhs[1] = (f_heat-f_mass) * kappa * df.dx
+        rhs[2] = - sum([
+            nt(psi) * bcs[bc]["u_t_w"] * df.ds(bc)
+            + (
                 + bcs[bc]["u_n_w"]
+                - bcs[bc]["epsilon_w"] * chi_tilde * bcs[bc]["p_w"]
             ) * nn(psi) * df.ds(bc)
             for bc in bcs.keys()
         ])
-        rhs[3] = + df.Constant(0) * df.div(v) * df.dx
+        rhs[3] = + df.dot(f_body, v) * df.dx
         rhs[4] = + (f_mass * q) * df.dx - sum([
             (
-                - bcs[bc]["epsilon_w"] * bcs[bc]["p_w"]
                 + bcs[bc]["u_n_w"]
+                - bcs[bc]["epsilon_w"] * chi_tilde * bcs[bc]["p_w"]
             ) * q * df.ds(bc)
             for bc in bcs.keys()
         ])
@@ -648,6 +695,19 @@ class Solver:
             # List all available solvers:
             list_linear_solver_methods()
             list_krylov_solver_preconditioners()
+            Solver method  |  Description
+
+            bicgstab  | Biconjugate gradient stabilized method
+            cg        | Conjugate gradient method
+            default   | default linear solver
+            gmres     | Generalized minimal residual method
+            minres    | Minimal residual method
+            mumps     | MUMPS (MUltifrontal Massively Parallel Sparse Direct)
+            petsc     | PETSc built in LU solver
+            richardson| Richardson method
+            superlu   | SuperLU
+            tfqmr     | Transpose-free quasi-minimal residual method
+            umfpack   | UMFPACK (Unsymmetric MultiFrontal sparse LU factoriz.)
             # "direct" means "default" means "lu" of default backend
             print(parameters["linear_algebra_backend"]) # usually PETSc
 
@@ -665,7 +725,7 @@ class Solver:
         sol = df.Function(w)
         df.solve(
             self.form_lhs == self.form_rhs, sol, [],
-            solver_parameters={"linear_solver": "umfpack"}
+            solver_parameters={"linear_solver": "mumps"}
         )
         end_t = time_module.time()
         print("Finished solving system in: {}".format(str(end_t - start_t)))
@@ -1065,6 +1125,7 @@ class Solver:
 
         (#) Heat source as `f_mass`
         (#) Mass Source as `f_heat`
+        (#) Body force as `f_body`
 
         The parameter functions are internally interpolated into a :math:`P_1`
         space before writing.
@@ -1072,16 +1133,22 @@ class Solver:
         # Interpolation setup
         el_str = "Lagrange"
         deg = 1
-        el = df.FiniteElement(el_str, degree=deg, cell=self.cell)
-        V = df.FunctionSpace(self.mesh, el)
+        el_s = df.FiniteElement(el_str, degree=deg, cell=self.cell)
+        el_v = df.VectorElement(el_str, degree=deg, cell=self.cell)
+        V_s = df.FunctionSpace(self.mesh, el_s)
+        V_v = df.FunctionSpace(self.mesh, el_v)
 
         # Heat source
-        f_heat = df.interpolate(self.heat_source, V)
+        f_heat = df.interpolate(self.heat_source, V_s)
         self.__write_xdmf("f_heat", f_heat, False)
 
         # Mass source
-        f_mass = df.interpolate(self.mass_source, V)
+        f_mass = df.interpolate(self.mass_source, V_s)
         self.__write_xdmf("f_mass", f_mass, False)
+
+        # Body force
+        f_body = df.interpolate(self.body_force, V_v)
+        self.__write_xdmf("f_body", f_body, False)
 
     def __write_discrete_system(self):
         r"""
@@ -1100,6 +1167,12 @@ class Solver:
             % Input into MATLAB
             A = table2array(readtable("A_0.mat","FileType","text"));
             b = table2array(readtable("b_0.mat","FileType","text"));
+
+        Julia:
+
+        .. code-block:: julia
+
+            A = readdlm("A_0.mat", ' ', Float64, '\n')
 
         Example
         -------

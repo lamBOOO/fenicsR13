@@ -4,14 +4,12 @@
 
 .. inclusion-marker
 
-fenicsR13
+fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations Using the FEniCS Computing Platform
 ================================================================================
 
 |pipeline| |coverage| |version| |website|
 
 ``#extendedGasDynamics`` ``#using`` ``#FEniCS``
-
-  Repository for FEM simulations of non-equilibrium gas dynamics based on the Regularized 13-Moment-Equations for rarefied and micro-flows in 2D.
 
 Installation
 --------------------------------------------------------------------------------
@@ -101,7 +99,7 @@ We provide a simple example of a flow through a finite-length channel in 2D.
 .. code-block:: bash
 
     # Move to folder:
-    cd examples/channel_flow
+    cd examples/channel_flow_force
     # Create mesh:
     ./create_mesh.sh
     # Run program with given input file:
@@ -112,7 +110,7 @@ In the output folder the results can be post-processed to demonstrate the `Knuds
 .. code-block:: bash
 
     # Go to folder with simulation results (=casename in input.yml)
-    cd channel_flow
+    cd channel_flow_force
     # Generate correlation data between Knudsen number and massflow
     bash postprocessing.sh
     cat table.csv
@@ -261,6 +259,7 @@ Create new version tag
 2. Adapt version in `conf.py` for docs and `setup.py` for package
 3. Change badge in ``README.rst``
 4. Change version in program information printing
+5. Build new Docker container
 
 Gitlab CI Setup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -368,10 +367,6 @@ Contact
     | Lehrstuhl für Mathematik (MathCCES)
     | RWTH Aachen University
     | mt@mathcces.rwth-aachen.de
-:Context:
-    | Masterthesis Computational Engineering Science
-    | RWTH Aachen University
-    | *Simulation of Non-Equilibrium Gas Flows Using the FEniCS Computing Platform*
 
 .. |pipeline| image:: https://git.rwth-aachen.de/lamboo/fenicsR13/badges/master/pipeline.svg
     :target: https://git.rwth-aachen.de/lamboo/fenicsR13/commits/master
@@ -381,7 +376,7 @@ Contact
     :target: https://git.rwth-aachen.de/lamboo/fenicsR13/pipelines
     :alt: Test coverage
 
-.. |version| image:: https://img.shields.io/badge/version-v1.1-blue.svg
+.. |version| image:: https://img.shields.io/badge/version-1.2-blue.svg
     :target: https://git.rwth-aachen.de/lamBOO/fenicsR13/-/tags
     :alt: Documentation Website
 

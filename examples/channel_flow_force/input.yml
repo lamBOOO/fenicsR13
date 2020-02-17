@@ -1,18 +1,13 @@
 # General
 # =======
 # - output_folder: Used as output folder
-output_folder: r13_1_coeffs_sources_rot_noinflow_p2p2p2p2p2_stab
+output_folder: results_channel_flow_force
 
 # Meshes
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  - ../mesh/ring0.h5
-  - ../mesh/ring1.h5
-  - ../mesh/ring2.h5
-  - ../mesh/ring3.h5
-  # - ../mesh/ring4.h5
-  # - ../mesh/ring5.h5
+  - channel5.h5
 
 # Numerical Parameters
 # ====================
@@ -29,31 +24,31 @@ meshes:
 elements:
   theta:
     shape: Lagrange
-    degree: 2
+    degree: 1
   s:
     shape: Lagrange
-    degree: 2
+    degree: 1
   p:
     shape: Lagrange
-    degree: 2
+    degree: 1
   u:
     shape: Lagrange
-    degree: 2
+    degree: 1
   sigma:
     shape: Lagrange
-    degree: 2
+    degree: 1
 stabilization:
   cip:
     enable: True
     delta_theta: 1.0
     delta_u: 1.0
-    delta_p: 0.01
+    delta_p: 0.1
 
 # Formulation Parameters
 # ======================
 # - nsd: Number of spatial dimensions == 2
 # - mode: Formulation mode, one of heat, stress, r13
-# - kn: Knudsen numberkn
+# - kn: Knudsen number
 # - chi_tilde: Refaction coefficient in Maxwell accomodation model
 # - heat_source: Heat source function for mode==heat||r13
 # - mass_source: Mass source function for mode==stress||r13
@@ -62,9 +57,9 @@ nsd: 2
 mode: r13
 kn: 1.0
 chi_tilde: 1.0
-heat_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(kn,2))) * cos(phi)
-mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(kn,2))) * cos(phi)
-body_force: [0,0]
+heat_source: 0
+mass_source: 0
+body_force: [1,0]
 
 # Boundary Conditions
 # ===================
@@ -76,18 +71,30 @@ body_force: [0,0]
 #     - p_w: Value for pressure at wall
 #     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
 bcs:
-  3000:
-    theta_w: 1.0
-    u_t_w: -10
-    u_n_w: 0
-    p_w: 0
-    epsilon_w: 0
-  3100:
-    theta_w: 0.5
+  3001: # bot
+    theta_w: 1
     u_t_w: 0
     u_n_w: 0
+    p_w: 0 # No pressure gradient, flow shall be bodyforce-induced!
+    epsilon_w: pow(10,-3)
+  3002: # right
+    theta_w: 1
+    u_t_w: 0
+    u_n_w: 0 # No slip
     p_w: 0
-    epsilon_w: 0
+    epsilon_w: pow(10,+3) # No slip
+  3003: # top
+    theta_w: 1
+    u_t_w: 0
+    u_n_w: 0
+    p_w: 0 # No pressure gradient, flow shall be bodyforce-induced!
+    epsilon_w: pow(10,-3)
+  3004: # left
+    theta_w: 1
+    u_t_w: 0
+    u_n_w: 0 # No slip
+    p_w: 0
+    epsilon_w: pow(10,+3) # No slip
 
 # Convergence Study
 # =================
@@ -98,9 +105,9 @@ bcs:
 # - rescale_pressure: Rescale numerical pressure result to have zero mean
 # - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
 convergence_study:
-  enable: True
-  exact_solution: esols/1_coeffs_sources_rot_noinflow.cpp
-  plot: False
+  enable: False
+  exact_solution: esols/01_coeffs.cpp
+  plot: False # to avoid error exit code due to $DISPLAY
   write_systemmatrix: False
   rescale_pressure: True
   relative_error: True
@@ -110,8 +117,8 @@ convergence_study:
 # - write_pdfs: Write all solution fields as PDF plot
 # - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
 postprocessing:
-  write_pdfs: False
-  massflow: []
+  write_pdfs: True
+  massflow: [3002]
 
 # Parameter Study
 # ==============
@@ -119,6 +126,6 @@ postprocessing:
 # - parameter_key: Key as list, e.g. ["elemenets", "p", "degree"]
 # - parameter_values: List of value for parameter, e.g. [0.01,0.1,1,10]
 parameter_study:
-  enable: False
-  parameter_key: []
-  parameter_values: []
+  enable: True
+  parameter_key: ["kn"]
+  parameter_values: [0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]

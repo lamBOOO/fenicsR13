@@ -21,11 +21,11 @@ sys.path.insert(0, os.path.abspath('../examples'))
 # -- Project information -----------------------------------------------------
 
 project = 'fenicsR13'
-copyright = '2019'
+copyright = '2020'
 author = 'Lambert Theisen'
 
 # The full version, including alpha/beta/rc tags
-release = '1.1'
+release = '1.2'
 
 # -- General configuration ---------------------------------------------------
 

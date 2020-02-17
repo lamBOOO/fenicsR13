@@ -65,7 +65,7 @@ class TestHeatConvergence(object):
         ============= =======================
         :math:`Kn`    :math:`0.1`
         Elements      :math:`P_1P_1`
-        Stabilization CIP, :math:`\delta_1=1`
+        Stabilization CIP, :math:`\delta_\theta=1`
         ============= =======================
         """
         name = "heat_01_coeffs_p1p1_stab"
@@ -83,7 +83,7 @@ class TestHeatConvergence(object):
         ============= =======================
         :math:`Kn`    :math:`10.0`
         Elements      :math:`P_2P_2`
-        Stabilization CIP, :math:`\delta_1=1`
+        Stabilization CIP, :math:`\delta_\theta=1`
         ============= =======================
         """
         name = "heat_10_coeffs_p2p2_stab"
@@ -101,7 +101,7 @@ class TestHeatConvergence(object):
         ============= =======================
         :math:`Kn`    :math:`0.1`
         Elements      :math:`P_2P_2`
-        Stabilization CIP, :math:`\delta_1=1`
+        Stabilization CIP, :math:`\delta_\theta=1`
         ============= =======================
         """
         name = "heat_01_coeffs_p2p2_stab"
@@ -119,7 +119,7 @@ class TestHeatConvergence(object):
         ============= =======================
         :math:`Kn`    :math:`0.1`
         Elements      :math:`P_2P_1`
-        Stabilization CIP, :math:`\delta_1=1`
+        Stabilization CIP, :math:`\delta_\theta=1`
         ============= =======================
         """
         name = "heat_01_coeffs_p1p2_nostab"

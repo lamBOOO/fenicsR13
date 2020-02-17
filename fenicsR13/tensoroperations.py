@@ -1,4 +1,5 @@
 # pylint: disable=invalid-name
+# pylint: disable=unsubscriptable-object
 
 """
 Module to gather all additional tensor operations not present in UFL.
@@ -38,10 +39,7 @@ def stf3d2(rank2_2d):
             - \frac{1}{3} \mathrm{tr}(A) I_{2 \times 2}
     """
     symm = 1/2 * (rank2_2d + ufl.transpose(rank2_2d))
-    return (
-        symm
-        - (1/3) * ufl.tr(symm) * ufl.Identity(2)
-    )
+    return symm - (1/3) * ufl.tr(symm) * ufl.Identity(2)
 
 def sym3d3(rank3_3d):
     r"""
@@ -57,13 +55,9 @@ def sym3d3(rank3_3d):
     """
     i, j, k = ufl.indices(3)
     symm_ijk = 1/6 * (
-        # all permutations
-        + rank3_3d[i, j, k]
-        + rank3_3d[i, k, j]
-        + rank3_3d[j, i, k]
-        + rank3_3d[j, k, i]
-        + rank3_3d[k, i, j]
-        + rank3_3d[k, j, i]
+        # All permutations
+        + rank3_3d[i, j, k] + rank3_3d[i, k, j] + rank3_3d[j, i, k]
+        + rank3_3d[j, k, i] + rank3_3d[k, i, j] + rank3_3d[k, j, i]
     )
     return ufl.as_tensor(symm_ijk, (i, j, k))
 
@@ -286,14 +280,6 @@ def grad3dOf2(rank2_3d):
             \end{pmatrix}
     """
     grad2d = df.grad(rank2_3d)
-    dim3 = df.as_tensor([
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-    ])
-    grad3d = df.as_tensor([
-        grad2d[:, :, 0], # pylint: disable=unsubscriptable-object
-        grad2d[:, :, 1], # pylint: disable=unsubscriptable-object
-        dim3[:, :]
-    ])
+    dim3 = df.as_tensor([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    grad3d = df.as_tensor([grad2d[:, :, 0], grad2d[:, :, 1], dim3[:, :]])
     return grad3d
