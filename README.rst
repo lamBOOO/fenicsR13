@@ -380,7 +380,7 @@ Contact
     :target: https://git.rwth-aachen.de/lamBOO/fenicsR13/-/tags
     :alt: Documentation Website
 
-.. |version| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3673040.svg
+.. |zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3673040.svg
     :target: https://doi.org/10.5281/zenodo.3673040
     :alt: Zenodo Link with DOI
 
