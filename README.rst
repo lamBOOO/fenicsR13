@@ -7,7 +7,7 @@
 fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations Using the FEniCS Computing Platform
 ================================================================================
 
-|pipeline| |coverage| |version| |website|
+|pipeline| |coverage| |version| |zenodo| |website|
 
 ``#extendedGasDynamics`` ``#using`` ``#FEniCS``
 
@@ -379,6 +379,10 @@ Contact
 .. |version| image:: https://img.shields.io/badge/version-1.2-blue.svg
     :target: https://git.rwth-aachen.de/lamBOO/fenicsR13/-/tags
     :alt: Documentation Website
+
+.. |version| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3673040.svg
+    :target: https://doi.org/10.5281/zenodo.3673040
+    :alt: Zenodo Link with DOI
 
 .. |website| image:: https://img.shields.io/badge/doc-https%3A%2F%2Flamboo.pages.rwth--aachen.de%2FfenicsR13%2F-blue.svg
     :target: https://lamboo.pages.rwth-aachen.de/fenicsR13/
