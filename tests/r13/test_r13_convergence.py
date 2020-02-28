@@ -199,7 +199,7 @@ class TestR13Convergence(object):
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_r13_1_coeffs_nosources_norot_inflow_p2p2p2p2p2_nostab(self):
+    def test_r13_1_coeffs_nosources_norot_inflow_p2p2p2p2p2_stab(self):
         r"""
         Execute full linear R13 system test and check with reference errors.
         Use second order equal elements.
@@ -230,7 +230,7 @@ class TestR13Convergence(object):
         Stabilization        Off
         ==================== ===================================================
         """
-        name = "r13_1_coeffs_nosources_norot_inflow_p2p2p2p2p2_nostab"
+        name = "r13_1_coeffs_nosources_norot_inflow_p2p2p2p2p2_stab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
