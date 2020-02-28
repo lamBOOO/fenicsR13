@@ -615,17 +615,17 @@ class Solver:
         def g(scalar, vector):
             return 1 * df.inner(vector, df.grad(scalar)) * df.dx
         # 3) CIP Stabilization:
-        def j_theta():
+        def j_theta(theta, kappa):
             return (
                 + delta_theta * h_avg**3 *
                 df.jump(df.grad(theta), n_vec) * df.jump(df.grad(kappa), n_vec)
             ) * df.dS
-        def j_u():
+        def j_u(u, v):
             return (
                 + delta_u * h_avg**3 *
                 df.dot(df.jump(df.grad(u), n_vec), df.jump(df.grad(v), n_vec))
             ) * df.dS
-        def j_p():
+        def j_p(p, q):
             return (
                 + delta_p * h_avg *
                 df.jump(df.grad(p), n_vec) * df.jump(df.grad(q), n_vec)
@@ -667,13 +667,17 @@ class Solver:
 
         # Combine all equations to compound weak form and add CIP
         if self.mode == "heat":
-            self.form_lhs = sum(A[0:2]) + cip * j_theta()
+            self.form_lhs = sum(A[0:2]) + cip * j_theta(theta, kappa)
             self.form_rhs = sum(L[0:2])
         elif self.mode == "stress":
-            self.form_lhs = sum(A[2:5]) + cip * (j_u() + j_p())
+            self.form_lhs = sum(A[2:5]) + cip * (
+                j_u(u, v) + j_p(p, q)
+            )
             self.form_rhs = sum(L[2:5])
         elif self.mode == "r13":
-            self.form_lhs = sum(A) + cip * (j_theta() + j_u() + j_p())
+            self.form_lhs = sum(A) + cip * (
+                j_theta(theta, kappa) + j_u(u, v) + j_p(p, q)
+            )
             self.form_rhs = sum(L)
 
     def solve(self):
