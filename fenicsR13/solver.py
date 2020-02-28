@@ -632,23 +632,23 @@ class Solver:
             ) * df.dS
 
         # Setup all equations
-        lhs = [None] * 5
-        rhs = [None] * 5
+        A = [None] * 5
+        L = [None] * 5
         # 1) Left-hand sides
         # Changed inflow condition => minus before f(q, sigma)
-        lhs[0] = +1*a(s, r)    -b(theta, r)-c(r, sigma)  +0        +0
-        lhs[1] = +1*b(kappa, s)+0          +0            +0        +0
-        lhs[2] = +1*c(s, psi)  +0          +d(sigma, psi)-e(u, psi)+f(p, psi)
-        lhs[3] = +1*0          +0          +e(v, sigma)  +0        +g(p, v)
-        lhs[4] = +1*0          +0          +f(q, sigma)  -g(q, u)  +h(p, q)
+        A[0] = a(s, r)     - b(theta, r) - c(r, sigma)   + 0         + 0
+        A[1] = b(kappa, s) + 0           + 0             + 0         + 0
+        A[2] = c(s, psi)   + 0           + d(sigma, psi) - e(u, psi) + f(p, psi)
+        A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)
+        A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
         # 2) Right-hand sides:
-        rhs[0] = - sum([
+        L[0] = - sum([
             n(r) * bcs[bc]["theta_w"] * df.ds(bc)
             for bc in bcs.keys()
         ])
         # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
-        rhs[1] = (f_heat-f_mass) * kappa * df.dx
-        rhs[2] = - sum([
+        L[1] = (f_heat-f_mass) * kappa * df.dx
+        L[2] = - sum([
             nt(psi) * bcs[bc]["u_t_w"] * df.ds(bc)
             + (
                 + bcs[bc]["u_n_w"]
@@ -656,8 +656,8 @@ class Solver:
             ) * nn(psi) * df.ds(bc)
             for bc in bcs.keys()
         ])
-        rhs[3] = + df.dot(f_body, v) * df.dx
-        rhs[4] = + (f_mass * q) * df.dx - sum([
+        L[3] = + df.dot(f_body, v) * df.dx
+        L[4] = + (f_mass * q) * df.dx - sum([
             (
                 + bcs[bc]["u_n_w"]
                 - bcs[bc]["epsilon_w"] * chi_tilde * bcs[bc]["p_w"]
@@ -667,14 +667,14 @@ class Solver:
 
         # Combine all equations to compound weak form and add CIP
         if self.mode == "heat":
-            self.form_lhs = sum(lhs[0:2]) + cip * j_theta()
-            self.form_rhs = sum(rhs[0:2])
+            self.form_lhs = sum(A[0:2]) + cip * j_theta()
+            self.form_rhs = sum(L[0:2])
         elif self.mode == "stress":
-            self.form_lhs = sum(lhs[2:5]) + cip * (j_u() + j_p())
-            self.form_rhs = sum(rhs[2:5])
+            self.form_lhs = sum(A[2:5]) + cip * (j_u() + j_p())
+            self.form_rhs = sum(L[2:5])
         elif self.mode == "r13":
-            self.form_lhs = sum(lhs) + cip * (j_theta() + j_u() + j_p())
-            self.form_rhs = sum(rhs)
+            self.form_lhs = sum(A) + cip * (j_theta() + j_u() + j_p())
+            self.form_rhs = sum(L)
 
     def solve(self):
         """
