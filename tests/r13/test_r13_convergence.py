@@ -198,3 +198,40 @@ class TestR13Convergence(object):
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
+
+    def test_r13_1_coeffs_nosources_norot_inflow_p2p2p2p2p2_nostab(self):
+        r"""
+        Execute full linear R13 system test and check with reference errors.
+        Use second order equal elements.
+
+        Test case is similar to  [TOR2017]_.
+
+        .. [TOR2017] Torrilhon, M. et al. (2017). “Hierarchical Boltzmann
+            simulations and model error estimation”. In: Journal of
+            Computational Physics 342 (2017), pp. 66–84.
+
+        ==================== ===================================================
+        Parameter     Value
+        ==================== ===================================================
+        :math:`Kn`           :math:`1.0`
+        :math:`\dot{m}`      :math:`0`
+        :math:`r`            :math:`0`
+        :math:`\theta_w^1`   :math:`1.0`
+        :math:`v_t^1`        :math:`0`
+        :math:`v_n^1`        :math:`0`
+        :math:`p_w^1`        :math:`0`
+        :math:`\epsilon_w^1` :math:`10^{-3}`
+        :math:`\theta_w^2`   :math:`2.0`
+        :math:`v_t^2`        :math:`-1.00 \sin(\phi)`
+        :math:`v_n^2`        :math:`+1.00 \cos(\phi)`
+        :math:`p_w^2`        :math:`-0.27 \cos(\phi)`
+        :math:`\epsilon_w^2` :math:`10^{3}`
+        Elements             :math:`P_2P_2P_2P_2P_2`
+        Stabilization        Off
+        ==================== ===================================================
+        """
+        name = "r13_1_coeffs_nosources_norot_inflow_p2p2p2p2p2_nostab"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
