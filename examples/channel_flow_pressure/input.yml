@@ -55,7 +55,7 @@ stabilization:
 # - body_force: Body force for mode==stress||r13
 nsd: 2
 mode: r13
-kn: 1.0
+kn: 0.1
 chi_tilde: 1.0
 heat_source: 0
 mass_source: 0
