@@ -560,11 +560,11 @@ class Solver:
                 # For Delta-term, works for R13 but fails for heat:
                 + 4/5 * cpl * kn * df.div(s_) * df.div(r_)
                 + 4/15 * (1/kn) * df.inner(s_, r_)
-            ) * df.dx + (
+            ) * df.dx + sum([(
                 + 1/(2*chi_tilde) * n(s_) * n(r_)
                 + 11/25 * chi_tilde * t(s_) * t(r_)
                 + cpl * 1/25 * chi_tilde * t(s_) * t(r_)
-            ) * df.ds
+            ) * df.ds(bc) for bc in bcs.keys()])
         def d(sigma_, psi_):
             # Notes:
             # 21/20+3/40=45/40=9/8
@@ -576,7 +576,7 @@ class Solver:
                 + (1/(2*kn)) * df.inner(
                     to.gen3dTF2(sigma_), to.gen3dTF2(psi_)
                 )
-            ) * df.dx + (
+            ) * df.dx + sum([(
                 + chi_tilde * 21/20 * nn(sigma_) * nn(psi_)
                 + chi_tilde * cpl * 3/40 * nn(sigma_) * nn(psi_)
                 + chi_tilde * (
@@ -584,34 +584,28 @@ class Solver:
                     (tt(psi_) + (1/2) * nn(psi_))
                 )
                 + (1/chi_tilde) * nt(sigma_) * nt(psi_)
-            ) * df.ds + sum([ # Changed inflow condition => minus
-                bcs[bc]["epsilon_w"] * chi_tilde * nn(sigma_) * nn(psi_) *
-                df.ds(bc)
-                for bc in bcs.keys()
-            ])
+                + bcs[bc]["epsilon_w"] * chi_tilde * nn(sigma_) * nn(psi_)
+            ) * df.ds(bc) for bc in bcs.keys()])
         def h(p, q):
-            return sum([
-                bcs[bc]["epsilon_w"] * chi_tilde * p * q * df.ds(bc)
-                for bc in bcs.keys()
-            ])
+            return sum([(
+                bcs[bc]["epsilon_w"] * chi_tilde * p * q
+            ) * df.ds(bc) for bc in bcs.keys()])
         # 2) Offdiagonals:
         def b(scalar, vector):
             return 1 * scalar * df.div(vector) * df.dx
         def c(vector, tensor):
             return cpl * ((
                 2/5 * df.inner(tensor, df.grad(vector))
-            ) * df.dx + (
-                - 3/20 * nn(tensor) * n(vector)
-                - 1/5 * nt(tensor) * t(vector)
-            ) * df.ds)
+            ) * df.dx - sum([(
+                3/20 * nn(tensor) * n(vector)
+                + 1/5 * nt(tensor) * t(vector)
+            ) * df.ds(bc) for bc in bcs.keys()]))
         def e(vector, tensor):
             return 1 * df.dot(df.div(tensor), vector) * df.dx
         def f(scalar, tensor):
-            return sum([
-                bcs[bc]["epsilon_w"] * chi_tilde * scalar * nn(tensor) *
-                df.ds(bc)
-                for bc in bcs.keys()
-            ])
+            return sum([(
+                bcs[bc]["epsilon_w"] * chi_tilde * scalar * nn(tensor)
+            ) * df.ds(bc) for bc in bcs.keys()])
         def g(scalar, vector):
             return 1 * df.inner(vector, df.grad(scalar)) * df.dx
         # 3) CIP Stabilization:
@@ -642,28 +636,25 @@ class Solver:
         A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)
         A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
         # 2) Right-hand sides, linear functional L[..]:
-        L[0] = - sum([
-            n(r) * bcs[bc]["theta_w"] * df.ds(bc)
-            for bc in bcs.keys()
-        ])
+        L[0] = - sum([(
+            bcs[bc]["theta_w"] * n(r)
+        ) * df.ds(bc) for bc in bcs.keys()])
         # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
         L[1] = (f_heat-f_mass) * kappa * df.dx
-        L[2] = - sum([
-            nt(psi) * bcs[bc]["u_t_w"] * df.ds(bc)
+        L[2] = - sum([(
+            + bcs[bc]["u_t_w"] * nt(psi)
             + (
                 + bcs[bc]["u_n_w"]
                 - bcs[bc]["epsilon_w"] * chi_tilde * bcs[bc]["p_w"]
-            ) * nn(psi) * df.ds(bc)
-            for bc in bcs.keys()
-        ])
+            ) * nn(psi)
+        ) * df.ds(bc) for bc in bcs.keys()])
         L[3] = + df.dot(f_body, v) * df.dx
-        L[4] = + (f_mass * q) * df.dx - sum([
+        L[4] = + (f_mass * q) * df.dx - sum([(
             (
                 + bcs[bc]["u_n_w"]
                 - bcs[bc]["epsilon_w"] * chi_tilde * bcs[bc]["p_w"]
-            ) * q * df.ds(bc)
-            for bc in bcs.keys()
-        ])
+            ) * q
+        ) * df.ds(bc) for bc in bcs.keys()])
 
         # Combine all equations to compound weak form and add CIP
         if self.mode == "heat":
