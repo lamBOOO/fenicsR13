@@ -204,7 +204,6 @@ class Input:
                     "type": "dict",
                     "schema": {
                         "chi_tilde": {
-                            # TODO: Add minimum
                             "anyof": [
                                 {"type": "string"},
                                 {"type": "float", "min": 1E-10}
