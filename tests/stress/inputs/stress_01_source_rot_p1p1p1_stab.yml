@@ -62,7 +62,7 @@ stabilization:
 nsd: 2
 mode: stress
 kn: 0.1
-heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
+heat_source: 0
 mass_source: 2.0/5.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(0.1,2))) * cos(phi)
 body_force: [0,0]
 
