@@ -541,66 +541,66 @@ class Solver:
 
         # Sub functionals:
         # 1) Diagonals:
-        def a(s_, r_):
+        def a(s, r):
             # Notes:
             # 4/5-24/75 = (60-24)/75 = 36/75 = 12/25
             return (
                 # => 24/25*stf(grad)*grad
                 + 24/25 * kn * df.inner(
-                    df.sym(df.grad(s_)), df.sym(df.grad(r_))
+                    df.sym(df.grad(s)), df.sym(df.grad(r))
                 )
-                - 24/75 * kn * df.div(s_) * df.div(r_)
+                - 24/75 * kn * df.div(s) * df.div(r)
                 # For Delta-term, works for R13 but fails for heat:
-                + 4/5 * cpl * kn * df.div(s_) * df.div(r_)
-                + 4/15 * (1/kn) * df.inner(s_, r_)
+                + 4/5 * cpl * kn * df.div(s) * df.div(r)
+                + 4/15 * (1/kn) * df.inner(s, r)
             ) * df.dx + sum([(
-                + 1/(2*bcs[bc]["chi_tilde"]) * n(s_) * n(r_)
-                + 11/25 * bcs[bc]["chi_tilde"] * t(s_) * t(r_)
-                + cpl * 1/25 * bcs[bc]["chi_tilde"] * t(s_) * t(r_)
+                + 1/(2*bcs[bc]["chi_tilde"]) * n(s) * n(r)
+                + 11/25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
+                + cpl * 1/25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
             ) * df.ds(bc) for bc in bcs.keys()])
-        def d(sigma_, psi_):
+        def d(si, ps):
             # Notes:
             # 21/20+3/40=45/40=9/8
             return (
                 kn * df.inner(
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma_))),
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(psi_)))
+                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(si))),
+                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(ps)))
                 )
                 + (1/(2*kn)) * df.inner(
-                    to.gen3dTF2(sigma_), to.gen3dTF2(psi_)
+                    to.gen3dTF2(si), to.gen3dTF2(ps)
                 )
             ) * df.dx + sum([(
-                + bcs[bc]["chi_tilde"] * 21/20 * nn(sigma_) * nn(psi_)
-                + bcs[bc]["chi_tilde"] * cpl * 3/40 * nn(sigma_) * nn(psi_)
+                + bcs[bc]["chi_tilde"] * 21/20 * nn(si) * nn(ps)
+                + bcs[bc]["chi_tilde"] * cpl * 3/40 * nn(si) * nn(ps)
                 + bcs[bc]["chi_tilde"] * (
-                    (tt(sigma_) + (1/2) * nn(sigma_)) *
-                    (tt(psi_) + (1/2) * nn(psi_))
+                    (tt(si) + (1/2) * nn(si)) *
+                    (tt(ps) + (1/2) * nn(ps))
                 )
-                + (1/bcs[bc]["chi_tilde"]) * nt(sigma_) * nt(psi_)
-                + bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * nn(sigma_) * nn(psi_)
+                + (1/bcs[bc]["chi_tilde"]) * nt(si) * nt(ps)
+                + bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * nn(si) * nn(ps)
             ) * df.ds(bc) for bc in bcs.keys()])
         def h(p, q):
             return sum([(
                 bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * q
             ) * df.ds(bc) for bc in bcs.keys()])
         # 2) Offdiagonals:
-        def b(scalar, vector):
-            return 1 * scalar * df.div(vector) * df.dx
-        def c(vector, tensor):
+        def b(th, r):
+            return 1 * th * df.div(r) * df.dx
+        def c(r, si):
             return cpl * ((
-                2/5 * df.inner(tensor, df.grad(vector))
+                2/5 * df.inner(si, df.grad(r))
             ) * df.dx - sum([(
-                3/20 * nn(tensor) * n(vector)
-                + 1/5 * nt(tensor) * t(vector)
+                3/20 * nn(si) * n(r)
+                + 1/5 * nt(si) * t(r)
             ) * df.ds(bc) for bc in bcs.keys()]))
-        def e(vector, tensor):
-            return 1 * df.dot(df.div(tensor), vector) * df.dx
-        def f(scalar, tensor):
+        def e(u, ps):
+            return 1 * df.dot(df.div(ps), u) * df.dx
+        def f(p, ps):
             return sum([(
-                bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * scalar * nn(tensor)
+                bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * nn(ps)
             ) * df.ds(bc) for bc in bcs.keys()])
-        def g(scalar, vector):
-            return 1 * df.inner(vector, df.grad(scalar)) * df.dx
+        def g(p, v):
+            return 1 * df.inner(v, df.grad(p)) * df.dx
         # 3) CIP Stabilization:
         def j_theta(theta, kappa):
             return (
