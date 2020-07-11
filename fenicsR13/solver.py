@@ -629,6 +629,7 @@ class Solver:
         A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)
         A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
         # 2) Right-hand sides, linear functional L[..]:
+        # TODO: Create subfunctionals l_1 to l_5 as in article
         L[0] = - sum([(
             bcs[bc]["theta_w"] * n(r)
         ) * df.ds(bc) for bc in bcs.keys()])
