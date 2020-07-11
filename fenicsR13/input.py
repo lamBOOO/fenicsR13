@@ -420,7 +420,7 @@ class Input:
         }
 
         if not val.validate(self.dict, input_schema):
-            print(val.errors)
+            print("! Parsing Error: \n" + str(val.errors) + "\n")
             raise Exception("Parsing error")
 
         print("Input:\n" + dumps(self.dict, indent=None))
