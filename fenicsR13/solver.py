@@ -157,7 +157,6 @@ class Solver:
         ============================ ======= =================================
         Radius wrt. to :math:`(0,0)` ``R``   ``sqrt(pow(x[0],2)+pow(x[1],2))``
         Angle wrt. :math:`(0,0)`     ``phi`` ``atan2(x[1],x[0])``
-        Knudsen number               ``kn``  ``self.kn``
         ============================ ======= =================================
 
         The following expressions are therefore equal:
@@ -175,11 +174,9 @@ class Solver:
         """
         R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
         phi = df.Expression("atan2(x[1],x[0])", degree=2)
-        kn = self.kn
         return df.Expression(
             str(cpp_string),
             degree=2,
-            kn=kn,
             phi=phi,
             R=R
         )
@@ -195,7 +192,6 @@ class Solver:
         ============================ ======= =================================
         Radius wrt. to :math:`(0,0)` ``R``   ``sqrt(pow(x[0],2)+pow(x[1],2))``
         Angle wrt. :math:`(0,0)`     ``phi`` ``atan2(x[1],x[0])``
-        Knudsen number               ``kn``  ``self.kn``
         ============================ ======= =================================
 
         See Also
@@ -204,13 +200,11 @@ class Solver:
         """
         R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
         phi = df.Expression("atan2(x[1],x[0])", degree=2)
-        kn = self.kn
         cpp_strings = [str(i) for i in cpp_strings]
         if len(cpp_strings) == 2:
             return df.Expression(
                 cpp_strings, # strange that no cast to list is needed
                 degree=2,
-                kn=kn,
                 phi=phi,
                 R=R
             )
