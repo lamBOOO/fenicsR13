@@ -50,14 +50,12 @@ stabilization:
 # - nsd: Number of spatial dimensions == 2
 # - mode: Formulation mode, one of heat, stress, r13
 # - kn: Knudsen number
-# - chi_tilde: Refaction coefficient in Maxwell accomodation model
 # - heat_source: Heat source function for mode==heat||r13
 # - mass_source: Mass source function for mode==stress||r13
 # - body_force: Body force for mode==stress||r13
 nsd: 2
 mode: r13
 kn: 0.1
-chi_tilde: 1.0
 heat_source: 0
 mass_source: 0
 body_force: [0,0]
@@ -65,7 +63,8 @@ body_force: [0,0]
 # Boundary Conditions
 # ===================
 # - bcs: Dictionary of all boundary IDs from mesh
-#   - bc_id: must contain theta_w, u_t_w, u_n_w, p_w, epsilon_w
+#   - bc_id: must contain the following parameters
+#     - chi_tilde: Refaction coefficient in Maxwell accomodation model
 #     - theta_w: Value for temperature at wall
 #     - u_t_w: Value for tangential velocity at wall
 #     - u_n_w: Value for normal velocity at wall
@@ -73,48 +72,56 @@ body_force: [0,0]
 #     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
 bcs:
   3010: # inner top
+    chi_tilde: 1.0
     theta_w: 0.5 * x[0] + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3011: # inner left
+    chi_tilde: 1.0
     theta_w: -0.5 * (atan2(x[1],-(x[0] + 1.0)))/(M_PI/2.0) + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3012: # inner bottom
+    chi_tilde: 1.0
     theta_w: -0.5 * x[0] + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3013: # inner right
+    chi_tilde: 1.0
     theta_w: 0.5 * (atan2(x[1],(x[0]-1.0)))/(M_PI/2.0) + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3020: # outer top
+    chi_tilde: 1.0
     theta_w: 0.5 * x[0] + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3021: # outer left
+    chi_tilde: 1.0
     theta_w: -0.5 * (atan2(x[1],-(x[0] + 1.0)))/(M_PI/2.0) + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3022: # outer bottom
+    chi_tilde: 1.0
     theta_w: -0.5 * x[0] + 1.0
     u_t_w: 0
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
   3023: # outer right
+    chi_tilde: 1.0
     theta_w: 0.5 * (atan2(x[1],(x[0]-1.0)))/(M_PI/2.0) + 1.0
     u_t_w: 0
     u_n_w: 0

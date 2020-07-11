@@ -79,14 +79,12 @@ class Input:
         # - nsd: Number of spatial dimensions == 2
         # - mode: Formulation mode, one of heat, stress, r13
         # - kn: Knudsen numberkn
-        # - chi_tilde: Refaction coefficient in Maxwell accomodation model
         # - heat_source: Heat source function for mode==heat||r13
         # - mass_source: Mass source function for mode==stress||r13
         # - body_force: Body force for mode==stress||r13
         nsd: 2
         mode: r13
         kn: 1.0
-        chi_tilde: 1.0
         heat_source: 0
         mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(kn,2))) * cos(phi)
         body_force: [0,0]
@@ -94,7 +92,8 @@ class Input:
         # Boundary Conditions
         # ===================
         # - bcs: Dictionary of all boundary IDs from mesh
-        #   - bc_id: must contain theta_w, u_t_w, u_n_w, p_w, epsilon_w
+        #   - bc_id: must contain the following parameters
+        #     - chi_tilde: Refaction coefficient in Maxwell accomodation model
         #     - theta_w: Value for temperature at wall
         #     - u_t_w: Value for tangential velocity at wall
         #     - u_n_w: Value for normal velocity at wall
@@ -102,12 +101,14 @@ class Input:
         #     - epsilon_w: Inflow-model parameter <=> Weight of pressure
         bcs:
           3000:
+            chi_tilde: 1.0
             theta_w: 1.0
             u_t_w: -10
             u_n_w: 0
             p_w: 0
             epsilon_w: 0
           3100:
+            chi_tilde: 1.0
             theta_w: 0.5
             u_t_w: 0
             u_n_w: 0
@@ -195,11 +196,6 @@ class Input:
                 "required": True,
                 "min": 0.000000001
             },
-            "chi_tilde": {
-                "type": "float",
-                "required": True,
-                "min": 0.000000001
-            },
             "bcs": {
                 "type": "dict",
                 "required": True,
@@ -207,6 +203,14 @@ class Input:
                 "valuesrules": {
                     "type": "dict",
                     "schema": {
+                        "chi_tilde": {
+                            # TODO: Add minimum
+                            "anyof": [
+                                {"type": "string"},
+                                {"type": "float", "min": 1E-10}
+                            ],
+                            "required": True,
+                        },
                         "theta_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True,

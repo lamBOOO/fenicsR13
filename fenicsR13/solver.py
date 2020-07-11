@@ -68,7 +68,6 @@ class Solver:
         self.time = time
         self.mode = params["mode"]
         self.kn = params["kn"]
-        self.chi_tilde = params["chi_tilde"]
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
         self.delta_theta = self.params["stabilization"]["cip"]["delta_theta"]
         self.delta_u = self.params["stabilization"]["cip"]["delta_u"]
@@ -172,6 +171,7 @@ class Solver:
                 phi=dolfin.Expression("atan2(x[1],x[0])", degree=2),
             )
         """
+        # TODO: Check for constants and then use df.Constant
         R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
         phi = df.Expression("atan2(x[1],x[0])", degree=2)
         return df.Expression(
@@ -477,7 +477,6 @@ class Solver:
         boundaries = self.boundaries
         bcs = self.bcs
         kn = df.Constant(self.kn)
-        chi_tilde = df.Constant(self.chi_tilde)
         delta_theta = df.Constant(self.delta_theta)
         delta_u = df.Constant(self.delta_u)
         delta_p = df.Constant(self.delta_p)
@@ -555,9 +554,9 @@ class Solver:
                 + 4/5 * cpl * kn * df.div(s_) * df.div(r_)
                 + 4/15 * (1/kn) * df.inner(s_, r_)
             ) * df.dx + sum([(
-                + 1/(2*chi_tilde) * n(s_) * n(r_)
-                + 11/25 * chi_tilde * t(s_) * t(r_)
-                + cpl * 1/25 * chi_tilde * t(s_) * t(r_)
+                + 1/(2*bcs[bc]["chi_tilde"]) * n(s_) * n(r_)
+                + 11/25 * bcs[bc]["chi_tilde"] * t(s_) * t(r_)
+                + cpl * 1/25 * bcs[bc]["chi_tilde"] * t(s_) * t(r_)
             ) * df.ds(bc) for bc in bcs.keys()])
         def d(sigma_, psi_):
             # Notes:
@@ -571,18 +570,18 @@ class Solver:
                     to.gen3dTF2(sigma_), to.gen3dTF2(psi_)
                 )
             ) * df.dx + sum([(
-                + chi_tilde * 21/20 * nn(sigma_) * nn(psi_)
-                + chi_tilde * cpl * 3/40 * nn(sigma_) * nn(psi_)
-                + chi_tilde * (
+                + bcs[bc]["chi_tilde"] * 21/20 * nn(sigma_) * nn(psi_)
+                + bcs[bc]["chi_tilde"] * cpl * 3/40 * nn(sigma_) * nn(psi_)
+                + bcs[bc]["chi_tilde"] * (
                     (tt(sigma_) + (1/2) * nn(sigma_)) *
                     (tt(psi_) + (1/2) * nn(psi_))
                 )
-                + (1/chi_tilde) * nt(sigma_) * nt(psi_)
-                + bcs[bc]["epsilon_w"] * chi_tilde * nn(sigma_) * nn(psi_)
+                + (1/bcs[bc]["chi_tilde"]) * nt(sigma_) * nt(psi_)
+                + bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * nn(sigma_) * nn(psi_)
             ) * df.ds(bc) for bc in bcs.keys()])
         def h(p, q):
             return sum([(
-                bcs[bc]["epsilon_w"] * chi_tilde * p * q
+                bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * q
             ) * df.ds(bc) for bc in bcs.keys()])
         # 2) Offdiagonals:
         def b(scalar, vector):
@@ -598,7 +597,7 @@ class Solver:
             return 1 * df.dot(df.div(tensor), vector) * df.dx
         def f(scalar, tensor):
             return sum([(
-                bcs[bc]["epsilon_w"] * chi_tilde * scalar * nn(tensor)
+                bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * scalar * nn(tensor)
             ) * df.ds(bc) for bc in bcs.keys()])
         def g(scalar, vector):
             return 1 * df.inner(vector, df.grad(scalar)) * df.dx
@@ -639,14 +638,14 @@ class Solver:
             + bcs[bc]["u_t_w"] * nt(psi)
             + (
                 + bcs[bc]["u_n_w"]
-                - bcs[bc]["epsilon_w"] * chi_tilde * bcs[bc]["p_w"]
+                - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
             ) * nn(psi)
         ) * df.ds(bc) for bc in bcs.keys()])
         L[3] = + df.dot(f_body, v) * df.dx
         L[4] = + (f_mass * q) * df.dx - sum([(
             (
                 + bcs[bc]["u_n_w"]
-                - bcs[bc]["epsilon_w"] * chi_tilde * bcs[bc]["p_w"]
+                - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
             ) * q
         ) * df.ds(bc) for bc in bcs.keys()])
 
