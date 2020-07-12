@@ -86,7 +86,7 @@ class Input:
         mode: r13
         kn: 1.0
         heat_source: 0
-        mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(kn,2))) * cos(phi)
+        mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(0.1,2))) * cos(phi)
         body_force: [0,0]
 
         # Boundary Conditions
