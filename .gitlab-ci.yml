@@ -77,63 +77,69 @@ build:docs:
   tags:
     - docker
 
-# # **************************************************************************** #
-# # test
-# # **************************************************************************** #
+# **************************************************************************** #
+# test
+# **************************************************************************** #
 
-# .test: # dot means "hidden", acts as base class
-#   stage: test
-#   before_script:
-#     - pip install -e . # local install to have right coverage
-#   image:
-#     name: $CI_REGISTRY_IMAGE:latest # use prebuilt image in Gitlab's registry
-#     entrypoint: [""] # == Repo. Has to be done if Dockerfile has own entrypoint
+.test: # dot means "hidden", acts as base class
+  stage: test
+  before_script:
+    - pip install -e . # local install to have right coverage
+  image:
+    name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    entrypoint: [""]
+  tags:
+    - docker
 
-# test:pytest:
-#   extends: .test
-#   script:
-#     - cd ${APP_DIRECTORY}
-#     - pytest -v --durations=10
-#     - mkdir convergence_plots
-#     - cp tests/*/*/convergence_plot* convergence_plots/
-#   artifacts:
-#     paths:
-#       - ${APP_DIRECTORY}/convergence_plots
-#       - ${APP_DIRECTORY}/htmlcov
-#     expire_in: 6 month
+test:pytest:
+  extends: .test
+  script:
+    - cd ${APP_DIRECTORY}
+    - pytest -v --durations=10
+    - mkdir convergence_plots
+    - cp tests/*/*/convergence_plot* convergence_plots/
+  artifacts:
+    paths:
+      - ${APP_DIRECTORY}/convergence_plots
+      - ${APP_DIRECTORY}/htmlcov
+    expire_in: 6 month
 
-# # **************************************************************************** #
-# # deploy
-# # **************************************************************************** #
+# **************************************************************************** #
+# deploy
+# **************************************************************************** #
 
-# deploy:latex:
-#   stage: deploy
-#   image:
-#     # name: blang/latex:ctanfull # only TexLive 2017
-#     name: aergus/latex:latest
-#     entrypoint: [""]
-#   dependencies:
-#     - build:doc
-#   script:
-#     - cd ${DOCS_DIRECTORY}/_build/latex/
-#     - make
-#   artifacts:
-#     paths:
-#       - ${DOCS_DIRECTORY}/_build/latex/${DOCS_LATEX_NAME}.pdf
-#     expire_in: 6 month
-#   only:
-#     - master
-#     - tags
+deploy:latex:
+  stage: deploy
+  image:
+    # name: blang/latex:ctanfull # only TexLive 2017
+    name: aergus/latex:latest
+    entrypoint: [""]
+  dependencies:
+    - build:doc
+  script:
+    - cd ${DOCS_DIRECTORY}/_build/latex/
+    - make
+  artifacts:
+    paths:
+      - ${DOCS_DIRECTORY}/_build/latex/${DOCS_LATEX_NAME}.pdf
+    expire_in: 6 month
+  only:
+    - master
+    - tags
+  tags:
+    - shell
 
-# pages:
-#   stage: deploy
-#   dependencies:
-#     - build:doc
-#   script:
-#     - mv ${DOCS_DIRECTORY}/_build/html/ ${CI_PROJECT_DIR}/public/
-#   artifacts:
-#     paths:
-#       - public
-#   only:
-#     - master
-#     - tags
+pages:
+  stage: deploy
+  dependencies:
+    - build:doc
+  script:
+    - mv ${DOCS_DIRECTORY}/_build/html/ ${CI_PROJECT_DIR}/public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
+    - tags
+  tags:
+    - shell
