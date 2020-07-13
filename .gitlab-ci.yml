@@ -17,8 +17,8 @@ stages:
 
 prepare:docker:
   stage: prepare
-  # before_script:
-    # - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker pull $CI_REGISTRY_IMAGE:latest || true
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA || true
