@@ -1164,7 +1164,7 @@ class Solver:
         sols = self.sol
         for field in sols:
             if sols[field] is not None:
-                self.__write_vec(field, sols[field], self.write_pdfs)
+                self.__write_vec(field, sols[field])
 
     def __write_parameters(self):
         """
@@ -1367,7 +1367,7 @@ class Solver:
                     plt.savefig(fname_pdf, dpi=150)
                     plt.close()
 
-    def __write_vec(self, name, field, write_pdf):
+    def __write_vec(self, name, field):
         """
         Write a given field to a vector.
         """
