@@ -3,7 +3,7 @@ variables:
   # DOCKER_TLS_CERTDIR: ""
   # DOCKER_HOST: tcp://docker:2375
   # DOCKER_DRIVER: overlay2
-  # APP_DIRECTORY: .
+  APP_DIRECTORY: .
   DOCS_DIRECTORY: ${APP_DIRECTORY}/docs
   # DOCS_LATEX_NAME: fenicsr13
 # services:
