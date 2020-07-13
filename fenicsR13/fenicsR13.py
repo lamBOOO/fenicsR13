@@ -20,6 +20,7 @@ from fenicsR13.input import Input
 from fenicsR13.solver import Solver
 from fenicsR13.postprocessor import Postprocessor
 
+
 def print_information():
     r"""
     Print program name and information.
@@ -52,6 +53,7 @@ def print_information():
 |_|  \___|_| |_|_|\___|___/_| \_\_|____/
 """)
 
+
 def main():
     """
     Execute the main program.
@@ -76,7 +78,7 @@ def main():
     print_information()
 
     # Dolfin settings
-    df.set_log_level(100) # 1: all logs
+    df.set_log_level(100)  # 1: all logs
     df.parameters["ghost_mode"] = "shared_vertex"
 
     inputfile = sys.argv[1] if len(sys.argv) == 2 else "input.yml"
@@ -127,13 +129,14 @@ def main():
                     **errors
                 })
 
-                if p == len(mesh_names)-1: # after last mesh
+                if p == len(mesh_names) - 1:  # after last mesh
                     postp = Postprocessor(data, params["output_folder"])
                     postp.write_errors()
                     postp.plot_errors(show_plot)
 
             solver = None
             gc.collect()
+
 
 if __name__ == '__main__':
     main()

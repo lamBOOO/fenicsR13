@@ -7,6 +7,7 @@ This file is executed by ``pytest`` to have good CI.
 import subprocess
 import pytest
 
+
 class TestStressConvergence(object):
     """
     Class to bundle all stress convergence tests.

@@ -1,5 +1,6 @@
 # pylint: disable=invalid-name,too-many-lines
 # pylint: disable=not-callable
+# noqa: E226
 
 """
 Solver module, contains the Solver class.
@@ -61,7 +62,7 @@ class Solver:
 
     def __init__(self, params, mesh, time):
         """Initialize solver and setup variables from input parameters."""
-        self.params = params #: Doctest
+        self.params = params  #: Doctest
         self.mesh = mesh.mesh
         self.regions = mesh.subdomains
         self.boundaries = mesh.boundaries
@@ -212,7 +213,7 @@ class Solver:
         cpp_strings = [str(i) for i in cpp_strings]
         if len(cpp_strings) == 2:
             return df.Expression(
-                cpp_strings, # strange that no cast to list is needed
+                cpp_strings,  # strange that no cast to list is needed
                 degree=2,
                 phi=phi,
                 R=R
@@ -285,7 +286,7 @@ class Solver:
         regs_specified = list(self.regs.keys())
 
         for reg_id in region_ids:
-            if not reg_id in [0] + regs_specified: # inner zero allowed
+            if reg_id not in [0] + regs_specified:  # inner zero allowed
                 raise Exception("Mesh region {} has no params!".format(reg_id))
 
     def __check_bcs(self):
@@ -298,7 +299,7 @@ class Solver:
         bcs_specified = list(self.bcs.keys())
 
         for edge_id in boundary_ids:
-            if not edge_id in [0] + bcs_specified: # inner zero allowed
+            if edge_id not in [0] + bcs_specified:  # inner zero allowed
                 raise Exception("Mesh edge {} has no bcs!".format(edge_id))
 
     def assemble(self):
@@ -515,7 +516,7 @@ class Solver:
 
         # Define mesh measuers
         h_msh = df.CellDiameter(mesh)
-        h_avg = (h_msh("+") + h_msh("-"))/2.0
+        h_avg = (h_msh("+") + h_msh("-")) / 2.0
 
         # TODO: Study this, is it more precise?
         # fa = df.FacetArea(mesh)
@@ -556,14 +557,19 @@ class Solver:
         # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
         n_vec = df.FacetNormal(mesh)
         t_vec = ufl.perp(n_vec)
+
         def n(rank1):
             return df.dot(rank1, n_vec)
+
         def t(rank1):
             return df.dot(rank1, t_vec)
+
         def nn(rank2):
             return df.dot(rank2 * n_vec, n_vec)
+
         def tt(rank2):
             return df.dot(rank2 * t_vec, t_vec)
+
         def nt(rank2):
             return df.dot(rank2 * n_vec, t_vec)
 
@@ -574,18 +580,19 @@ class Solver:
             # 4/5-24/75 = (60-24)/75 = 36/75 = 12/25
             return sum([(
                 # => 24/25*stf(grad)*grad
-                + 24/25 * regs[reg]["kn"] * df.inner(
+                + 24 / 25 * regs[reg]["kn"] * df.inner(
                     df.sym(df.grad(s)), df.sym(df.grad(r))
                 )
-                - 24/75 * regs[reg]["kn"] * df.div(s) * df.div(r)
+                - 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
                 # For Delta-term, works for R13 but fails for heat:
-                + 4/5 * cpl * regs[reg]["kn"] * df.div(s) * df.div(r)
-                + 4/15 * (1/regs[reg]["kn"]) * df.inner(s, r)
+                + 4 / 5 * cpl * regs[reg]["kn"] * df.div(s) * df.div(r)
+                + 4 / 15 * (1 / regs[reg]["kn"]) * df.inner(s, r)
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
-                + 1/(2*bcs[bc]["chi_tilde"]) * n(s) * n(r)
-                + 11/25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
-                + cpl * 1/25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
+                + 1 / (2 * bcs[bc]["chi_tilde"]) * n(s) * n(r)
+                + 11 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
+                + cpl * 1 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
             ) * df.ds(bc) for bc in bcs.keys()])
+
         def d(si, ps):
             # Notes:
             # 21/20+3/40=45/40=9/8
@@ -594,58 +601,67 @@ class Solver:
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(si))),
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(ps)))
                 )
-                + (1/(2*regs[reg]["kn"])) * df.inner(
+                + (1 / (2 * regs[reg]["kn"])) * df.inner(
                     to.gen3dTF2(si), to.gen3dTF2(ps)
                 )
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
-                + bcs[bc]["chi_tilde"] * 21/20 * nn(si) * nn(ps)
-                + bcs[bc]["chi_tilde"] * cpl * 3/40 * nn(si) * nn(ps)
+                + bcs[bc]["chi_tilde"] * 21 / 20 * nn(si) * nn(ps)
+                + bcs[bc]["chi_tilde"] * cpl * 3 / 40 * nn(si) * nn(ps)
                 + bcs[bc]["chi_tilde"] * (
-                    (tt(si) + (1/2) * nn(si)) *
-                    (tt(ps) + (1/2) * nn(ps))
+                    (tt(si) + (1 / 2) * nn(si)) *
+                    (tt(ps) + (1 / 2) * nn(ps))
                 )
-                + (1/bcs[bc]["chi_tilde"]) * nt(si) * nt(ps)
+                + (1 / bcs[bc]["chi_tilde"]) * nt(si) * nt(ps)
                 + bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * nn(si) * nn(ps)
             ) * df.ds(bc) for bc in bcs.keys()])
+
         def h(p, q):
             return sum([(
                 bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * q
             ) * df.ds(bc) for bc in bcs.keys()])
+
         # 2) Offdiagonals:
         def b(th, r):
             return sum([(
                 th * df.div(r)
             ) * df.dx(reg) for reg in regs.keys()])
+
         def c(r, si):
             return cpl * (sum([(
-                2/5 * df.inner(si, df.grad(r))
+                2 / 5 * df.inner(si, df.grad(r))
             ) * df.dx(reg) for reg in regs.keys()]) - sum([(
-                3/20 * nn(si) * n(r)
-                + 1/5 * nt(si) * t(r)
+                3 / 20 * nn(si) * n(r)
+                + 1 / 5 * nt(si) * t(r)
             ) * df.ds(bc) for bc in bcs.keys()]))
+
         def e(u, ps):
             return sum([(
                 df.dot(df.div(ps), u)
             ) * df.dx(reg) for reg in regs.keys()])
+
         def f(p, ps):
             return sum([(
                 bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * nn(ps)
             ) * df.ds(bc) for bc in bcs.keys()])
+
         def g(p, v):
             return sum([(
                 df.inner(v, df.grad(p))
             ) * df.dx(reg) for reg in regs.keys()])
+
         # 3) CIP Stabilization:
         def j_theta(theta, kappa):
             return (
                 + delta_theta * h_avg**3 *
                 df.jump(df.grad(theta), n_vec) * df.jump(df.grad(kappa), n_vec)
             ) * df.dS
+
         def j_u(u, v):
             return (
                 + delta_u * h_avg**3 *
                 df.dot(df.jump(df.grad(u), n_vec), df.jump(df.grad(v), n_vec))
             ) * df.dS
+
         def j_p(p, q):
             return (
                 + delta_p * h_avg *
@@ -668,7 +684,7 @@ class Solver:
             bcs[bc]["theta_w"] * n(r)
         ) * df.ds(bc) for bc in bcs.keys()])
         # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
-        L[1] = (f_heat-f_mass) * kappa * df.dx
+        L[1] = (f_heat - f_mass) * kappa * df.dx
         L[2] = - sum([(
             + bcs[bc]["u_t_w"] * nt(psi)
             + (
@@ -779,10 +795,10 @@ class Solver:
                 raise Exception("Massflow: {} is no boundary.".format(bc_id))
             n = df.FacetNormal(self.mesh)
             mass_flow_rate = df.assemble(
-                df.inner(self.sol["u"], n)*df.ds(bc_id)
+                df.inner(self.sol["u"], n) * df.ds(bc_id)
             )
             print("mass flow rate of BC", bc_id, ":", mass_flow_rate)
-            self.write_content_to_file("massflow_"+str(bc_id), mass_flow_rate)
+            self.write_content_to_file("massflow_" + str(bc_id), mass_flow_rate)
 
     def __load_exact_solution(self):
         """
@@ -1038,8 +1054,8 @@ class Solver:
                     )
                     for i in range(dofs)
                 ]
-            errs_f_L2 = [x/y for x, y in zip(errs_f_L2, max_esols)]
-            errs_v_linf = [x/y for x, y in zip(errs_v_linf, max_esols)]
+            errs_f_L2 = [x / y for x, y in zip(errs_f_L2, max_esols)]
+            errs_v_linf = [x / y for x, y in zip(errs_v_linf, max_esols)]
 
         print("Error " + str(name_) + " L_2:", errs_f_L2)
         print("Error " + str(name_) + " l_inf:", errs_v_linf)
@@ -1266,7 +1282,7 @@ class Solver:
             self.output_folder + name + "_" + str(self.time) + ".xdmf"
         )
         with df.XDMFFile(self.mesh.mpi_comm(), fname_xdmf) as file:
-            for degree in range(5): # test until degree five
+            for degree in range(5):  # test until degree five
                 # Writing symmetric tensors crashes.
                 # Therefore project symmetric tensor in nonsymmetric space
                 # This is only a temporary fix, see:
@@ -1274,15 +1290,15 @@ class Solver:
                 # ...writing-symmetric-tensor-function-fails/1136
                 el_symm = df.TensorElement(
                     df.FiniteElement(
-                        "Lagrange", df.triangle, degree+1
+                        "Lagrange", df.triangle, degree + 1
                     ), symmetry=True
-                ) # symmetric tensor element
+                )  # symmetric tensor element
                 el_sol = field.ufl_function_space().ufl_element()
                 if el_sol == el_symm:
                     # Remove symmetry with projection
                     field = df.project(
                         field, df.TensorFunctionSpace(
-                            self.mesh, "Lagrange", degree+1
+                            self.mesh, "Lagrange", degree + 1
                         )
                     )
                     break
@@ -1293,7 +1309,7 @@ class Solver:
             file.write(field, self.time)
 
         if write_pdf:
-            import matplotlib.pyplot as plt # pylint: disable=C0415
+            import matplotlib.pyplot as plt  # pylint: disable=C0415
             plt.switch_backend('agg')
             dimension = len(field.value_shape())
 
@@ -1327,7 +1343,7 @@ class Solver:
                     }
                 }
                 for i in range(components):
-                    fieldname = name + "_" + str(indexMap[dimension][i+1])
+                    fieldname = name + "_" + str(indexMap[dimension][i + 1])
                     fname_pdf = (
                         self.output_folder + fieldname
                         + "_" + str(self.time) + ".pdf"

@@ -10,7 +10,7 @@ if not gui:
 
 fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1)
-ax.plot(x,y, "-o", label="Channel Flow")
+ax.plot(x, y, "-o", label="Channel Flow")
 ax.set_xscale("log")
 
 plt.xlabel("Knudsen number")

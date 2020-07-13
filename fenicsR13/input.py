@@ -10,6 +10,7 @@ from json import dumps
 import yaml
 from cerberus import Validator
 
+
 class Input:
     """
     Class to handle the input file in YAML_ format.
@@ -454,7 +455,7 @@ class Input:
         """
         try:
             return reduce(operator.getitem, map_list, self.dict)
-        except:
+        except Exception:
             raise Exception("Dict has no entry with the key:", map_list)
 
     def set_in_input(self, map_list, value):

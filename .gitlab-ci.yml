@@ -69,6 +69,12 @@ build:docs:
   tags:
     - docker
 
+test:flake8:
+  extends: .test
+  script:
+    - cd ${APP_DIRECTORY}
+    - flake8 fenicsR13 examples tests
+
 test:pytest:
   extends: .test
   script:
