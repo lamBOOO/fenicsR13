@@ -25,9 +25,10 @@ prepare:docker:
     - docker build
         --cache-from $CI_REGISTRY_IMAGE:latest
         --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+        --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+        --tag $CI_REGISTRY_IMAGE:latest
         --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-        --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-        --tag $CI_REGISTRY_IMAGE:latest .
+        --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME .
     # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA # no need
     # - docker push $CI_REGISTRY_IMAGE:latest
   # when: manual
