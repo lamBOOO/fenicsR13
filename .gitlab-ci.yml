@@ -116,12 +116,12 @@ test:pytest:
     - shell
 
 deploy:docker:dev:
-  extends: .test
+  extends: .deploy:docker
   script:
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
 
 deploy:docker:latest:
-  extends: .test
+  extends: .deploy:docker
   script:
     - docker push $CI_REGISTRY_IMAGE:latest
   only:
