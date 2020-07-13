@@ -1,6 +1,6 @@
 # image: docker:stable
 variables:
-  GIT_STRATEGY: fetch
+  # GIT_STRATEGY: fetch
   # DOCKER_TLS_CERTDIR: ""
   # DOCKER_HOST: tcp://docker:2375
   # DOCKER_DRIVER: overlay2
