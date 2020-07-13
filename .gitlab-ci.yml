@@ -10,7 +10,7 @@ variables:
 # - docker:stable-dind # docker in docker
 stages:
 - prepare
-# - build
+- build
 # - test
 # - deploy
 
