@@ -50,7 +50,7 @@ build:docs:
   dependencies:
     - prepare:docker
   before_script:
-    - docker run -ti $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker run -i $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   # image:
   #   name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   #   entrypoint: [""]
