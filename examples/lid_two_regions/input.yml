@@ -53,7 +53,6 @@ stabilization:
 # - body_force: Body force for mode==stress||r13
 nsd: 2
 mode: r13
-kn: 0.08
 heat_source: 0
 mass_source: 0
 body_force: [0,0]
@@ -64,10 +63,10 @@ body_force: [0,0]
 #   - reg_id: Must contain the following parameters:
 #     - kn: Knudsen number
 regs:
-  4000:
+  4000: # top
     kn: 0.08
-  4100:
-      kn: 0.08
+  4100: # bot
+    kn: 0.08
 
 # Boundary Conditions
 # ===================
