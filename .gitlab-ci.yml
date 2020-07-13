@@ -115,7 +115,7 @@ deploy:latex:
     name: aergus/latex:latest
     entrypoint: [""]
   dependencies:
-    - build:doc
+    - build:docs
   script:
     - cd ${DOCS_DIRECTORY}/_build/latex/
     - make
@@ -132,7 +132,7 @@ deploy:latex:
 pages:
   stage: deploy
   dependencies:
-    - build:doc
+    - build:docs
   script:
     - mv ${DOCS_DIRECTORY}/_build/html/ ${CI_PROJECT_DIR}/public/
   artifacts:
