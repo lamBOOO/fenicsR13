@@ -30,7 +30,7 @@ prepare:docker:
       --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME .
     # --cache-from $CI_REGISTRY_IMAGE:latest
     # --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+    # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
     # - docker push $CI_REGISTRY_IMAGE:latest
   # when: manual
   tags:
@@ -107,6 +107,26 @@ test:pytest:
 # **************************************************************************** #
 # deploy
 # **************************************************************************** #
+
+.deploy:docker:
+  stage: deploy
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  tags:
+    - shell
+
+deploy:docker:dev:
+  extends: .test
+  script:
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+
+deploy:docker:latest:
+  extends: .test
+  script:
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - master
+    - tags
 
 deploy:latex:
   stage: deploy
