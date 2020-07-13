@@ -45,6 +45,14 @@ class TestExamples(object):
         self.create_meshes(working_dir)
         self.run_solver("input.yml", working_dir)
 
+    def test_lid_two_regions(self):
+        r"""
+        Test the lid case with two region.
+        """
+        working_dir = "examples/lid_two_regions"
+        self.create_meshes(working_dir)
+        self.run_solver("input.yml", working_dir)
+
     @pytest.mark.skip(reason="Skip, needs too much time")
     def test_channel_flow_pressure(self):
         r"""

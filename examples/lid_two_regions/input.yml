@@ -1,7 +1,7 @@
 # General
 # =======
 # - output_folder: Used as output folder
-output_folder: results_lid_driven_cavity
+output_folder: results_lid_two_regions
 
 # Meshes
 # ======
@@ -64,9 +64,9 @@ body_force: [0,0]
 #     - kn: Knudsen number
 regs:
   4000: # top
-    kn: 0.08
+    kn: 0.1
   4100: # bot
-    kn: 0.08
+    kn: 1.0
 
 # Boundary Conditions
 # ===================
@@ -113,9 +113,11 @@ convergence_study:
 # Postprocessing
 # ==============
 # - write_pdfs: Write all solution fields as PDF plot
+# - write_vecs: Write all solution fields as vectors
 # - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
 postprocessing:
   write_pdfs: True
+  write_vecs: False
   massflow: []
 
 # Parameter Study

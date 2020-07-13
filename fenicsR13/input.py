@@ -140,9 +140,12 @@ class Input:
         # Postprocessing
         # ==============
         # - write_pdfs: Write all solution fields as PDF plot
+        # - write_vecs: Write all solution fields as vectors
         # - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
         postprocessing:
         write_pdfs: True
+        write_vecs: True
+        massflow: []
 
 
         # Parameter Study
@@ -269,6 +272,10 @@ class Input:
                 "required": True,
                 "schema": {
                     "write_pdfs": {
+                        "type": "boolean",
+                        "required": True
+                    },
+                    "write_vecs": {
                         "type": "boolean",
                         "required": True
                     },

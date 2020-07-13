@@ -75,6 +75,7 @@ class Solver:
         self.delta_p = self.params["stabilization"]["cip"]["delta_p"]
 
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
+        self.write_vecs = self.params["postprocessing"]["write_vecs"]
         self.massflow = self.params["postprocessing"]["massflow"]
 
         # Create region field expressions
@@ -1145,6 +1146,8 @@ class Solver:
         print("Write fields..")
 
         self.__write_solutions()
+        if self.write_vecs:
+            self.__write_vecs()
         self.__write_parameters()
         if self.write_systemmatrix:
             self.__write_discrete_system()
@@ -1155,6 +1158,13 @@ class Solver:
         for field in sols:
             if sols[field] is not None:
                 self.__write_xdmf(field, sols[field], self.write_pdfs)
+
+    def __write_vecs(self):
+        """Write all solutions to vectors."""
+        sols = self.sol
+        for field in sols:
+            if sols[field] is not None:
+                self.__write_vec(field, sols[field], self.write_pdfs)
 
     def __write_parameters(self):
         """
@@ -1356,3 +1366,44 @@ class Solver:
                     print("Write {}".format(fname_pdf))
                     plt.savefig(fname_pdf, dpi=150)
                     plt.close()
+
+    def __write_vec(self, name, field, write_pdf):
+        """
+        Write a given field to a vector.
+        """
+
+        dimension = len(field.value_shape())
+        if dimension == 0:
+            # scalar
+            fname_mat = (
+                self.output_folder + name + "_" + str(self.time)
+                + ".mat"
+            )
+            np.savetxt(
+                self.output_folder + name + "_" + str(self.time) + ".mat",
+                field.compute_vertex_values()
+            )
+            print("Write {}".format(fname_mat))
+        else:
+            # vector or tensor
+            components = len(field.split())
+            indexMap = {
+                1: {
+                    1: "x",
+                    2: "y"
+                },
+                2: {
+                    1: "xx",
+                    2: "xy",
+                    3: "yx",
+                    4: "yy",
+                }
+            }
+            for i in range(components):
+                fieldname = name + "_" + str(indexMap[dimension][i + 1])
+                fname_mat = (
+                    self.output_folder + fieldname + "_" + str(self.time)
+                    + ".mat"
+                )
+                np.savetxt(fname_mat, field.split()[i].compute_vertex_values())
+                print("Write {}".format(fname_mat))
