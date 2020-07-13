@@ -12,8 +12,8 @@ variables:
 stages:
 - prepare
 - build
-# - test
-# - deploy
+- test
+- deploy
 
 prepare:docker:
   stage: prepare
