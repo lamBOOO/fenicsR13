@@ -49,12 +49,13 @@ build:docs:
   stage: build
   dependencies:
     - prepare:docker
-  before_script:
-    - docker run -i $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  # before_script:
+  #   - docker run -i $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   # image:
   #   name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   #   entrypoint: [""]
   script:
+    - docker run -i $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - cd ${DOCS_DIRECTORY}
     - sphinx-apidoc -f -o source/fenicsR13 ../fenicsR13
     - sphinx-apidoc -f -o source/tests/heat ../tests/heat
