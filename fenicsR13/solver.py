@@ -63,11 +63,11 @@ class Solver:
         """Initialize solver and setup variables from input parameters."""
         self.params = params #: Doctest
         self.mesh = mesh.mesh
+        self.regions = mesh.subdomains
         self.boundaries = mesh.boundaries
         self.cell = self.mesh.ufl_cell()
         self.time = time
         self.mode = params["mode"]
-        self.kn = params["kn"]
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
         self.delta_theta = self.params["stabilization"]["cip"]["delta_theta"]
         self.delta_u = self.params["stabilization"]["cip"]["delta_u"]
@@ -76,13 +76,22 @@ class Solver:
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
         self.massflow = self.params["postprocessing"]["massflow"]
 
-        # Create boundary field and sources expressions
+        # Create region field expressions
+        self.regs = copy.deepcopy(self.params["regs"])
+        for reg_id in self.regs:
+            for field in self.regs[reg_id].keys():
+                self.regs[reg_id][field] = self.__createMacroScaExpr(
+                    self.regs[reg_id][field]
+                )
+
+        # Create boundary field expressions
         self.bcs = copy.deepcopy(self.params["bcs"])
         for edge_id in self.bcs:
             for field in self.bcs[edge_id].keys():
                 self.bcs[edge_id][field] = self.__createMacroScaExpr(
                     self.bcs[edge_id][field]
                 )
+
         self.heat_source = self.__createMacroScaExpr(self.params["heat_source"])
         self.mass_source = self.__createMacroScaExpr(self.params["mass_source"])
         self.body_force = self.__createMacroVecExpr(self.params["body_force"])
@@ -265,6 +274,20 @@ class Solver:
             msh, self.mxd_elems["r13"]
         )
 
+    def __check_regions(self):
+        """
+        Check if all regions from the input mesh have params prescribed.
+
+        Raises an exception if one region is missing.
+        """
+        # TODO: Implement this
+        region_ids = self.regions.array()
+        regs_specified = list(self.regs.keys())
+
+        for reg_id in region_ids:
+            if not reg_id in [0] + regs_specified: # inner zero allowed
+                raise Exception("Mesh region {} has no params!".format(reg_id))
+
     def __check_bcs(self):
         """
         Check if all boundaries from the input mesh have BCs prescribed.
@@ -276,7 +299,7 @@ class Solver:
 
         for edge_id in boundary_ids:
             if not edge_id in [0] + bcs_specified: # inner zero allowed
-                raise Exception("Mesh edge id {} has no bcs!".format(edge_id))
+                raise Exception("Mesh edge {} has no bcs!".format(edge_id))
 
     def assemble(self):
         r"""
@@ -466,7 +489,10 @@ class Solver:
             \rangle
 
         """
-        # Check if all mesh boundaries have bcs presibed frm input
+        # Check if all mesh regions have params prescribed
+        self.__check_regions()
+
+        # Check if all mesh boundaries have bcs prescribed
         self.__check_bcs()
 
         # Setup required function spaces
@@ -474,14 +500,16 @@ class Solver:
 
         # Get local variables
         mesh = self.mesh
+        regions = self.regions
+        regs = self.regs
         boundaries = self.boundaries
         bcs = self.bcs
-        kn = df.Constant(self.kn)
         delta_theta = df.Constant(self.delta_theta)
         delta_u = df.Constant(self.delta_u)
         delta_p = df.Constant(self.delta_p)
 
         # Define custom measeasures for boundary edges and inner edges
+        df.dx = df.Measure("dx", domain=mesh, subdomain_data=regions)
         df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
         df.dS = df.Measure("dS", domain=mesh, subdomain_data=boundaries)
 
@@ -544,16 +572,16 @@ class Solver:
         def a(s, r):
             # Notes:
             # 4/5-24/75 = (60-24)/75 = 36/75 = 12/25
-            return (
+            return sum([(
                 # => 24/25*stf(grad)*grad
-                + 24/25 * kn * df.inner(
+                + 24/25 * regs[reg]["kn"] * df.inner(
                     df.sym(df.grad(s)), df.sym(df.grad(r))
                 )
-                - 24/75 * kn * df.div(s) * df.div(r)
+                - 24/75 * regs[reg]["kn"] * df.div(s) * df.div(r)
                 # For Delta-term, works for R13 but fails for heat:
-                + 4/5 * cpl * kn * df.div(s) * df.div(r)
-                + 4/15 * (1/kn) * df.inner(s, r)
-            ) * df.dx + sum([(
+                + 4/5 * cpl * regs[reg]["kn"] * df.div(s) * df.div(r)
+                + 4/15 * (1/regs[reg]["kn"]) * df.inner(s, r)
+            ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + 1/(2*bcs[bc]["chi_tilde"]) * n(s) * n(r)
                 + 11/25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
                 + cpl * 1/25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
@@ -561,15 +589,15 @@ class Solver:
         def d(si, ps):
             # Notes:
             # 21/20+3/40=45/40=9/8
-            return (
-                kn * df.inner(
+            return sum([(
+                + regs[reg]["kn"] * df.inner(
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(si))),
                     to.stf3d3(to.grad3dOf2(to.gen3dTF2(ps)))
                 )
-                + (1/(2*kn)) * df.inner(
+                + (1/(2*regs[reg]["kn"])) * df.inner(
                     to.gen3dTF2(si), to.gen3dTF2(ps)
                 )
-            ) * df.dx + sum([(
+            ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + bcs[bc]["chi_tilde"] * 21/20 * nn(si) * nn(ps)
                 + bcs[bc]["chi_tilde"] * cpl * 3/40 * nn(si) * nn(ps)
                 + bcs[bc]["chi_tilde"] * (
@@ -585,22 +613,28 @@ class Solver:
             ) * df.ds(bc) for bc in bcs.keys()])
         # 2) Offdiagonals:
         def b(th, r):
-            return 1 * th * df.div(r) * df.dx
+            return sum([(
+                th * df.div(r)
+            ) * df.dx(reg) for reg in regs.keys()])
         def c(r, si):
-            return cpl * ((
+            return cpl * (sum([(
                 2/5 * df.inner(si, df.grad(r))
-            ) * df.dx - sum([(
+            ) * df.dx(reg) for reg in regs.keys()]) - sum([(
                 3/20 * nn(si) * n(r)
                 + 1/5 * nt(si) * t(r)
             ) * df.ds(bc) for bc in bcs.keys()]))
         def e(u, ps):
-            return 1 * df.dot(df.div(ps), u) * df.dx
+            return sum([(
+                df.dot(df.div(ps), u)
+            ) * df.dx(reg) for reg in regs.keys()])
         def f(p, ps):
             return sum([(
                 bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * nn(ps)
             ) * df.ds(bc) for bc in bcs.keys()])
         def g(p, v):
-            return 1 * df.inner(v, df.grad(p)) * df.dx
+            return sum([(
+                df.inner(v, df.grad(p))
+            ) * df.dx(reg) for reg in regs.keys()])
         # 3) CIP Stabilization:
         def j_theta(theta, kappa):
             return (

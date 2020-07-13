@@ -48,16 +48,23 @@ stabilization:
 # ======================
 # - nsd: Number of spatial dimensions == 2
 # - mode: Formulation mode, one of heat, stress, r13
-# - kn: Knudsen number
 # - heat_source: Heat source function for mode==heat||r13
 # - mass_source: Mass source function for mode==stress||r13
 # - body_force: Body force for mode==stress||r13
 nsd: 2
 mode: r13
-kn: 0.1
 heat_source: 0
 mass_source: 0
 body_force: [1,0]
+
+# Region Parameters
+# =================
+# - regs: Dictionary of all mesh regions
+#   - reg_id: Must contain the following parameters:
+#     - kn: Knudsen number
+regs:
+  4000:
+    kn: 0.1
 
 # Boundary Conditions
 # ===================
@@ -130,5 +137,5 @@ postprocessing:
 # - parameter_values: List of value for parameter, e.g. [0.01,0.1,1,10]
 parameter_study:
   enable: True
-  parameter_key: ["kn"]
+  parameter_key: ["regs", 4000, "kn"]
   parameter_values: [0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]

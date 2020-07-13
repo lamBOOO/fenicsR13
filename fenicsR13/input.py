@@ -84,10 +84,15 @@ class Input:
         # - body_force: Body force for mode==stress||r13
         nsd: 2
         mode: r13
-        kn: 1.0
         heat_source: 0
         mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(0.1,2))) * cos(phi)
         body_force: [0,0]
+
+        # Region Parameters
+        # =================
+        # - regs: Dictionary of all mesh regions
+        #   - reg_id: Must contain the following parameters:
+        #     - kn: Knudsen number
 
         # Boundary Conditions
         # ===================
@@ -191,10 +196,22 @@ class Input:
                 "required": True,
                 "allowed": ["heat", "stress", "r13"]
             },
-            "kn": {
-                "type": "float",
+            "regs": {
+                "type": "dict",
                 "required": True,
-                "min": 0.000000001
+                "keysrules": {"type": "integer"},
+                "valuesrules": {
+                    "type": "dict",
+                    "schema": {
+                        "kn": {
+                            "anyof": [
+                                {"type": "string"},
+                                {"type": "float", "min": 1E-10}
+                            ],
+                            "required": True,
+                        },
+                    }
+                }
             },
             "bcs": {
                 "type": "dict",
