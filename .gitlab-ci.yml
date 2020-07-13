@@ -1,10 +1,10 @@
 # image: docker:stable
-# variables:
+variables:
   # DOCKER_TLS_CERTDIR: ""
   # DOCKER_HOST: tcp://docker:2375
   # DOCKER_DRIVER: overlay2
   # APP_DIRECTORY: .
-  # DOCS_DIRECTORY: ${APP_DIRECTORY}/docs
+  DOCS_DIRECTORY: ${APP_DIRECTORY}/docs
   # DOCS_LATEX_NAME: fenicsr13
 # services:
 # - docker:stable-dind # docker in docker
@@ -20,7 +20,10 @@ prepare:docker:
     # - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker pull $CI_REGISTRY_IMAGE:latest || true
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
+    - docker build
+        --cache-from $CI_REGISTRY_IMAGE:latest
+        --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+        --tag $CI_REGISTRY_IMAGE:latest .
     # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA # no need
     # - docker push $CI_REGISTRY_IMAGE:latest
   # when: manual
@@ -42,25 +45,29 @@ prepare:docker:
 #     - docker push $CI_REGISTRY_IMAGE:latest
 #   when: manual
 
-# build:doc:
-#   stage: build
-#   image:
-#     name: $CI_REGISTRY_IMAGE:latest
-#     entrypoint: [""]
-#   script:
-#     - cd ${DOCS_DIRECTORY}
-#     - sphinx-apidoc -f -o source/fenicsR13 ../fenicsR13
-#     - sphinx-apidoc -f -o source/tests/heat ../tests/heat
-#     - sphinx-apidoc -f -o source/tests/stress ../tests/stress
-#     - sphinx-apidoc -f -o source/tests/r13 ../tests/r13
-#     - sphinx-apidoc -f -o source/examples ../examples
-#     - make html
-#     - make latex
-#   artifacts:
-#     paths:
-#       - ${DOCS_DIRECTORY}/_build/html/
-#       - ${DOCS_DIRECTORY}/_build/latex/
-#     expire_in: 6 month
+build:docs:
+  stage: build
+  dependencies:
+    - prepare:docker
+  image:
+    name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    entrypoint: [""]
+  script:
+    - cd ${DOCS_DIRECTORY}
+    - sphinx-apidoc -f -o source/fenicsR13 ../fenicsR13
+    - sphinx-apidoc -f -o source/tests/heat ../tests/heat
+    - sphinx-apidoc -f -o source/tests/stress ../tests/stress
+    - sphinx-apidoc -f -o source/tests/r13 ../tests/r13
+    - sphinx-apidoc -f -o source/examples ../examples
+    - make html
+    - make latex
+  artifacts:
+    paths:
+      - ${DOCS_DIRECTORY}/_build/html/
+      - ${DOCS_DIRECTORY}/_build/latex/
+    expire_in: 6 month
+  tags:
+    - docker
 
 # # **************************************************************************** #
 # # test
