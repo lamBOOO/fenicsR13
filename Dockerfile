@@ -34,8 +34,22 @@ RUN \
 
 # Install any needed packages specified in requirements.txt
 # RUN pip install --trusted-host pypi.python.org -r requirements.txt
-COPY requirements.txt /tmp/
-RUN pip install --requirement /tmp/requirements.txt
+# COPY requirements.txt /tmp/
+RUN pip install \
+    # Program related
+    pyyaml>=5.1.1 \
+    cerberus>=1.3.1 \
+    pytest>=5.0.1 \
+    pytest-cov>_2.7.1 \
+    Sphinx>=2.1.2 \
+    sphinxcontrib-napoleon>=0.7 \
+    Pygments>=2.4.2 \
+    # IDE related (can be skipped)
+    pylint>=2.3.1 \
+    rope>=0.14.0 \
+    doc8>=0.8.0 \
+    autopep8>=1.4.4 \
+    pydocstyle>=4.0.1
 
 # Install the fenicsR13 package (puts it into the PATH)
 COPY . /tmp/
