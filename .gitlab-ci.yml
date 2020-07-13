@@ -21,10 +21,12 @@ prepare:docker:
   script:
     - docker pull $CI_REGISTRY_IMAGE:latest || true
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA || true
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME || true
     - docker build
         --cache-from $CI_REGISTRY_IMAGE:latest
         --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
         --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+        --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
         --tag $CI_REGISTRY_IMAGE:latest .
     # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA # no need
     # - docker push $CI_REGISTRY_IMAGE:latest
