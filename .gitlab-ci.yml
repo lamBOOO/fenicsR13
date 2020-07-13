@@ -51,12 +51,10 @@ build:docs:
     - prepare:docker
   # before_script:
   #   - docker run -i $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-  # image:
-  #   name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-  #   entrypoint: [""]
+  image:
+    name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    entrypoint: [""]
   script:
-    - docker run -ti $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - ls
     - cd ${DOCS_DIRECTORY}
     - sphinx-apidoc -f -o source/fenicsR13 ../fenicsR13
     - sphinx-apidoc -f -o source/tests/heat ../tests/heat
@@ -71,7 +69,7 @@ build:docs:
       - ${DOCS_DIRECTORY}/_build/latex/
     expire_in: 6 month
   tags:
-    - shell
+    - docker
 
 # # **************************************************************************** #
 # # test
