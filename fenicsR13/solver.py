@@ -1221,6 +1221,7 @@ class Solver:
 
         .. code-block:: julia
 
+            using DelimitedFiles
             A = readdlm("A_0.mat", ' ', Float64, '\n')
 
         Example
