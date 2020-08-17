@@ -1,7 +1,7 @@
 # General
 # =======
 # - output_folder: Used as output folder
-output_folder: r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_gls
+output_folder: r13_1_coeffs_sources_rot_noinflow_p2p2p2p2p2_gls
 
 # Meshes
 # ======
@@ -11,10 +11,8 @@ meshes:
   - ../mesh/ring1.h5
   - ../mesh/ring2.h5
   - ../mesh/ring3.h5
-  - ../mesh/ring4.h5
+  # - ../mesh/ring4.h5
   # - ../mesh/ring5.h5
-  # - ../mesh/ring6.h5
-  # - ../mesh/ring7.h5
 
 # Numerical Parameters
 # ====================
@@ -38,19 +36,19 @@ meshes:
 elements:
   theta:
     shape: Lagrange
-    degree: 1
+    degree: 2
   s:
     shape: Lagrange
-    degree: 1
+    degree: 2
   p:
     shape: Lagrange
-    degree: 1
+    degree: 2
   u:
     shape: Lagrange
-    degree: 1
+    degree: 2
   sigma:
     shape: Lagrange
-    degree: 1
+    degree: 2
 stabilization:
   cip:
     enable: False
@@ -74,8 +72,8 @@ stabilization:
 # - body_force: Body force for mode==stress||r13
 nsd: 2
 mode: r13
-heat_source: 0
-mass_source: 0
+heat_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(1.0,2))) * cos(phi)
+mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(1.0,2))) * cos(phi)
 body_force: [0,0]
 
 # Region Parameters
@@ -100,18 +98,18 @@ regs:
 bcs:
   3000:
     chi_tilde: 1.0
-    theta_w: 1
+    theta_w: 1.0
+    u_t_w: -10
+    u_n_w: 0
+    p_w: 0
+    epsilon_w: 0
+  3100:
+    chi_tilde: 1.0
+    theta_w: 0.5
     u_t_w: 0
     u_n_w: 0
     p_w: 0
-    epsilon_w: pow(10,-3)
-  3100:
-    chi_tilde: 1.0
-    theta_w: 2
-    u_t_w: -1.00 * sin(phi)
-    u_n_w: +1.00 * cos(phi)
-    p_w: -0.27 * cos(phi)
-    epsilon_w: pow(10,+3)
+    epsilon_w: 0
 
 # Convergence Study
 # =================
@@ -123,10 +121,10 @@ bcs:
 # - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
 convergence_study:
   enable: True
-  exact_solution: esols/1_coeffs_nosources_norot_inflow_positive.cpp
+  exact_solution: esols/1_coeffs_sources_rot_noinflow.cpp
   plot: False
   write_systemmatrix: False
-  rescale_pressure: False
+  rescale_pressure: True
   relative_error: True
 
 # Postprocessing

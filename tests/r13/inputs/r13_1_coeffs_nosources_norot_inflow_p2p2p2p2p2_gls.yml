@@ -1,7 +1,7 @@
 # General
 # =======
 # - output_folder: Used as output folder
-output_folder: r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_gls
+output_folder: r13_1_coeffs_nosources_norot_inflow_p2p2p2p2p2_gls
 
 # Meshes
 # ======
@@ -11,10 +11,8 @@ meshes:
   - ../mesh/ring1.h5
   - ../mesh/ring2.h5
   - ../mesh/ring3.h5
-  - ../mesh/ring4.h5
+  # - ../mesh/ring4.h5
   # - ../mesh/ring5.h5
-  # - ../mesh/ring6.h5
-  # - ../mesh/ring7.h5
 
 # Numerical Parameters
 # ====================
@@ -38,19 +36,19 @@ meshes:
 elements:
   theta:
     shape: Lagrange
-    degree: 1
+    degree: 2
   s:
     shape: Lagrange
-    degree: 1
+    degree: 2
   p:
     shape: Lagrange
-    degree: 1
+    degree: 2
   u:
     shape: Lagrange
-    degree: 1
+    degree: 2
   sigma:
     shape: Lagrange
-    degree: 1
+    degree: 2
 stabilization:
   cip:
     enable: False
