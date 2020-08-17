@@ -5,7 +5,7 @@
 .. inclusion-marker
 
 fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations Using the FEniCS Computing Platform
-================================================================================
+===================================================================================================================
 
 |pipeline| |coverage| |version| |zenodo| |website|
 
