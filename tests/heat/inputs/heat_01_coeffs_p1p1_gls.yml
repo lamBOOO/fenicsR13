@@ -1,7 +1,7 @@
 # General
 # =======
 # - output_folder: Used as output folder
-output_folder: heat_01_coeffs_p1p1_stab
+output_folder: heat_01_coeffs_p1p1_gls
 
 # Meshes
 # ======
@@ -53,12 +53,12 @@ elements:
     degree: 1
 stabilization:
   cip:
-    enable: True
+    enable: False
     delta_theta: 1.0
     delta_u: 1.0
     delta_p: 0.1
   gls:
-    enable: False
+    enable: True
     tau_energy: 0.001
     tau_heatflux: 0.001
     tau_mass: 0.01

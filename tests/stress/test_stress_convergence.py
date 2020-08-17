@@ -57,6 +57,26 @@ class TestStressConvergence(object):
         """
         subprocess.check_call(["python3", "create_meshes.py"], cwd="tests/mesh")
 
+    def test_stress_01_nosource_rot_p1p1p1_gls(self):
+        r"""
+        Execute decoupled heat system test and check with reference errors.
+
+        ========================= =============================================
+        Parameter     Value
+        ========================= =============================================
+        :math:`Kn`                :math:`0.1`
+        :math:`f_{\mathrm{mass}}` :math:`0`
+        :math:`v_t^1`             :math:`10.0`
+        Elements                  :math:`P_1P_1P_1`
+        Stabilization             GLS
+        ========================= =============================================
+        """
+        name = "stress_01_nosource_rot_p1p1p1_gls"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
+
     def test_stress_01_nosource_rot_p1p1p1_stab(self):
         r"""
         Execute decoupled heat system test and check with reference errors.

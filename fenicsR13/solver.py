@@ -69,10 +69,20 @@ class Solver:
         self.cell = self.mesh.ufl_cell()
         self.time = time
         self.mode = params["mode"]
+
+        # CIP
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
         self.delta_theta = self.params["stabilization"]["cip"]["delta_theta"]
         self.delta_u = self.params["stabilization"]["cip"]["delta_u"]
         self.delta_p = self.params["stabilization"]["cip"]["delta_p"]
+
+        # GLS
+        self.use_gls = self.params["stabilization"]["gls"]["enable"]
+        self.tau_energy = self.params["stabilization"]["gls"]["tau_energy"]
+        self.tau_heatflux = self.params["stabilization"]["gls"]["tau_heatflux"]
+        self.tau_mass = self.params["stabilization"]["gls"]["tau_mass"]
+        self.tau_momentum = self.params["stabilization"]["gls"]["tau_momentum"]
+        self.tau_stress = self.params["stabilization"]["gls"]["tau_stress"]
 
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
         self.write_vecs = self.params["postprocessing"]["write_vecs"]
@@ -509,6 +519,11 @@ class Solver:
         delta_theta = df.Constant(self.delta_theta)
         delta_u = df.Constant(self.delta_u)
         delta_p = df.Constant(self.delta_p)
+        tau_energy = df.Constant(self.tau_energy)
+        tau_heatflux = df.Constant(self.tau_heatflux)
+        tau_mass = df.Constant(self.tau_mass)
+        tau_momentum = df.Constant(self.tau_momentum)
+        tau_stress = df.Constant(self.tau_stress)
 
         # Define custom measeasures for boundary edges and inner edges
         df.dx = df.Measure("dx", domain=mesh, subdomain_data=regions)
@@ -548,11 +563,15 @@ class Solver:
         else:
             cpl = 0
 
-        # Stabilization switch
+        # Stabilization
         if self.use_cip:
             cip = 1
         else:
             cip = 0
+        if self.use_gls:
+            gls = 1
+        else:
+            gls = 0
 
         # Setup normal/tangential projections
         # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
@@ -650,7 +669,7 @@ class Solver:
                 df.inner(v, df.grad(p))
             ) * df.dx(reg) for reg in regs.keys()])
 
-        # 3) CIP Stabilization:
+        # 3.1) CIP Stabilization:
         def j_theta(theta, kappa):
             return (
                 + delta_theta * h_avg**3 *
@@ -668,6 +687,56 @@ class Solver:
                 + delta_p * h_avg *
                 df.jump(df.grad(p), n_vec) * df.jump(df.grad(q), n_vec)
             ) * df.dS
+
+        # 3.2) GLS Stabilization
+        def gls_heat(theta, kappa, s, r):
+            return sum([(
+                tau_energy * h_msh**1 * (
+                    df.inner(
+                        df.div(s) + cpl * df.div(u) - f_heat,
+                        df.div(r) + cpl * df.div(v)
+                    )
+                )  # energy
+                + tau_heatflux * h_msh**1 *
+                df.inner(
+                    (5 / 2) * df.grad(theta)
+                    - (12 / 5) * regs[reg]["kn"] * df.div(to.stf3d2(df.grad(s)))
+                    - (1 / 6) * regs[reg]["kn"] * 12 * df.grad(df.div(s))
+                    + 1 / regs[reg]["kn"] * 2 / 3 * s,
+                    (5 / 2) * df.grad(kappa)
+                    - (12 / 5) * regs[reg]["kn"] * df.div(to.stf3d2(df.grad(r)))
+                    - (1 / 6) * regs[reg]["kn"] * 12 * df.grad(df.div(r))
+                    + 1 / regs[reg]["kn"] * 2 / 3 * r
+                )  # heatflux
+            ) * df.dx(reg) for reg in regs.keys()])
+
+        def gls_stress(p, q, u, v, sigma, psi):
+            return sum([(
+                tau_mass * h_msh**1.5 *
+                df.inner(
+                    df.div(v), df.div(u) - f_mass
+                )  # mass
+                + tau_momentum * h_msh**1.5 *
+                df.inner(
+                    df.grad(q) + df.div(psi),
+                    df.grad(p) + df.div(sigma) - f_body
+                )  # momentum
+                + tau_stress * h_msh**1.5 *
+                df.inner(
+                    cpl * (4 / 5) * to.gen3dTF2(df.grad(r))
+                    + 2 * to.stf3d2(to.gen3d2(df.grad(v)))
+                    - 2 * regs[reg]["kn"] * to.div3d3(
+                        to.stf3d3(to.grad3dOf2(to.gen3dTF2(psi)))
+                    )
+                    + (1 / regs[reg]["kn"]) * to.gen3dTF2(psi),
+                    cpl * (4 / 5) * to.gen3dTF2(df.grad(s))
+                    + 2 * to.stf3d2(to.gen3d2(df.grad(u)))
+                    - 2 * regs[reg]["kn"] * to.div3d3(
+                        to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma)))
+                    )
+                    + (1 / regs[reg]["kn"]) * to.gen3dTF2(sigma)
+                )  # stress
+            ) * df.dx(reg) for reg in regs.keys()])
 
         # Setup all equations
         A = [None] * 5
@@ -701,20 +770,37 @@ class Solver:
             ) * q
         ) * df.ds(bc) for bc in bcs.keys()])
 
-        # Combine all equations to compound weak form and add CIP
+        # Combine all equations to compound weak form and add stabilization
         if self.mode == "heat":
-            self.form_lhs = sum(A[0:2]) + cip * j_theta(theta, kappa)
-            self.form_rhs = sum(L[0:2])
+            self.form_lhs = sum(A[0:2]) + (
+                cip * (j_theta(theta, kappa))
+                + gls * df.lhs(gls_heat(theta, kappa, s, r))
+            )
+            self.form_rhs = sum(L[0:2]) + (
+                gls * df.rhs(gls_heat(theta, kappa, s, r))
+            )
         elif self.mode == "stress":
-            self.form_lhs = sum(A[2:5]) + cip * (
-                j_u(u, v) + j_p(p, q)
+            self.form_lhs = sum(A[2:5]) + (
+                cip * (j_u(u, v) + j_p(p, q))
+                + gls * df.lhs(gls_stress(p, q, u, v, sigma, psi))
             )
-            self.form_rhs = sum(L[2:5])
+            self.form_rhs = sum(L[2:5]) + (
+                gls * df.rhs(gls_stress(p, q, u, v, sigma, psi))
+            )
         elif self.mode == "r13":
-            self.form_lhs = sum(A) + cip * (
-                j_theta(theta, kappa) + j_u(u, v) + j_p(p, q)
+            self.form_lhs = sum(A) + (
+                cip * (j_theta(theta, kappa) + j_u(u, v) + j_p(p, q))
+                + gls * df.lhs(
+                    gls_heat(theta, kappa, s, r)
+                    + gls_stress(p, q, u, v, sigma, psi)
+                )
             )
-            self.form_rhs = sum(L)
+            self.form_rhs = sum(L) + (
+                gls * df.rhs(
+                    gls_heat(theta, kappa, s, r)
+                    + gls_stress(p, q, u, v, sigma, psi)
+                )
+            )
 
     def solve(self):
         """

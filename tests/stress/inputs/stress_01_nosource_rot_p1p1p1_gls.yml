@@ -1,7 +1,7 @@
 # General
 # =======
 # - output_folder: Used as output folder
-output_folder: heat_01_coeffs_p1p1_stab
+output_folder: stress_01_nosource_rot_p1p1p1_gls
 
 # Meshes
 # ======
@@ -53,12 +53,12 @@ elements:
     degree: 1
 stabilization:
   cip:
-    enable: True
+    enable: False
     delta_theta: 1.0
     delta_u: 1.0
-    delta_p: 0.1
+    delta_p: 0.01
   gls:
-    enable: False
+    enable: True
     tau_energy: 0.001
     tau_heatflux: 0.001
     tau_mass: 0.01
@@ -73,8 +73,8 @@ stabilization:
 # - mass_source: Mass source function for mode==stress||r13
 # - body_force: Body force for mode==stress||r13
 nsd: 2
-mode: heat
-heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
+mode: stress
+heat_source: 0
 mass_source: 0
 body_force: [0,0]
 
@@ -101,7 +101,7 @@ bcs:
   3000:
     chi_tilde: 1.0
     theta_w: 1.0
-    u_t_w: 10
+    u_t_w: -10
     u_n_w: 0
     p_w: 0
     epsilon_w: 0
@@ -123,8 +123,8 @@ bcs:
 # - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
 convergence_study:
   enable: True
-  exact_solution: esols/01_coeffs.cpp
-  plot: False # to avoid error exit code due to $DISPLAY
+  exact_solution: esols/01_nosource_rot.cpp
+  plot: False
   write_systemmatrix: False
   rescale_pressure: True
   relative_error: True

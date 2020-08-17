@@ -46,12 +46,19 @@ class Input:
         #   - fields: List of FEM parameters (shape, degree)
         #     - shape: Element shape, e.g. Lagrange
         #     - degree: Element degree, e.g. 2
-        # - stabilization: Must contain cip
+        # - stabilization: Must contain cip and gls
         #   - cip: Collection of Continous Interior Penalty (CIP) parameters
         #     - enable: Enable CIP stabilization
         #     - delta_theta: Stabilization of grad(T)*grad(T_test) over edge
         #     - delta_u: Stabilization of grad(u)*grad(u_test) over edge
         #     - delta_p: Stabilization of grad(p)*grad(p_test) over edge
+        #   - gls: Collection of Garlerkin Least Squares (GLS) parameters
+        #     - enable: Enable GLS stabilization
+        #     - tau_energy: Stabilization with energy eq. residual
+        #     - tau_heatflux: Stabilization with heatflux eq. residual
+        #     - tau_mass: Stabilization with mass eq. residual
+        #     - tau_momentum: Stabilization with momentum eq. residual
+        #     - tau_stress: Stabilization with stress eq. residual
         elements:
           theta:
             shape: Lagrange
@@ -74,6 +81,13 @@ class Input:
             delta_theta: 1.0
             delta_u: 1.0
             delta_p: 0.01
+          gls:
+            enable: False
+            tau_energy: 0.001
+            tau_heatflux: 0.001
+            tau_mass: 0.01
+            tau_momentum: 0.01
+            tau_stress: 0.01
 
         # Formulation Parameters
         # ======================
@@ -341,27 +355,59 @@ class Input:
             "stabilization": {
                 "type": "dict",
                 "required": True,
-                "keysrules": {"type": "string", "regex": "cip"},
-                "valuesrules": {
-                    "type": "dict",
-                    "schema": {
-                        "enable": {
-                            "type": "boolean",
-                            "required": True
-                        },
-                        "delta_theta": {
-                            "type": "float",
-                            "required": True
-                        },
-                        "delta_u": {
-                            "type": "float",
-                            "required": True
-                        },
-                        "delta_p": {
-                            "type": "float",
-                            "required": True
-                        },
-                    }
+                "schema": {
+                    "cip": {
+                        "type": "dict",
+                        "required": True,
+                        "schema": {
+                            "enable": {
+                                "type": "boolean",
+                                "required": True
+                            },
+                            "delta_theta": {
+                                "type": "float",
+                                "required": True
+                            },
+                            "delta_u": {
+                                "type": "float",
+                                "required": True
+                            },
+                            "delta_p": {
+                                "type": "float",
+                                "required": True
+                            },
+                        }
+                    },
+                    "gls": {
+                        "type": "dict",
+                        "required": True,
+                        "schema": {
+                            "enable": {
+                                "type": "boolean",
+                                "required": True
+                            },
+                            "tau_energy": {
+                                "type": "float",
+                                "required": True
+                            },
+                            "tau_heatflux": {
+                                "type": "float",
+                                "required": True
+                            },
+                            "tau_mass": {
+                                "type": "float",
+                                "required": True
+                            },
+                            "tau_momentum": {
+                                "type": "float",
+                                "required": True
+                            },
+                            "tau_stress": {
+                                "type": "float",
+                                "required": True
+                            },
+                        }
+                    },
                 }
             },
             "elements": {
