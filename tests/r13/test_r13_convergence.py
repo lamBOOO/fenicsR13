@@ -62,12 +62,6 @@ class TestR13Convergence(object):
         r"""
         Execute full linear R13 system test and check with reference errors.
 
-        Test case is similar to  [TOR2017]_.
-
-        .. [TOR2017] Torrilhon, M. et al. (2017). “Hierarchical Boltzmann
-            simulations and model error estimation”. In: Journal of
-            Computational Physics 342 (2017), pp. 66–84.
-
         ==================== ===================================================
         Parameter     Value
         ==================== ===================================================
@@ -99,10 +93,6 @@ class TestR13Convergence(object):
         Execute full linear R13 system test and check with reference errors.
 
         Test case is similar to  [TOR2017]_.
-
-        .. [TOR2017] Torrilhon, M. et al. (2017). “Hierarchical Boltzmann
-            simulations and model error estimation”. In: Journal of
-            Computational Physics 342 (2017), pp. 66–84.
 
         ==================== ===================================================
         Parameter     Value
@@ -172,12 +162,6 @@ class TestR13Convergence(object):
         Execute full linear R13 system test and check with reference errors.
         Use second order equal elements.
 
-        Test case is similar to  [TOR2017]_.
-
-        .. [TOR2017] Torrilhon, M. et al. (2017). “Hierarchical Boltzmann
-            simulations and model error estimation”. In: Journal of
-            Computational Physics 342 (2017), pp. 66–84.
-
         ==================== ===================================================
         Parameter     Value
         ==================== ===================================================
@@ -211,10 +195,6 @@ class TestR13Convergence(object):
 
         Test case is similar to  [TOR2017]_.
 
-        .. [TOR2017] Torrilhon, M. et al. (2017). “Hierarchical Boltzmann
-            simulations and model error estimation”. In: Journal of
-            Computational Physics 342 (2017), pp. 66–84.
-
         ==================== ===================================================
         Parameter     Value
         ==================== ===================================================
@@ -244,13 +224,6 @@ class TestR13Convergence(object):
     def test_r13_1_coeffs_sources_rot_noinflow_p1p1p1p1p1_gls(self):
         r"""
         Execute full linear R13 system test and check with reference errors.
-
-        Test case is similar to  [WES2019]_.
-
-        .. [WES2019] A. Westerkamp and M. Torrilhon. “Finite Element Methods
-            for the Linear Regularized 13-Moment Equations Describing Slow
-            Rarefied Gas Flows”. In: Journal of Computational Physics 389
-            (2019).
 
         ==================== ===================================================
         Parameter     Value
@@ -318,8 +291,6 @@ class TestR13Convergence(object):
     def test_r13_1_coeffs_sources_rot_noinflow_p2p2p2p2p2_gls(self):
         r"""
         Execute full linear R13 system test and check with reference errors.
-
-        Test case is similar to  [WES2019]_.
 
         ==================== ===================================================
         Parameter     Value
