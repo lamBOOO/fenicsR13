@@ -1,37 +1,42 @@
-image: docker:stable
 variables:
-  DOCKER_TLS_CERTDIR: ""
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_DRIVER: overlay2
   APP_DIRECTORY: .
   DOCS_DIRECTORY: ${APP_DIRECTORY}/docs
-  DOCS_LATEX_NAME: fenicsr13
-services:
-- docker:dind # docker in docker
 stages:
+- prepare
 - build
 - test
 - deploy
 
 # **************************************************************************** #
-# build
+# prepare
 # **************************************************************************** #
 
-build:environment:
-  stage: build
+prepare:docker:
+  stage: prepare
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker pull $CI_REGISTRY_IMAGE:latest || true
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
-    # - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA # no need
-    - docker push $CI_REGISTRY_IMAGE:latest
-  when: manual
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA || true
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME || true
+    - docker build
+      --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+      --tag $CI_REGISTRY_IMAGE:latest
+      --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+      --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME .
+  tags:
+    - shell
 
-build:doc:
+# **************************************************************************** #
+# build
+# **************************************************************************** #
+
+build:docs:
   stage: build
+  dependencies:
+    - prepare:docker
   image:
-    name: $CI_REGISTRY_IMAGE:latest
+    name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     entrypoint: [""]
   script:
     - cd ${DOCS_DIRECTORY}
@@ -47,6 +52,8 @@ build:doc:
       - ${DOCS_DIRECTORY}/_build/html/
       - ${DOCS_DIRECTORY}/_build/latex/
     expire_in: 6 month
+  tags:
+    - docker
 
 # **************************************************************************** #
 # test
@@ -57,8 +64,16 @@ build:doc:
   before_script:
     - pip install -e . # local install to have right coverage
   image:
-    name: $CI_REGISTRY_IMAGE:latest # use prebuilt image in Gitlab's registry
-    entrypoint: [""] # == Repo. Has to be done if Dockerfile has own entrypoint
+    name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    entrypoint: [""]
+  tags:
+    - docker
+
+test:flake8:
+  extends: .test
+  script:
+    - cd ${APP_DIRECTORY}
+    - flake8 fenicsR13 examples tests
 
 test:pytest:
   extends: .test
@@ -77,6 +92,26 @@ test:pytest:
 # deploy
 # **************************************************************************** #
 
+.deploy:docker:
+  stage: deploy
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  tags:
+    - shell
+
+deploy:docker:dev:
+  extends: .deploy:docker
+  script:
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+
+deploy:docker:latest:
+  extends: .deploy:docker
+  script:
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - master
+    - tags
+
 deploy:latex:
   stage: deploy
   image:
@@ -84,7 +119,7 @@ deploy:latex:
     name: aergus/latex:latest
     entrypoint: [""]
   dependencies:
-    - build:doc
+    - build:docs
   script:
     - cd ${DOCS_DIRECTORY}/_build/latex/
     - make
@@ -95,11 +130,13 @@ deploy:latex:
   only:
     - master
     - tags
+  tags:
+    - shell
 
 pages:
   stage: deploy
   dependencies:
-    - build:doc
+    - build:docs
   script:
     - mv ${DOCS_DIRECTORY}/_build/html/ ${CI_PROJECT_DIR}/public/
   artifacts:
@@ -108,3 +145,5 @@ pages:
   only:
     - master
     - tags
+  tags:
+    - shell

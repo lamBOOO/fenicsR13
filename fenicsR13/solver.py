@@ -1,5 +1,6 @@
 # pylint: disable=invalid-name,too-many-lines
 # pylint: disable=not-callable
+# noqa: E226
 
 """
 Solver module, contains the Solver class.
@@ -61,29 +62,48 @@ class Solver:
 
     def __init__(self, params, mesh, time):
         """Initialize solver and setup variables from input parameters."""
-        self.params = params #: Doctest
+        self.params = params  #: Doctest
         self.mesh = mesh.mesh
+        self.regions = mesh.subdomains
         self.boundaries = mesh.boundaries
         self.cell = self.mesh.ufl_cell()
         self.time = time
         self.mode = params["mode"]
-        self.kn = params["kn"]
-        self.chi_tilde = params["chi_tilde"]
+
+        # CIP
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
         self.delta_theta = self.params["stabilization"]["cip"]["delta_theta"]
         self.delta_u = self.params["stabilization"]["cip"]["delta_u"]
         self.delta_p = self.params["stabilization"]["cip"]["delta_p"]
 
+        # GLS
+        self.use_gls = self.params["stabilization"]["gls"]["enable"]
+        self.tau_energy = self.params["stabilization"]["gls"]["tau_energy"]
+        self.tau_heatflux = self.params["stabilization"]["gls"]["tau_heatflux"]
+        self.tau_mass = self.params["stabilization"]["gls"]["tau_mass"]
+        self.tau_momentum = self.params["stabilization"]["gls"]["tau_momentum"]
+        self.tau_stress = self.params["stabilization"]["gls"]["tau_stress"]
+
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
+        self.write_vecs = self.params["postprocessing"]["write_vecs"]
         self.massflow = self.params["postprocessing"]["massflow"]
 
-        # Create boundary field and sources expressions
+        # Create region field expressions
+        self.regs = copy.deepcopy(self.params["regs"])
+        for reg_id in self.regs:
+            for field in self.regs[reg_id].keys():
+                self.regs[reg_id][field] = self.__createMacroScaExpr(
+                    self.regs[reg_id][field]
+                )
+
+        # Create boundary field expressions
         self.bcs = copy.deepcopy(self.params["bcs"])
         for edge_id in self.bcs:
             for field in self.bcs[edge_id].keys():
                 self.bcs[edge_id][field] = self.__createMacroScaExpr(
                     self.bcs[edge_id][field]
                 )
+
         self.heat_source = self.__createMacroScaExpr(self.params["heat_source"])
         self.mass_source = self.__createMacroScaExpr(self.params["mass_source"])
         self.body_force = self.__createMacroVecExpr(self.params["body_force"])
@@ -157,7 +177,6 @@ class Solver:
         ============================ ======= =================================
         Radius wrt. to :math:`(0,0)` ``R``   ``sqrt(pow(x[0],2)+pow(x[1],2))``
         Angle wrt. :math:`(0,0)`     ``phi`` ``atan2(x[1],x[0])``
-        Knudsen number               ``kn``  ``self.kn``
         ============================ ======= =================================
 
         The following expressions are therefore equal:
@@ -173,13 +192,12 @@ class Solver:
                 phi=dolfin.Expression("atan2(x[1],x[0])", degree=2),
             )
         """
+        # TODO: Check for constants and then use df.Constant
         R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
         phi = df.Expression("atan2(x[1],x[0])", degree=2)
-        kn = self.kn
         return df.Expression(
             str(cpp_string),
             degree=2,
-            kn=kn,
             phi=phi,
             R=R
         )
@@ -195,7 +213,6 @@ class Solver:
         ============================ ======= =================================
         Radius wrt. to :math:`(0,0)` ``R``   ``sqrt(pow(x[0],2)+pow(x[1],2))``
         Angle wrt. :math:`(0,0)`     ``phi`` ``atan2(x[1],x[0])``
-        Knudsen number               ``kn``  ``self.kn``
         ============================ ======= =================================
 
         See Also
@@ -204,13 +221,11 @@ class Solver:
         """
         R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
         phi = df.Expression("atan2(x[1],x[0])", degree=2)
-        kn = self.kn
         cpp_strings = [str(i) for i in cpp_strings]
         if len(cpp_strings) == 2:
             return df.Expression(
-                cpp_strings, # strange that no cast to list is needed
+                cpp_strings,  # strange that no cast to list is needed
                 degree=2,
-                kn=kn,
                 phi=phi,
                 R=R
             )
@@ -271,6 +286,20 @@ class Solver:
             msh, self.mxd_elems["r13"]
         )
 
+    def __check_regions(self):
+        """
+        Check if all regions from the input mesh have params prescribed.
+
+        Raises an exception if one region is missing.
+        """
+        # TODO: Implement this
+        region_ids = self.regions.array()
+        regs_specified = list(self.regs.keys())
+
+        for reg_id in region_ids:
+            if reg_id not in [0] + regs_specified:  # inner zero allowed
+                raise Exception("Mesh region {} has no params!".format(reg_id))
+
     def __check_bcs(self):
         """
         Check if all boundaries from the input mesh have BCs prescribed.
@@ -281,8 +310,8 @@ class Solver:
         bcs_specified = list(self.bcs.keys())
 
         for edge_id in boundary_ids:
-            if not edge_id in [0] + bcs_specified: # inner zero allowed
-                raise Exception("Mesh edge id {} has no bcs!".format(edge_id))
+            if edge_id not in [0] + bcs_specified:  # inner zero allowed
+                raise Exception("Mesh edge {} has no bcs!".format(edge_id))
 
     def assemble(self):
         r"""
@@ -472,7 +501,10 @@ class Solver:
             \rangle
 
         """
-        # Check if all mesh boundaries have bcs presibed frm input
+        # Check if all mesh regions have params prescribed
+        self.__check_regions()
+
+        # Check if all mesh boundaries have bcs prescribed
         self.__check_bcs()
 
         # Setup required function spaces
@@ -480,21 +512,27 @@ class Solver:
 
         # Get local variables
         mesh = self.mesh
+        regions = self.regions
+        regs = self.regs
         boundaries = self.boundaries
         bcs = self.bcs
-        kn = df.Constant(self.kn)
-        chi_tilde = df.Constant(self.chi_tilde)
         delta_theta = df.Constant(self.delta_theta)
         delta_u = df.Constant(self.delta_u)
         delta_p = df.Constant(self.delta_p)
+        tau_energy = df.Constant(self.tau_energy)
+        tau_heatflux = df.Constant(self.tau_heatflux)
+        tau_mass = df.Constant(self.tau_mass)
+        tau_momentum = df.Constant(self.tau_momentum)
+        tau_stress = df.Constant(self.tau_stress)
 
         # Define custom measeasures for boundary edges and inner edges
+        df.dx = df.Measure("dx", domain=mesh, subdomain_data=regions)
         df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
         df.dS = df.Measure("dS", domain=mesh, subdomain_data=boundaries)
 
         # Define mesh measuers
         h_msh = df.CellDiameter(mesh)
-        h_avg = (h_msh("+") + h_msh("-"))/2.0
+        h_avg = (h_msh("+") + h_msh("-")) / 2.0
 
         # TODO: Study this, is it more precise?
         # fa = df.FacetArea(mesh)
@@ -525,156 +563,244 @@ class Solver:
         else:
             cpl = 0
 
-        # Stabilization switch
+        # Stabilization
         if self.use_cip:
             cip = 1
         else:
             cip = 0
+        if self.use_gls:
+            gls = 1
+        else:
+            gls = 0
 
         # Setup normal/tangential projections
         # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
         n_vec = df.FacetNormal(mesh)
         t_vec = ufl.perp(n_vec)
+
         def n(rank1):
             return df.dot(rank1, n_vec)
+
         def t(rank1):
             return df.dot(rank1, t_vec)
+
         def nn(rank2):
             return df.dot(rank2 * n_vec, n_vec)
+
         def tt(rank2):
             return df.dot(rank2 * t_vec, t_vec)
+
         def nt(rank2):
             return df.dot(rank2 * n_vec, t_vec)
 
         # Sub functionals:
         # 1) Diagonals:
-        def a(s_, r_):
+        def a(s, r):
             # Notes:
             # 4/5-24/75 = (60-24)/75 = 36/75 = 12/25
-            return (
+            return sum([(
                 # => 24/25*stf(grad)*grad
-                + 24/25 * kn * df.inner(
-                    df.sym(df.grad(s_)), df.sym(df.grad(r_))
+                + 24 / 25 * regs[reg]["kn"] * df.inner(
+                    df.sym(df.grad(s)), df.sym(df.grad(r))
                 )
-                - 24/75 * kn * df.div(s_) * df.div(r_)
+                - 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
                 # For Delta-term, works for R13 but fails for heat:
-                + 4/5 * cpl * kn * df.div(s_) * df.div(r_)
-                + 4/15 * (1/kn) * df.inner(s_, r_)
-            ) * df.dx + (
-                + 1/(2*chi_tilde) * n(s_) * n(r_)
-                + 11/25 * chi_tilde * t(s_) * t(r_)
-                + cpl * 1/25 * chi_tilde * t(s_) * t(r_)
-            ) * df.ds
-        def d(sigma_, psi_):
+                + 4 / 5 * cpl * regs[reg]["kn"] * df.div(s) * df.div(r)
+                + 4 / 15 * (1 / regs[reg]["kn"]) * df.inner(s, r)
+            ) * df.dx(reg) for reg in regs.keys()]) + sum([(
+                + 1 / (2 * bcs[bc]["chi_tilde"]) * n(s) * n(r)
+                + 11 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
+                + cpl * 1 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
+            ) * df.ds(bc) for bc in bcs.keys()])
+
+        def d(si, ps):
             # Notes:
             # 21/20+3/40=45/40=9/8
-            return (
-                kn * df.inner(
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma_))),
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(psi_)))
+            return sum([(
+                + regs[reg]["kn"] * df.inner(
+                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(si))),
+                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(ps)))
                 )
-                + (1/(2*kn)) * df.inner(
-                    to.gen3dTF2(sigma_), to.gen3dTF2(psi_)
+                + (1 / (2 * regs[reg]["kn"])) * df.inner(
+                    to.gen3dTF2(si), to.gen3dTF2(ps)
                 )
-            ) * df.dx + (
-                + chi_tilde * 21/20 * nn(sigma_) * nn(psi_)
-                + chi_tilde * cpl * 3/40 * nn(sigma_) * nn(psi_)
-                + chi_tilde * (
-                    (tt(sigma_) + (1/2) * nn(sigma_)) *
-                    (tt(psi_) + (1/2) * nn(psi_))
+            ) * df.dx(reg) for reg in regs.keys()]) + sum([(
+                + bcs[bc]["chi_tilde"] * 21 / 20 * nn(si) * nn(ps)
+                + bcs[bc]["chi_tilde"] * cpl * 3 / 40 * nn(si) * nn(ps)
+                + bcs[bc]["chi_tilde"] * (
+                    (tt(si) + (1 / 2) * nn(si)) *
+                    (tt(ps) + (1 / 2) * nn(ps))
                 )
-                + (1/chi_tilde) * nt(sigma_) * nt(psi_)
-            ) * df.ds + sum([ # Changed inflow condition => minus
-                bcs[bc]["epsilon_w"] * chi_tilde * nn(sigma_) * nn(psi_) *
-                df.ds(bc)
-                for bc in bcs.keys()
-            ])
+                + (1 / bcs[bc]["chi_tilde"]) * nt(si) * nt(ps)
+                + bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * nn(si) * nn(ps)
+            ) * df.ds(bc) for bc in bcs.keys()])
+
         def h(p, q):
-            return sum([
-                bcs[bc]["epsilon_w"] * chi_tilde * p * q * df.ds(bc)
-                for bc in bcs.keys()
-            ])
+            return sum([(
+                bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * q
+            ) * df.ds(bc) for bc in bcs.keys()])
+
         # 2) Offdiagonals:
-        def b(scalar, vector):
-            return 1 * scalar * df.div(vector) * df.dx
-        def c(vector, tensor):
-            return cpl * ((
-                2/5 * df.inner(tensor, df.grad(vector))
-            ) * df.dx + (
-                - 3/20 * nn(tensor) * n(vector)
-                - 1/5 * nt(tensor) * t(vector)
-            ) * df.ds)
-        def e(vector, tensor):
-            return 1 * df.dot(df.div(tensor), vector) * df.dx
-        def f(scalar, tensor):
-            return sum([
-                bcs[bc]["epsilon_w"] * chi_tilde * scalar * nn(tensor) *
-                df.ds(bc)
-                for bc in bcs.keys()
-            ])
-        def g(scalar, vector):
-            return 1 * df.inner(vector, df.grad(scalar)) * df.dx
-        # 3) CIP Stabilization:
-        def j_theta():
+        def b(th, r):
+            return sum([(
+                th * df.div(r)
+            ) * df.dx(reg) for reg in regs.keys()])
+
+        def c(r, si):
+            return cpl * (sum([(
+                2 / 5 * df.inner(si, df.grad(r))
+            ) * df.dx(reg) for reg in regs.keys()]) - sum([(
+                3 / 20 * nn(si) * n(r)
+                + 1 / 5 * nt(si) * t(r)
+            ) * df.ds(bc) for bc in bcs.keys()]))
+
+        def e(u, ps):
+            return sum([(
+                df.dot(df.div(ps), u)
+            ) * df.dx(reg) for reg in regs.keys()])
+
+        def f(p, ps):
+            return sum([(
+                bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * nn(ps)
+            ) * df.ds(bc) for bc in bcs.keys()])
+
+        def g(p, v):
+            return sum([(
+                df.inner(v, df.grad(p))
+            ) * df.dx(reg) for reg in regs.keys()])
+
+        # 3.1) CIP Stabilization:
+        def j_theta(theta, kappa):
             return (
                 + delta_theta * h_avg**3 *
                 df.jump(df.grad(theta), n_vec) * df.jump(df.grad(kappa), n_vec)
             ) * df.dS
-        def j_u():
+
+        def j_u(u, v):
             return (
                 + delta_u * h_avg**3 *
                 df.dot(df.jump(df.grad(u), n_vec), df.jump(df.grad(v), n_vec))
             ) * df.dS
-        def j_p():
+
+        def j_p(p, q):
             return (
                 + delta_p * h_avg *
                 df.jump(df.grad(p), n_vec) * df.jump(df.grad(q), n_vec)
             ) * df.dS
 
+        # 3.2) GLS Stabilization
+        def gls_heat(theta, kappa, s, r):
+            return sum([(
+                tau_energy * h_msh**1 * (
+                    df.inner(
+                        df.div(s) + cpl * df.div(u) - f_heat,
+                        df.div(r) + cpl * df.div(v)
+                    )
+                )  # energy
+                + tau_heatflux * h_msh**1 *
+                df.inner(
+                    (5 / 2) * df.grad(theta)
+                    - (12 / 5) * regs[reg]["kn"] * df.div(to.stf3d2(df.grad(s)))
+                    - (1 / 6) * regs[reg]["kn"] * 12 * df.grad(df.div(s))
+                    + 1 / regs[reg]["kn"] * 2 / 3 * s,
+                    (5 / 2) * df.grad(kappa)
+                    - (12 / 5) * regs[reg]["kn"] * df.div(to.stf3d2(df.grad(r)))
+                    - (1 / 6) * regs[reg]["kn"] * 12 * df.grad(df.div(r))
+                    + 1 / regs[reg]["kn"] * 2 / 3 * r
+                )  # heatflux
+            ) * df.dx(reg) for reg in regs.keys()])
+
+        def gls_stress(p, q, u, v, sigma, psi):
+            return sum([(
+                tau_mass * h_msh**1.5 *
+                df.inner(
+                    df.div(v), df.div(u) - f_mass
+                )  # mass
+                + tau_momentum * h_msh**1.5 *
+                df.inner(
+                    df.grad(q) + df.div(psi),
+                    df.grad(p) + df.div(sigma) - f_body
+                )  # momentum
+                + tau_stress * h_msh**1.5 *
+                df.inner(
+                    cpl * (4 / 5) * to.gen3dTF2(df.grad(r))
+                    + 2 * to.stf3d2(to.gen3d2(df.grad(v)))
+                    - 2 * regs[reg]["kn"] * to.div3d3(
+                        to.stf3d3(to.grad3dOf2(to.gen3dTF2(psi)))
+                    )
+                    + (1 / regs[reg]["kn"]) * to.gen3dTF2(psi),
+                    cpl * (4 / 5) * to.gen3dTF2(df.grad(s))
+                    + 2 * to.stf3d2(to.gen3d2(df.grad(u)))
+                    - 2 * regs[reg]["kn"] * to.div3d3(
+                        to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma)))
+                    )
+                    + (1 / regs[reg]["kn"]) * to.gen3dTF2(sigma)
+                )  # stress
+            ) * df.dx(reg) for reg in regs.keys()])
+
         # Setup all equations
-        lhs = [None] * 5
-        rhs = [None] * 5
-        # 1) Left-hand sides
+        A = [None] * 5
+        L = [None] * 5
+        # 1) Left-hand sides, bilinear form A[..]:
         # Changed inflow condition => minus before f(q, sigma)
-        lhs[0] = +1*a(s, r)    -b(theta, r)-c(r, sigma)  +0        +0
-        lhs[1] = +1*b(kappa, s)+0          +0            +0        +0
-        lhs[2] = +1*c(s, psi)  +0          +d(sigma, psi)-e(u, psi)+f(p, psi)
-        lhs[3] = +1*0          +0          +e(v, sigma)  +0        +g(p, v)
-        lhs[4] = +1*0          +0          +f(q, sigma)  -g(q, u)  +h(p, q)
-        # 2) Right-hand sides:
-        rhs[0] = - sum([
-            n(r) * bcs[bc]["theta_w"] * df.ds(bc)
-            for bc in bcs.keys()
-        ])
+        A[0] = a(s, r)     - b(theta, r) - c(r, sigma)   + 0         + 0
+        A[1] = b(kappa, s) + 0           + 0             + 0         + 0
+        A[2] = c(s, psi)   + 0           + d(sigma, psi) - e(u, psi) + f(p, psi)
+        A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)
+        A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
+        # 2) Right-hand sides, linear functional L[..]:
+        # TODO: Create subfunctionals l_1 to l_5 as in article
+        L[0] = - sum([(
+            bcs[bc]["theta_w"] * n(r)
+        ) * df.ds(bc) for bc in bcs.keys()])
         # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
-        rhs[1] = (f_heat-f_mass) * kappa * df.dx
-        rhs[2] = - sum([
-            nt(psi) * bcs[bc]["u_t_w"] * df.ds(bc)
+        L[1] = (f_heat - f_mass) * kappa * df.dx
+        L[2] = - sum([(
+            + bcs[bc]["u_t_w"] * nt(psi)
             + (
                 + bcs[bc]["u_n_w"]
-                - bcs[bc]["epsilon_w"] * chi_tilde * bcs[bc]["p_w"]
-            ) * nn(psi) * df.ds(bc)
-            for bc in bcs.keys()
-        ])
-        rhs[3] = + df.dot(f_body, v) * df.dx
-        rhs[4] = + (f_mass * q) * df.dx - sum([
+                - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
+            ) * nn(psi)
+        ) * df.ds(bc) for bc in bcs.keys()])
+        L[3] = + df.dot(f_body, v) * df.dx
+        L[4] = + (f_mass * q) * df.dx - sum([(
             (
                 + bcs[bc]["u_n_w"]
-                - bcs[bc]["epsilon_w"] * chi_tilde * bcs[bc]["p_w"]
-            ) * q * df.ds(bc)
-            for bc in bcs.keys()
-        ])
+                - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
+            ) * q
+        ) * df.ds(bc) for bc in bcs.keys()])
 
-        # Combine all equations to compound weak form and add CIP
+        # Combine all equations to compound weak form and add stabilization
         if self.mode == "heat":
-            self.form_lhs = sum(lhs[0:2]) + cip * j_theta()
-            self.form_rhs = sum(rhs[0:2])
+            self.form_lhs = sum(A[0:2]) + (
+                cip * (j_theta(theta, kappa))
+                + gls * df.lhs(gls_heat(theta, kappa, s, r))
+            )
+            self.form_rhs = sum(L[0:2]) + (
+                gls * df.rhs(gls_heat(theta, kappa, s, r))
+            )
         elif self.mode == "stress":
-            self.form_lhs = sum(lhs[2:5]) + cip * (j_u() + j_p())
-            self.form_rhs = sum(rhs[2:5])
+            self.form_lhs = sum(A[2:5]) + (
+                cip * (j_u(u, v) + j_p(p, q))
+                + gls * df.lhs(gls_stress(p, q, u, v, sigma, psi))
+            )
+            self.form_rhs = sum(L[2:5]) + (
+                gls * df.rhs(gls_stress(p, q, u, v, sigma, psi))
+            )
         elif self.mode == "r13":
-            self.form_lhs = sum(lhs) + cip * (j_theta() + j_u() + j_p())
-            self.form_rhs = sum(rhs)
+            self.form_lhs = sum(A) + (
+                cip * (j_theta(theta, kappa) + j_u(u, v) + j_p(p, q))
+                + gls * df.lhs(
+                    gls_heat(theta, kappa, s, r)
+                    + gls_stress(p, q, u, v, sigma, psi)
+                )
+            )
+            self.form_rhs = sum(L) + (
+                gls * df.rhs(
+                    gls_heat(theta, kappa, s, r)
+                    + gls_stress(p, q, u, v, sigma, psi)
+                )
+            )
 
     def solve(self):
         """
@@ -756,10 +882,10 @@ class Solver:
                 raise Exception("Massflow: {} is no boundary.".format(bc_id))
             n = df.FacetNormal(self.mesh)
             mass_flow_rate = df.assemble(
-                df.inner(self.sol["u"], n)*df.ds(bc_id)
+                df.inner(self.sol["u"], n) * df.ds(bc_id)
             )
             print("mass flow rate of BC", bc_id, ":", mass_flow_rate)
-            self.write_content_to_file("massflow_"+str(bc_id), mass_flow_rate)
+            self.write_content_to_file("massflow_" + str(bc_id), mass_flow_rate)
 
     def __load_exact_solution(self):
         """
@@ -1015,8 +1141,8 @@ class Solver:
                     )
                     for i in range(dofs)
                 ]
-            errs_f_L2 = [x/y for x, y in zip(errs_f_L2, max_esols)]
-            errs_v_linf = [x/y for x, y in zip(errs_v_linf, max_esols)]
+            errs_f_L2 = [x / y for x, y in zip(errs_f_L2, max_esols)]
+            errs_v_linf = [x / y for x, y in zip(errs_v_linf, max_esols)]
 
         print("Error " + str(name_) + " L_2:", errs_f_L2)
         print("Error " + str(name_) + " l_inf:", errs_v_linf)
@@ -1106,6 +1232,8 @@ class Solver:
         print("Write fields..")
 
         self.__write_solutions()
+        if self.write_vecs:
+            self.__write_vecs()
         self.__write_parameters()
         if self.write_systemmatrix:
             self.__write_discrete_system()
@@ -1116,6 +1244,13 @@ class Solver:
         for field in sols:
             if sols[field] is not None:
                 self.__write_xdmf(field, sols[field], self.write_pdfs)
+
+    def __write_vecs(self):
+        """Write all solutions to vectors."""
+        sols = self.sol
+        for field in sols:
+            if sols[field] is not None:
+                self.__write_vec(field, sols[field])
 
     def __write_parameters(self):
         """
@@ -1172,6 +1307,7 @@ class Solver:
 
         .. code-block:: julia
 
+            using DelimitedFiles
             A = readdlm("A_0.mat", ' ', Float64, '\n')
 
         Example
@@ -1243,7 +1379,7 @@ class Solver:
             self.output_folder + name + "_" + str(self.time) + ".xdmf"
         )
         with df.XDMFFile(self.mesh.mpi_comm(), fname_xdmf) as file:
-            for degree in range(5): # test until degree five
+            for degree in range(5):  # test until degree five
                 # Writing symmetric tensors crashes.
                 # Therefore project symmetric tensor in nonsymmetric space
                 # This is only a temporary fix, see:
@@ -1251,15 +1387,15 @@ class Solver:
                 # ...writing-symmetric-tensor-function-fails/1136
                 el_symm = df.TensorElement(
                     df.FiniteElement(
-                        "Lagrange", df.triangle, degree+1
+                        "Lagrange", df.triangle, degree + 1
                     ), symmetry=True
-                ) # symmetric tensor element
+                )  # symmetric tensor element
                 el_sol = field.ufl_function_space().ufl_element()
                 if el_sol == el_symm:
                     # Remove symmetry with projection
                     field = df.project(
                         field, df.TensorFunctionSpace(
-                            self.mesh, "Lagrange", degree+1
+                            self.mesh, "Lagrange", degree + 1
                         )
                     )
                     break
@@ -1270,7 +1406,7 @@ class Solver:
             file.write(field, self.time)
 
         if write_pdf:
-            import matplotlib.pyplot as plt # pylint: disable=C0415
+            import matplotlib.pyplot as plt  # pylint: disable=C0415
             plt.switch_backend('agg')
             dimension = len(field.value_shape())
 
@@ -1304,7 +1440,7 @@ class Solver:
                     }
                 }
                 for i in range(components):
-                    fieldname = name + "_" + str(indexMap[dimension][i+1])
+                    fieldname = name + "_" + str(indexMap[dimension][i + 1])
                     fname_pdf = (
                         self.output_folder + fieldname
                         + "_" + str(self.time) + ".pdf"
@@ -1317,3 +1453,44 @@ class Solver:
                     print("Write {}".format(fname_pdf))
                     plt.savefig(fname_pdf, dpi=150)
                     plt.close()
+
+    def __write_vec(self, name, field):
+        """
+        Write a given field to a vector.
+        """
+
+        dimension = len(field.value_shape())
+        if dimension == 0:
+            # scalar
+            fname_mat = (
+                self.output_folder + name + "_" + str(self.time)
+                + ".mat"
+            )
+            np.savetxt(
+                self.output_folder + name + "_" + str(self.time) + ".mat",
+                field.compute_vertex_values()
+            )
+            print("Write {}".format(fname_mat))
+        else:
+            # vector or tensor
+            components = len(field.split())
+            indexMap = {
+                1: {
+                    1: "x",
+                    2: "y"
+                },
+                2: {
+                    1: "xx",
+                    2: "xy",
+                    3: "yx",
+                    4: "yy",
+                }
+            }
+            for i in range(components):
+                fieldname = name + "_" + str(indexMap[dimension][i + 1])
+                fname_mat = (
+                    self.output_folder + fieldname + "_" + str(self.time)
+                    + ".mat"
+                )
+                np.savetxt(fname_mat, field.split()[i].compute_vertex_values())
+                print("Write {}".format(fname_mat))

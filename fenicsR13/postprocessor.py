@@ -11,6 +11,7 @@ from math import sqrt, ceil, log, log10
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class Postprocessor:
     """
     The class for postprocessing.
@@ -73,7 +74,7 @@ class Postprocessor:
             matplotlib.use('pdf')
             import matplotlib.pyplot as plt # pylint: disable=C0413
         """
-        filename = "convergence_plot_" + self.output_folder  + ".pdf"
+        filename = "convergence_plot_" + self.output_folder + ".pdf"
 
         if not show_popup:
             plt.switch_backend('agg')
@@ -87,12 +88,12 @@ class Postprocessor:
 
         plt_sidelength_x = ceil(sqrt(num_fields))
         plt_sidelength_y = plt_sidelength_x
-        while plt_sidelength_y * (plt_sidelength_x-1) >= num_fields:
+        while plt_sidelength_y * (plt_sidelength_x - 1) >= num_fields:
             plt_sidelength_x -= 1
 
         for i, key in enumerate(raw_data):
             field = [df[key] for df in data]
-            plot_i = plt.subplot(plt_sidelength_x, plt_sidelength_y, (i+1))
+            plot_i = plt.subplot(plt_sidelength_x, plt_sidelength_y, (i + 1))
             for j, etype in enumerate(field[0]):
                 values = [df[etype] for df in field]
 
@@ -102,32 +103,33 @@ class Postprocessor:
                 # Add slope marker
                 use_top = j == 1
                 bot = np.array([
-                    [h[-1], 0.5*values[-1]],
-                    [h[-2], 0.5*values[-1]],
-                    [h[-2], 0.5*values[-2]]
+                    [h[-1], 0.5 * values[-1]],
+                    [h[-2], 0.5 * values[-1]],
+                    [h[-2], 0.5 * values[-2]]
                 ])
                 top = np.array([
-                    [h[-1], 2.0*values[-1]],
-                    [h[-2], 2.0*values[-2]],
-                    [h[-1], 2.0*values[-2]]
+                    [h[-1], 2.0 * values[-1]],
+                    [h[-2], 2.0 * values[-2]],
+                    [h[-1], 2.0 * values[-2]]
                 ])
                 tria = top if use_top else bot
                 slope_marker = plt.Polygon(
                     tria, color=plot_i.get_lines()[-1].get_color(),
                     alpha=1.5, fill=False
-                    )
+                )
                 plot_i.add_patch(slope_marker)
 
-                conv_rate = (
-                    (log(values[-2]) - log(values[-1]))
-                    / (log(h[-2]) - log(h[-1]))
-                )
+                delta_values = log(values[-2]) - log(values[-1])
+                delta_h = log(h[-2]) - log(h[-1])
+                conv_rate = delta_values / delta_h
                 anchor_x = h[-1] if use_top else h[-2]
                 anchor_y = (
                     10**(
-                        (log10(2.0*values[-2])+log10(2.0*values[-1]))/2
+                        (log10(2.0 * values[-2]) + log10(2.0 * values[-1])) / 2
                     ) if use_top
-                    else 10**((log10(0.5*values[-2])+log10(0.5*values[-1]))/2)
+                    else 10**(
+                        (log10(0.5 * values[-2]) + log10(0.5 * values[-1])
+                         ) / 2)
                 )
                 h_align = "left" if use_top else "right"
                 plot_i.text(
@@ -136,9 +138,9 @@ class Postprocessor:
                 )
 
             # Add order slopes
-            plt.loglog(h, np.array(2*np.power(h, 1)), "--", label="O(h^1)")
-            plt.loglog(h, np.array(0.02*np.power(h, 2)), "--", label="O(h^2)")
-            plt.loglog(h, np.array(0.02*np.power(h, 3)), "--", label="O(h^3)")
+            plt.loglog(h, np.array(2 * np.power(h, 1)), "--", label="O(h^1)")
+            plt.loglog(h, np.array(0.02 * np.power(h, 2)), "--", label="O(h^2)")
+            plt.loglog(h, np.array(0.02 * np.power(h, 3)), "--", label="O(h^3)")
 
             # Add information
             plt.xlabel("max(h)")
@@ -178,7 +180,10 @@ class Postprocessor:
             writer.writerow(
                 ["h"] + list(
                     chain.from_iterable([
-                        [first+"_"+second for second in data[0].get(first, "")]
+                        [
+                            first + "_" + second
+                            for second in data[0].get(first, "")
+                        ]
                         for first in [
                             first for first in data[0] if first != "h"
                         ]

@@ -7,6 +7,7 @@ This file is executed by ``pytest`` to have good CI.
 import subprocess
 import pytest
 
+
 class TestHeatConvergence(object):
     """
     Class to bundle all stress convergence tests.
@@ -55,6 +56,24 @@ class TestHeatConvergence(object):
         Often not needed if meshes are in Git through LFS for reproducability.
         """
         subprocess.check_call(["python3", "create_meshes.py"], cwd="tests/mesh")
+
+    def test_heat_01_coeffs_p1p1_gls(self):
+        r"""
+        Execute decoupled heat system test and check with reference errors.
+
+        ============= =======================
+        Parameter     Value
+        ============= =======================
+        :math:`Kn`    :math:`0.1`
+        Elements      :math:`P_1P_1`
+        Stabilization GLS
+        ============= =======================
+        """
+        name = "heat_01_coeffs_p1p1_gls"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
 
     def test_heat_01_coeffs_p1p1_stab(self):
         r"""

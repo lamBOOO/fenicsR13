@@ -7,6 +7,7 @@ This file is executed by ``pytest`` to have good CI.
 import subprocess
 import pytest
 
+
 class TestExamples(object):
     """
     Class to bundle all examples tests.
@@ -41,6 +42,14 @@ class TestExamples(object):
         Test the lid driven cavity case.
         """
         working_dir = "examples/lid_driven_cavity"
+        self.create_meshes(working_dir)
+        self.run_solver("input.yml", working_dir)
+
+    def test_lid_two_regions(self):
+        r"""
+        Test the lid case with two region.
+        """
+        working_dir = "examples/lid_two_regions"
         self.create_meshes(working_dir)
         self.run_solver("input.yml", working_dir)
 

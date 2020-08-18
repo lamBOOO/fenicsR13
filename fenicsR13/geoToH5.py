@@ -28,6 +28,7 @@ import dolfin as df
 GMSH_PATH = "gmsh"
 GEO_NAME = "ring"
 
+
 def geo_to_h5():
     "Convert given geo-file to a h5-mesh."
 

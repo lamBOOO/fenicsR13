@@ -7,9 +7,9 @@ Module to gather all additional tensor operations not present in UFL.
 This especially includes all 3D operations and operations on tensors with rank
 above 2.
 
-.. [STR2005] Struchtrup, H. (2005). Macroscopic transport equations for rarefied
-    gas flows. In Macroscopic Transport Equations for Rarefied Gas Flows.
-    Springer, Berlin, Heidelberg.
+.. [STR2005] Struchtrup, H. (2005). Macroscopic transport equations for
+    rarefied gas flows. In Macroscopic Transport Equations for Rarefied Gas
+    Flows. Springer, Berlin, Heidelberg.
 
 .. [TOR2018] Torrilhon, M. et al. (2018). “Kinetic Theory of Non-Equilibrium
     Gas Flows:
@@ -20,11 +20,17 @@ above 2.
 import dolfin as df
 import ufl
 
+
 def stf3d2(rank2_2d):
     r"""
-    Return the synthetic 3D symmetric and trace-free part of a 2D 2-tensor.
+    Return the 3D symmetric and trace-free part of a 2D 2-tensor.
 
-    Return the synthetic 3D symmetric and trace-free (dev(sym(.)))
+    .. warning::
+
+            Return a 2-tensor with the same dimensions as the input tensor.
+
+    For the :math:`2 \times 2` case, return the 3D symmetric and
+    trace-free (dev(sym(.)))
     :math:`B \in \mathbb{R}^{2 \times 2}`
     of the 2D 2-tensor
     :math:`A \in \mathbb{R}^{2 \times 2}`.
@@ -38,8 +44,11 @@ def stf3d2(rank2_2d):
         B &= (A)_\mathrm{dev} = \frac{1}{2} (A)_\mathrm{sym}
             - \frac{1}{3} \mathrm{tr}(A) I_{2 \times 2}
     """
-    symm = 1/2 * (rank2_2d + ufl.transpose(rank2_2d))
-    return symm - (1/3) * ufl.tr(symm) * ufl.Identity(2)
+    dim = len(rank2_2d[:, 0])
+    symm = 1 / 2 * (rank2_2d + ufl.transpose(rank2_2d))
+
+    return symm - (1 / 3) * ufl.tr(symm) * ufl.Identity(dim)
+
 
 def sym3d3(rank3_3d):
     r"""
@@ -54,12 +63,13 @@ def sym3d3(rank3_3d):
         \right)
     """
     i, j, k = ufl.indices(3)
-    symm_ijk = 1/6 * (
+    symm_ijk = 1 / 6 * (
         # All permutations
         + rank3_3d[i, j, k] + rank3_3d[i, k, j] + rank3_3d[j, i, k]
         + rank3_3d[j, k, i] + rank3_3d[k, i, j] + rank3_3d[k, j, i]
     )
     return ufl.as_tensor(symm_ijk, (i, j, k))
+
 
 def stf3d3(rank3_3d):
     r"""
@@ -107,17 +117,39 @@ def stf3d3(rank3_3d):
         \right) \delta_{i j}
         \biggr]
     """
-    i, j, k, l = ufl.indices(4)
+    i, j, k, L = ufl.indices(4)
     delta = df.Identity(3)
 
     sym_ijk = sym3d3(rank3_3d)[i, j, k]
-    traces_ijk = 1/5 * (
-        + sym3d3(rank3_3d)[i, l, l] * delta[j, k]
-        + sym3d3(rank3_3d)[l, j, l] * delta[i, k]
-        + sym3d3(rank3_3d)[l, l, k] * delta[i, j]
+    traces_ijk = 1 / 5 * (
+        + sym3d3(rank3_3d)[i, L, L] * delta[j, k]
+        + sym3d3(rank3_3d)[L, j, L] * delta[i, k]
+        + sym3d3(rank3_3d)[L, L, k] * delta[i, j]
     )
     tracefree_ijk = sym_ijk - traces_ijk
     return ufl.as_tensor(tracefree_ijk, (i, j, k))
+
+
+def div3d3(rank3_3d):
+    r"""
+    Return the 3D divergence of a 3-tensor.
+
+    Return the 3D divergence of a 3-tensor as
+
+    .. math::
+
+        {(\mathrm{div}(m))}_{ij} = \frac{\partial m_{ijk}}{\partial x_k}
+
+    Compare with [SCH2009]_ (p. 92).
+
+    .. [SCH2009] Heinz Schade, Klaus Neemann (2009). “Tensoranalysis”.
+        2. überarbeitete Auflage.
+
+    """
+    i, j, k = ufl.indices(3)
+    div_ij = rank3_3d[i, j, 0].dx(0) + rank3_3d[i, j, 1].dx(1)
+    return ufl.as_tensor(div_ij, (i, j))
+
 
 def gen3dTF2(rank2_2d):
     r"""
@@ -162,8 +194,22 @@ def gen3dTF2(rank2_2d):
     return df.as_tensor([
         [rank2_2d[0, 0], rank2_2d[0, 1], 0],
         [rank2_2d[1, 0], rank2_2d[1, 1], 0],
-        [0, 0, -rank2_2d[0, 0]-rank2_2d[1, 1]]
+        [0, 0, -rank2_2d[0, 0] - rank2_2d[1, 1]]
     ])
+
+
+def gen3d1(rank1_2d):
+    r"""
+    Return synthetic 3d version of 2d vector with zero last component.
+
+    Return synthetic 3d version of 2d vector
+    :math:`s_{\mathrm{in}} = (s_x, s_y)`
+    as
+    :math:`s_{\mathrm{out}} = (s_x, s_y, 0)`
+    .
+    """
+    return df.as_vector([rank1_2d[0], rank1_2d[1], 0])
+
 
 def gen3d2(rank2_2d):
     r"""
@@ -211,6 +257,7 @@ def gen3d2(rank2_2d):
         [rank2_2d[1, 0], rank2_2d[1, 1], 0],
         [0, 0, 0]
     ])
+
 
 def grad3dOf2(rank2_3d):
     r"""

@@ -8,7 +8,7 @@ def readme(): # pylint: disable=missing-function-docstring
 
 setup(
     name="fenicsR13",
-    version="1.2",
+    version="1.3",
     description="FEniCS (FEM) Solver for Non.-Eq.-Gases Based on R13 Equations",
     long_description=readme(),
     url="https://git.rwth-aachen.de/lamBOO/fenicsR13",

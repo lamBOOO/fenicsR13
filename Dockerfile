@@ -34,13 +34,14 @@ RUN \
 
 # Install any needed packages specified in requirements.txt
 # RUN pip install --trusted-host pypi.python.org -r requirements.txt
-COPY requirements.txt /tmp/
-RUN pip install --requirement /tmp/requirements.txt
+WORKDIR /fenicsR13
+ADD ./requirements.txt /fenicsR13/requirements.txt
+RUN pip install -r /fenicsR13/requirements.txt
 
 # Install the fenicsR13 package (puts it into the PATH)
-COPY . /tmp/
-RUN pip install --editable /tmp/.
+ADD . /fenicsR13
+RUN pip install --editable /fenicsR13/.
 
 # Replace default FEniCS Docker WELCOME screen with custom WELCOME screen
-COPY WELCOME .
+ADD WELCOME .
 RUN echo "Built: $(date)" >> WELCOME

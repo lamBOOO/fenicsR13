@@ -5,16 +5,35 @@
 .. inclusion-marker
 
 fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations Using the FEniCS Computing Platform
-================================================================================
+===================================================================================================================
 
 |pipeline| |coverage| |version| |zenodo| |website|
 
 ``#extendedGasDynamics`` ``#using`` ``#FEniCS``
 
-Installation
+.. math::
+    \scriptsize \nabla \cdot u \, & \scriptsize = \dot{m} \\ \scriptsize \nabla p + \nabla \cdot \sigma \, & \scriptsize = b \\ \scriptsize \nabla \cdot u + \nabla \cdot s \, & \scriptsize = r \\ \scriptsize \frac{4}{5} {(\nabla s)}_{\text{stf}} + 2 {(\nabla u)}_{\text{stf}} + \nabla \cdot m \, & \scriptsize = - \frac{1}{\mathbb{K}} \sigma \\ \scriptsize \frac{5}{2} \nabla \theta + \nabla \cdot \sigma + \frac{1}{2} \nabla \cdot R + \frac{1}{6} \nabla \Delta \, & \scriptsize = - \frac{1}{\mathbb{K}} \frac{2}{3} s \\ \scriptsize m \, & \scriptsize = - 2 \mathbb{K} {(\nabla\sigma)}_{\text{stf}} \\ \scriptsize R \, & \scriptsize = - \frac{24}{5} \mathbb{K} {(\nabla s)}_{\text{stf}} \\ \scriptsize \Delta \, & \scriptsize = - 12 \mathbb{K} \left( \nabla \cdot s \right)
+
+Main Features
 --------------------------------------------------------------------------------
 
-This repository contains all main and auxiliary scripts to solve the linear R13 equations for rarefied gas flows with the `FEniCS`_ software in 2D, including examples and some convergence tests.
+- Solving Steady 2D Linear R13 Equations in Normalized Form
+- Stabilization with: Continous Interior Penalty (CIP) or Galerkin Least Squares (GLS)
+- Option for convergence study with input for exact solution
+- Output in XDMF_/HDF5 and PDF
+- Arbitray finite element combinations (thanks to FEniCS_)
+- Easy setup of parameter studies
+- Structured/Documented YAML_ input file format
+- Rarefied gas flow effects predictable: Knudsen paradox, Knudsen pump, ...
+- Interface for Gmsh_ meshes
+
+.. _FEniCS: https://fenicsproject.org/
+.. _YAML: https://de.wikipedia.org/wiki/YAML
+.. _XDMF: http://www.xdmf.org/index.php/XDMF_Model_and_Format
+.. _Gmsh: http://gmsh.info/
+
+Installation
+--------------------------------------------------------------------------------
 
 Download the repository as a `zip-file`_ and un-zip, or use `git`_ with
 
@@ -49,7 +68,7 @@ Make sure you installed Docker and it is running on your system. You can start t
     # Run (and possibly pull) fenicsr13_release service
     docker-compose run --rm fenicsr13_release
     # Only for developers, install the lastest version using pip
-    # pip install -e .
+    # sudo pip install -e .
 
 When you run this for the first time, docker will pull (download and extract) the container image from our repository which is roughly 800MB and the download may require some patience. After the initial download the docker image will be stored (2-3 GB) on your system and any new run will start the container immediately.
 
@@ -376,7 +395,7 @@ Contact
     :target: https://git.rwth-aachen.de/lamboo/fenicsR13/pipelines
     :alt: Test coverage
 
-.. |version| image:: https://img.shields.io/badge/version-1.2-blue.svg
+.. |version| image:: https://img.shields.io/badge/version-1.3-blue.svg
     :target: https://git.rwth-aachen.de/lamBOO/fenicsR13/-/tags
     :alt: Documentation Website
 

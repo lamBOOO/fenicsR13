@@ -10,6 +10,7 @@ from json import dumps
 import yaml
 from cerberus import Validator
 
+
 class Input:
     """
     Class to handle the input file in YAML_ format.
@@ -45,12 +46,19 @@ class Input:
         #   - fields: List of FEM parameters (shape, degree)
         #     - shape: Element shape, e.g. Lagrange
         #     - degree: Element degree, e.g. 2
-        # - stabilization: Must contain cip
+        # - stabilization: Must contain cip and gls
         #   - cip: Collection of Continous Interior Penalty (CIP) parameters
         #     - enable: Enable CIP stabilization
         #     - delta_theta: Stabilization of grad(T)*grad(T_test) over edge
         #     - delta_u: Stabilization of grad(u)*grad(u_test) over edge
         #     - delta_p: Stabilization of grad(p)*grad(p_test) over edge
+        #   - gls: Collection of Garlerkin Least Squares (GLS) parameters
+        #     - enable: Enable GLS stabilization
+        #     - tau_energy: Stabilization with energy eq. residual
+        #     - tau_heatflux: Stabilization with heatflux eq. residual
+        #     - tau_mass: Stabilization with mass eq. residual
+        #     - tau_momentum: Stabilization with momentum eq. residual
+        #     - tau_stress: Stabilization with stress eq. residual
         elements:
           theta:
             shape: Lagrange
@@ -73,28 +81,39 @@ class Input:
             delta_theta: 1.0
             delta_u: 1.0
             delta_p: 0.01
+          gls:
+            enable: False
+            tau_energy: 0.001
+            tau_heatflux: 0.001
+            tau_mass: 0.01
+            tau_momentum: 0.01
+            tau_stress: 0.01
 
         # Formulation Parameters
         # ======================
         # - nsd: Number of spatial dimensions == 2
         # - mode: Formulation mode, one of heat, stress, r13
         # - kn: Knudsen numberkn
-        # - chi_tilde: Refaction coefficient in Maxwell accomodation model
         # - heat_source: Heat source function for mode==heat||r13
         # - mass_source: Mass source function for mode==stress||r13
         # - body_force: Body force for mode==stress||r13
         nsd: 2
         mode: r13
-        kn: 1.0
-        chi_tilde: 1.0
         heat_source: 0
-        mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(kn,2))) * cos(phi)
+        mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(0.1,2))) * cos(phi)
         body_force: [0,0]
+
+        # Region Parameters
+        # =================
+        # - regs: Dictionary of all mesh regions
+        #   - reg_id: Must contain the following parameters:
+        #     - kn: Knudsen number
 
         # Boundary Conditions
         # ===================
         # - bcs: Dictionary of all boundary IDs from mesh
-        #   - bc_id: must contain theta_w, u_t_w, u_n_w, p_w, epsilon_w
+        #   - bc_id: must contain the following parameters
+        #     - chi_tilde: Refaction coefficient in Maxwell accomodation model
         #     - theta_w: Value for temperature at wall
         #     - u_t_w: Value for tangential velocity at wall
         #     - u_n_w: Value for normal velocity at wall
@@ -102,12 +121,14 @@ class Input:
         #     - epsilon_w: Inflow-model parameter <=> Weight of pressure
         bcs:
           3000:
+            chi_tilde: 1.0
             theta_w: 1.0
             u_t_w: -10
             u_n_w: 0
             p_w: 0
             epsilon_w: 0
           3100:
+            chi_tilde: 1.0
             theta_w: 0.5
             u_t_w: 0
             u_n_w: 0
@@ -133,9 +154,12 @@ class Input:
         # Postprocessing
         # ==============
         # - write_pdfs: Write all solution fields as PDF plot
+        # - write_vecs: Write all solution fields as vectors
         # - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
         postprocessing:
         write_pdfs: True
+        write_vecs: True
+        massflow: []
 
 
         # Parameter Study
@@ -190,15 +214,22 @@ class Input:
                 "required": True,
                 "allowed": ["heat", "stress", "r13"]
             },
-            "kn": {
-                "type": "float",
+            "regs": {
+                "type": "dict",
                 "required": True,
-                "min": 0.000000001
-            },
-            "chi_tilde": {
-                "type": "float",
-                "required": True,
-                "min": 0.000000001
+                "keysrules": {"type": "integer"},
+                "valuesrules": {
+                    "type": "dict",
+                    "schema": {
+                        "kn": {
+                            "anyof": [
+                                {"type": "string"},
+                                {"type": "float", "min": 1E-10}
+                            ],
+                            "required": True,
+                        },
+                    }
+                }
             },
             "bcs": {
                 "type": "dict",
@@ -207,6 +238,13 @@ class Input:
                 "valuesrules": {
                     "type": "dict",
                     "schema": {
+                        "chi_tilde": {
+                            "anyof": [
+                                {"type": "string"},
+                                {"type": "float", "min": 1E-10}
+                            ],
+                            "required": True,
+                        },
                         "theta_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True,
@@ -248,6 +286,10 @@ class Input:
                 "required": True,
                 "schema": {
                     "write_pdfs": {
+                        "type": "boolean",
+                        "required": True
+                    },
+                    "write_vecs": {
                         "type": "boolean",
                         "required": True
                     },
@@ -313,27 +355,59 @@ class Input:
             "stabilization": {
                 "type": "dict",
                 "required": True,
-                "keysrules": {"type": "string", "regex": "cip"},
-                "valuesrules": {
-                    "type": "dict",
-                    "schema": {
-                        "enable": {
-                            "type": "boolean",
-                            "required": True
-                        },
-                        "delta_theta": {
-                            "type": "float",
-                            "required": True
-                        },
-                        "delta_u": {
-                            "type": "float",
-                            "required": True
-                        },
-                        "delta_p": {
-                            "type": "float",
-                            "required": True
-                        },
-                    }
+                "schema": {
+                    "cip": {
+                        "type": "dict",
+                        "required": True,
+                        "schema": {
+                            "enable": {
+                                "type": "boolean",
+                                "required": True
+                            },
+                            "delta_theta": {
+                                "type": "float",
+                                "required": True
+                            },
+                            "delta_u": {
+                                "type": "float",
+                                "required": True
+                            },
+                            "delta_p": {
+                                "type": "float",
+                                "required": True
+                            },
+                        }
+                    },
+                    "gls": {
+                        "type": "dict",
+                        "required": True,
+                        "schema": {
+                            "enable": {
+                                "type": "boolean",
+                                "required": True
+                            },
+                            "tau_energy": {
+                                "type": "float",
+                                "required": True
+                            },
+                            "tau_heatflux": {
+                                "type": "float",
+                                "required": True
+                            },
+                            "tau_mass": {
+                                "type": "float",
+                                "required": True
+                            },
+                            "tau_momentum": {
+                                "type": "float",
+                                "required": True
+                            },
+                            "tau_stress": {
+                                "type": "float",
+                                "required": True
+                            },
+                        }
+                    },
                 }
             },
             "elements": {
@@ -420,7 +494,7 @@ class Input:
         }
 
         if not val.validate(self.dict, input_schema):
-            print(val.errors)
+            print("! Parsing Error: \n" + str(val.errors) + "\n")
             raise Exception("Parsing error")
 
         print("Input:\n" + dumps(self.dict, indent=None))
@@ -434,7 +508,7 @@ class Input:
         """
         try:
             return reduce(operator.getitem, map_list, self.dict)
-        except:
+        except Exception:
             raise Exception("Dict has no entry with the key:", map_list)
 
     def set_in_input(self, map_list, value):
