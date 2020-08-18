@@ -131,7 +131,7 @@ deploy:latex:
     - master
     - tags
   tags:
-    - shell
+    - docker
 
 pages:
   stage: deploy
