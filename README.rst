@@ -11,10 +11,43 @@ fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations 
 
 ``#extendedGasDynamics`` ``#using`` ``#FEniCS``
 
-Installation
+.. math::
+    \scriptsize \nabla \cdot u \, & \scriptsize = \dot{m}
+    \\
+    \scriptsize \nabla p + \nabla \cdot \sigma \, & \scriptsize = b
+    \\
+    \scriptsize \nabla \cdot u + \nabla \cdot s \, & \scriptsize = r
+    \\
+    \scriptsize \frac{4}{5} {(\nabla s)}_{\text{stf}} + 2 {(\nabla u)}_{\text{stf}} + \nabla \cdot m \, & \scriptsize = - \frac{1}{\mathbb{K}} \sigma
+    \\
+    \scriptsize \frac{5}{2} \nabla \theta + \nabla \cdot \sigma + \frac{1}{2} \nabla \cdot R + \frac{1}{6} \nabla \Delta \, & \scriptsize = - \frac{1}{\mathbb{K}} \frac{2}{3} s
+    \\
+    \scriptsize m \, & \scriptsize = - 2 \mathbb{K} {(\nabla\sigma)}_{\text{stf}}
+    \\
+    \scriptsize R \, & \scriptsize = - \frac{24}{5} \mathbb{K} {(\nabla s)}_{\text{stf}}
+    \\
+    \scriptsize \Delta \, & \scriptsize = - 12 \mathbb{K} \left( \nabla \cdot s \right)
+
+Main Features
 --------------------------------------------------------------------------------
 
-This repository contains all main and auxiliary scripts to solve the linear R13 equations for rarefied gas flows with the `FEniCS`_ software in 2D, including examples and some convergence tests.
+- Solving Steady 2D Linear R13 Equations in Normalized Form
+- Stabilization with: Continous Interior Penalty (CIP) or Galerkin Least Squares (GLS)
+- Option for convergence study with input for exact solution
+- Output in XDMF_/HDF5 and PDF
+- Arbitray finite element combinations (thanks to FEniCS_)
+- Easy setup of parameter studies
+- Structured/Documented YAML_ input file format
+- Rarefied gas flow effects predictable: Knudsen paradox, Knudsen pump, ...
+- Interface for Gmsh_ meshes
+
+.. _FEniCS: https://fenicsproject.org/
+.. _YAML: https://de.wikipedia.org/wiki/YAML
+.. _XDMF: http://www.xdmf.org/index.php/XDMF_Model_and_Format
+.. _Gmsh: http://gmsh.info/
+
+Installation
+--------------------------------------------------------------------------------
 
 Download the repository as a `zip-file`_ and un-zip, or use `git`_ with
 
