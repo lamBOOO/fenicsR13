@@ -12,21 +12,7 @@ fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations 
 ``#extendedGasDynamics`` ``#using`` ``#FEniCS``
 
 .. math::
-    \scriptsize \nabla \cdot u \, & \scriptsize = \dot{m}
-    \\
-    \scriptsize \nabla p + \nabla \cdot \sigma \, & \scriptsize = b
-    \\
-    \scriptsize \nabla \cdot u + \nabla \cdot s \, & \scriptsize = r
-    \\
-    \scriptsize \frac{4}{5} {(\nabla s)}_{\text{stf}} + 2 {(\nabla u)}_{\text{stf}} + \nabla \cdot m \, & \scriptsize = - \frac{1}{\mathbb{K}} \sigma
-    \\
-    \scriptsize \frac{5}{2} \nabla \theta + \nabla \cdot \sigma + \frac{1}{2} \nabla \cdot R + \frac{1}{6} \nabla \Delta \, & \scriptsize = - \frac{1}{\mathbb{K}} \frac{2}{3} s
-    \\
-    \scriptsize m \, & \scriptsize = - 2 \mathbb{K} {(\nabla\sigma)}_{\text{stf}}
-    \\
-    \scriptsize R \, & \scriptsize = - \frac{24}{5} \mathbb{K} {(\nabla s)}_{\text{stf}}
-    \\
-    \scriptsize \Delta \, & \scriptsize = - 12 \mathbb{K} \left( \nabla \cdot s \right)
+    \scriptsize \nabla \cdot u \, & \scriptsize = \dot{m} \\ \scriptsize \nabla p + \nabla \cdot \sigma \, & \scriptsize = b \\ \scriptsize \nabla \cdot u + \nabla \cdot s \, & \scriptsize = r \\ \scriptsize \frac{4}{5} {(\nabla s)}_{\text{stf}} + 2 {(\nabla u)}_{\text{stf}} + \nabla \cdot m \, & \scriptsize = - \frac{1}{\mathbb{K}} \sigma \\ \scriptsize \frac{5}{2} \nabla \theta + \nabla \cdot \sigma + \frac{1}{2} \nabla \cdot R + \frac{1}{6} \nabla \Delta \, & \scriptsize = - \frac{1}{\mathbb{K}} \frac{2}{3} s \\ \scriptsize m \, & \scriptsize = - 2 \mathbb{K} {(\nabla\sigma)}_{\text{stf}} \\ \scriptsize R \, & \scriptsize = - \frac{24}{5} \mathbb{K} {(\nabla s)}_{\text{stf}} \\ \scriptsize \Delta \, & \scriptsize = - 12 \mathbb{K} \left( \nabla \cdot s \right)
 
 Main Features
 --------------------------------------------------------------------------------
