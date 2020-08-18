@@ -1,6 +1,19 @@
 Change log
 ----------
 
+1.3 (2020-08-18)
+~~~~~~~~~~~~~~~~
+
+- Add option to use Garlerkign Least Squares (GLS) stabilization
+- Allow for different chi_tilde on boundaries
+- Add option for multiple mesh regions:
+    - Allows for different Knudsen numbers in regions
+    - Add new example: Lid-driven cavity with two mesh regions
+- Optimization of CI pipeline and scripts in Gitlab:
+    - Assert Flake8 compliance
+- Add option to output solution vectors (for model order reduction experiments)
+- Improve README with R13 equation set and list of features
+
 1.2 (2020-02-17)
 ~~~~~~~~~~~~~~~~
 
