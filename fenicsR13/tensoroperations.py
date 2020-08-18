@@ -143,7 +143,7 @@ def div3d3(rank3_3d):
     Compare with [SCH2009]_ (p. 92).
 
     .. [SCH2009] Heinz Schade, Klaus Neemann (2009). “Tensoranalysis”.
-        2. überarbeitete Auflage.
+        2. überarbeitete Auflage.
 
     """
     i, j, k = ufl.indices(3)
