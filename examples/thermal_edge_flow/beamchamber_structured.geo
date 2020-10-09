@@ -1,122 +1,277 @@
+Mesh.MshFileVersion = 2.0;
+
 // Command line Parameters
-If(!Exists(p))
-  p = 4;
+If(!Exists(exp))
+  exp = 5;
+EndIf
+If(!Exists(nnodes))
+  nnodes = 5;
+EndIf
+Printf("exp=%g", exp);
+Printf("nnodes=%g", nnodes);
+
+If (exp<2)
+  Printf("exp>=2 needed!");
+  Abort;
 EndIf
 
-// Settings
-res = 100;
-Mesh.CharacteristicLengthMax = 1.0 * 2^(-p);
-Mesh.MshFileVersion = 2.0;
-nnodes = 65;
-bumpval = 0.25;
+// TODO REMOVE 1/prog!!!! maybe with -LINEID = prog?
+// TODO Exlcude middle
 
-Point(1001) = {0, 0, 0, res};
-Point(1002) = {1, 0, 0, res};
-Point(1003) = {3, 0, 0, res};
-Point(1004) = {8, 0, 0, res};
-Point(1005) = {8, 1, 0, res};
-Point(1006) = {8, 3, 0, res};
-Point(1007) = {8, 8, 0, res};
-Point(1008) = {3, 8, 0, res};
-Point(1009) = {1, 8, 0, res};
-Point(1010) = {0, 8, 0, res};
-Point(1011) = {0, 3, 0, res};
-Point(1012) = {0, 1, 0, res};
+res = 1000;
+progval = 2;
+bumpval = 0.05;
 
-Point(1101) = {1, 1, 0, res};
-Point(1102) = {3, 1, 0, res};
-Point(1103) = {3, 3, 0, res};
-Point(1104) = {1, 3, 0, res};
+shift = 1 - 2^(-exp);
+shift05 = shift - 0.5;
+Printf("shift=%g", shift);
+Printf("shift05=%g", shift05);
 
-Line(2001) = {1001,1002};
-Line(2002) = {1002,1003};
-Line(2003) = {1003,1004};
-Line(2004) = {1004,1005};
-Line(2005) = {1005,1006};
-Line(2006) = {1006,1007};
-Line(2007) = {1007,1008};
-Line(2008) = {1008,1009};
-Line(2009) = {1009,1010};
-Line(2010) = {1010,1011};
-Line(2011) = {1011,1012};
-Line(2012) = {1012,1001};
-Transfinite Line {2001} = nnodes Using Bump bumpval;
-Transfinite Line {2002} = nnodes Using Bump bumpval;
-Transfinite Line {2003} = nnodes Using Bump bumpval;
-Transfinite Line {2004} = nnodes Using Bump bumpval;
-Transfinite Line {2005} = nnodes Using Bump bumpval;
-Transfinite Line {2006} = nnodes Using Bump bumpval;
-Transfinite Line {2007} = nnodes Using Bump bumpval;
-Transfinite Line {2008} = nnodes Using Bump bumpval;
-Transfinite Line {2009} = nnodes Using Bump bumpval;
-Transfinite Line {2010} = nnodes Using Bump bumpval;
-Transfinite Line {2011} = nnodes Using Bump bumpval;
-Transfinite Line {2012} = nnodes Using Bump bumpval;
+Lbulk = 0.5-shift05;
 
-Line(2101) = {1101,1102};
-Line(2102) = {1102,1103};
-Line(2103) = {1103,1104};
-Line(2104) = {1104,1101};
-Transfinite Line {2101} = nnodes Using Bump bumpval;
-Transfinite Line {2102} = nnodes Using Bump bumpval;
-Transfinite Line {2103} = nnodes Using Bump bumpval;
-Transfinite Line {2104} = nnodes Using Bump bumpval;
+N1 = (3+2*shift)/Lbulk + 1;
+N2 = (0+2*shift05)/Lbulk + 1;
+N3 = (0.5+shift05)/Lbulk + 1;
+Printf("N1=%g", N1);
+Printf("N2=%g", N2);
+Printf("N3=%g", N3);
 
-Line(2201) = {1002,1101};
-Line(2202) = {1003,1102};
-Line(2203) = {1005,1102};
-Line(2204) = {1006,1103};
-Line(2205) = {1008,1103};
-Line(2206) = {1009,1104};
-Line(2207) = {1011,1104};
-Line(2208) = {1012,1101};
-Transfinite Line {2201} = nnodes Using Bump bumpval;
-Transfinite Line {2202} = nnodes Using Bump bumpval;
-Transfinite Line {2203} = nnodes Using Bump bumpval;
-Transfinite Line {2204} = nnodes Using Bump bumpval;
-Transfinite Line {2205} = nnodes Using Bump bumpval;
-Transfinite Line {2206} = nnodes Using Bump bumpval;
-Transfinite Line {2207} = nnodes Using Bump bumpval;
-Transfinite Line {2208} = nnodes Using Bump bumpval;
+// TODO make loop
 
-Line Loop(3201) = {2001,2201,-2208,2012};
-Plane Surface(4201) = {3201};
-Transfinite Surface {4201} = {} Right;
-//Recombine Surface {4200};
+Point(110101) = {0.0, 0.0, 0, res};
+Point(110102) = {0.5-shift05, 0.0, 0, res};
+Point(110103) = {0.5+shift05, 0.0, 0, res};
+Point(110104) = {1.0, 0.0, 0, res};
+Point(110105) = {2.0-shift, 0.0, 0, res};
+Point(110106) = {2.0, 0.0, 0, res};
+Point(110107) = {2.0+shift, 0.0, 0, res};
+Point(110108) = {3.0, 0.0, 0, res};
+Point(110109) = {4.0-shift, 0.0, 0, res};
+Point(110110) = {7.0+shift, 0.0, 0, res};
+Point(110111) = {8.0, 0.0, 0, res};
 
-Line Loop(3202) = {2002,2202,-2101,-2201};
-Plane Surface(4202) = {3202};
-Transfinite Surface {4202};
+Point(110201) = {0.0, 0.5-shift05, 0, res};
+Point(110202) = {0.5-shift05, 0.5-shift05, 0, res};
+Point(110203) = {0.5+shift05, 0.5-shift05, 0, res};
+Point(110204) = {1.0, 0.5-shift05, 0, res};
+Point(110205) = {2.0-shift, 0.5-shift05, 0, res};
+Point(110206) = {2.0, 0.5-shift05, 0, res};
+Point(110207) = {2.0+shift, 0.5-shift05, 0, res};
+Point(110208) = {3.0, 0.5-shift05, 0, res};
+Point(110209) = {4.0-shift, 0.5-shift05, 0, res};
+Point(110210) = {7.0+shift, 0.5-shift05, 0, res};
+Point(110211) = {8.0, 0.5-shift05, 0, res};
 
-Line Loop(3203) = {2003,2004,2203,-2202};
-Plane Surface(4203) = {3203};
-Transfinite Surface {4203};
+Point(110301) = {0.0, 0.5+shift05, 0, res};
+Point(110302) = {0.5-shift05, 0.5+shift05, 0, res};
+Point(110303) = {0.5+shift05, 0.5+shift05, 0, res};
+Point(110304) = {1.0, 0.5+shift05, 0, res};
+Point(110305) = {2.0-shift, 0.5+shift05, 0, res};
+Point(110306) = {2.0, 0.5+shift05, 0, res};
+Point(110307) = {2.0+shift, 0.5+shift05, 0, res};
+Point(110308) = {3.0, 0.5+shift05, 0, res};
+Point(110309) = {4.0-shift, 0.5+shift05, 0, res};
+Point(110310) = {7.0+shift, 0.5+shift05, 0, res};
+Point(110311) = {8.0, 0.5+shift05, 0, res};
 
-Line Loop(3204) = {-2203,2005,2204,-2102};
-Plane Surface(4204) = {3204};
-Transfinite Surface {4204};
+Point(110401) = {0.0, 1.0, 0, res};
+Point(110402) = {0.5-shift05, 1.0, 0, res};
+Point(110403) = {0.5+shift05, 1.0, 0, res};
+Point(110404) = {1.0, 1.0, 0, res};
+Point(110405) = {2.0-shift, 1.0, 0, res};
+Point(110406) = {2.0, 1.0, 0, res};
+Point(110407) = {2.0+shift, 1.0, 0, res};
+Point(110408) = {3.0, 1.0, 0, res};
+Point(110409) = {4.0-shift, 1.0, 0, res};
+Point(110410) = {7.0+shift, 1.0, 0, res};
+Point(110411) = {8.0, 1.0, 0, res};
 
-Line Loop(3205) = {-2204,2006,2007,2205};
-Plane Surface(4205) = {3205};
-Transfinite Surface {4205};
+Point(110501) = {0.0, 2.0-shift, 0, res};
+Point(110502) = {0.5-shift05, 2.0-shift, 0, res};
+Point(110503) = {0.5+shift05, 2.0-shift, 0, res};
+Point(110504) = {1.0, 2.0-shift, 0, res};
+Point(110505) = {2.0-shift, 2.0-shift, 0, res};
+Point(110506) = {2.0, 2.0-shift, 0, res};
+Point(110507) = {2.0+shift, 2.0-shift, 0, res};
+Point(110508) = {3.0, 2.0-shift, 0, res};
+Point(110509) = {4.0-shift, 2.0-shift, 0, res};
+Point(110510) = {7.0+shift, 2.0-shift, 0, res};
+Point(110511) = {8.0, 2.0-shift, 0, res};
 
-Line Loop(3206) = {-2103,-2205,2008,2206};
-Plane Surface(4206) = {3206};
-Transfinite Surface {4206};
+Point(110601) = {0.0, 2.0, 0, res};
+Point(110602) = {0.5-shift05, 2.0, 0, res};
+Point(110603) = {0.5+shift05, 2.0, 0, res};
+Point(110604) = {1.0, 2.0, 0, res};
+Point(110605) = {2.0-shift, 2.0, 0, res};
+Point(110606) = {2.0, 2.0, 0, res};
+Point(110607) = {2.0+shift, 2.0, 0, res};
+Point(110608) = {3.0, 2.0, 0, res};
+Point(110609) = {4.0-shift, 2.0, 0, res};
+Point(110610) = {7.0+shift, 2.0, 0, res};
+Point(110611) = {8.0, 2.0, 0, res};
 
-Line Loop(3207) = {2207,-2206,2009,2010};
-Plane Surface(4207) = {3207};
-Transfinite Surface {4207};
+Point(110701) = {0.0, 2.0+shift, 0, res};
+Point(110702) = {0.5-shift05, 2.0+shift, 0, res};
+Point(110703) = {0.5+shift05, 2.0+shift, 0, res};
+Point(110704) = {1.0, 2.0+shift, 0, res};
+Point(110705) = {2.0-shift, 2.0+shift, 0, res};
+Point(110706) = {2.0, 2.0+shift, 0, res};
+Point(110707) = {2.0+shift, 2.0+shift, 0, res};
+Point(110708) = {3.0, 2.0+shift, 0, res};
+Point(110709) = {4.0-shift, 2.0+shift, 0, res};
+Point(110710) = {7.0+shift, 2.0+shift, 0, res};
+Point(110711) = {8.0, 2.0+shift, 0, res};
 
-Line Loop(3208) = {2208,-2104,-2207,2011};
-Plane Surface(4208) = {3208};
-Transfinite Surface {4208};
+Point(110801) = {0.0, 3.0, 0, res};
+Point(110802) = {0.5-shift05, 3.0, 0, res};
+Point(110803) = {0.5+shift05, 3.0, 0, res};
+Point(110804) = {1.0, 3.0, 0, res};
+Point(110805) = {2.0-shift, 3.0, 0, res};
+Point(110806) = {2.0, 3.0, 0, res};
+Point(110807) = {2.0+shift, 3.0, 0, res};
+Point(110808) = {3.0, 3.0, 0, res};
+Point(110809) = {4.0-shift, 3.0, 0, res};
+Point(110810) = {7.0+shift, 3.0, 0, res};
+Point(110811) = {8.0, 3.0, 0, res};
 
-Line Loop(3000) = {2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012}; Physical Curve("outer",3000) = {2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012};
+Point(110901) = {0.0, 4.0-shift, 0, res};
+Point(110902) = {0.5-shift05, 4.0-shift, 0, res};
+Point(110903) = {0.5+shift05, 4.0-shift, 0, res};
+Point(110904) = {1.0, 4.0-shift, 0, res};
+Point(110905) = {2.0-shift, 4.0-shift, 0, res};
+Point(110906) = {2.0, 4.0-shift, 0, res};
+Point(110907) = {2.0+shift, 4.0-shift, 0, res};
+Point(110908) = {3.0, 4.0-shift, 0, res};
+Point(110909) = {4.0-shift, 4.0-shift, 0, res};
+Point(110910) = {7.0+shift, 4.0-shift, 0, res};
+Point(110911) = {8.0, 4.0-shift, 0, res};
 
-Line Loop(3100) = {2101,2102,2103,2104}; Physical Curve("inner",3100) = {2101,2102,2103,2104};
+Point(111001) = {0.0, 7.0+shift, 0, res};
+Point(111002) = {0.5-shift05, 7.0+shift, 0, res};
+Point(111003) = {0.5+shift05, 7.0+shift, 0, res};
+Point(111004) = {1.0, 7.0+shift, 0, res};
+Point(111005) = {2.0-shift, 7.0+shift, 0, res};
+Point(111006) = {2.0, 7.0+shift, 0, res};
+Point(111007) = {2.0+shift, 7.0+shift, 0, res};
+Point(111008) = {3.0, 7.0+shift, 0, res};
+Point(111009) = {4.0-shift, 7.0+shift, 0, res};
+Point(111010) = {7.0+shift, 7.0+shift, 0, res};
+Point(111011) = {8.0, 7.0+shift, 0, res};
 
-//Plane Surface(4000) = {3201,3202,3203,3204,3205,3206,3207,3208};
-Physical Surface("mesh",4000) = {4201,4202,4203,4204,4205,4206,4207,4208};
+Point(111101) = {0.0, 8.0, 0, res};
+Point(111102) = {0.5-shift05, 8.0, 0, res};
+Point(111103) = {0.5+shift05, 8.0, 0, res};
+Point(111104) = {1.0, 8.0, 0, res};
+Point(111105) = {2.0-shift, 8.0, 0, res};
+Point(111106) = {2.0, 8.0, 0, res};
+Point(111107) = {2.0+shift, 8.0, 0, res};
+Point(111108) = {3.0, 8.0, 0, res};
+Point(111109) = {4.0-shift, 8.0, 0, res};
+Point(111110) = {7.0+shift, 8.0, 0, res};
+Point(111111) = {8.0, 8.0, 0, res};
 
-//Recomine Surface {4000};
+
+
+
+
+For y In {1:11}
+  For x In {1:10}
+    Line(210000 + 100*y + x) = {110000 + 100*y + x, 110000 + 100*y + x + 1};
+  EndFor
+EndFor
+
+For y In {1:10}
+  For x In {1:11}
+    Line(220000 + 100*y + x) = {110000 + 100*y + x, 110100 + 100*y + x};
+  EndFor
+EndFor
+
+
+
+
+For y In {1:11}
+  Printf("t=%g", y);
+  Transfinite Line {210000 + 100*y + 1} = nnodes Using Progression progval;
+  Transfinite Line {210000 + 100*y + 2} = N2;
+  Transfinite Line {210000 + 100*y + 3} = nnodes Using Progression 1/progval;
+  Transfinite Line {210000 + 100*y + 4} = nnodes Using Progression progval;
+  Transfinite Line {210000 + 100*y + 5} = N3;
+  Transfinite Line {210000 + 100*y + 6} = N3;
+  Transfinite Line {210000 + 100*y + 7} = nnodes Using Progression 1/progval;
+  Transfinite Line {210000 + 100*y + 8} = nnodes Using Progression progval;
+  Transfinite Line {210000 + 100*y + 9} = N1;
+  Transfinite Line {210000 + 100*y + 10} = nnodes Using Progression 1/progval;
+EndFor
+
+For x In {1:11}
+  Printf("t=%g", x);
+  Transfinite Line {220000 + 100 + x} = nnodes Using Progression progval;
+  Transfinite Line {220000 + 200 + x} = N2;
+  Transfinite Line {220000 + 300 + x} = nnodes Using Progression 1/progval;
+  Transfinite Line {220000 + 400 + x} = nnodes Using Progression progval;
+  Transfinite Line {220000 + 500 + x} = N3;
+  Transfinite Line {220000 + 600 + x} = N3;
+  Transfinite Line {220000 + 700 + x} = nnodes Using Progression 1/progval;
+  Transfinite Line {220000 + 800 + x} = nnodes Using Progression progval;
+  Transfinite Line {220000 + 900 + x} = N1;
+  Transfinite Line {220000 + 1000 + x} = nnodes Using Progression 1/progval;
+EndFor
+
+
+
+
+
+For y In {1:10}
+  Printf("t=%g", y);
+  For x In {1:10}
+    // If (!((x==3 || x==4) && (y==3 || y==4)))
+    Printf("u=%g", x);
+    Line Loop(310000 + 100*y + x) = {210000 + 100*y + x, 220001 + 100*y + x, -(210100 + 100*y + x), -(220000 + 100*y + x)};
+    Plane Surface(310000 + 100*y + x) = {310000 + 100*y + x};
+    Transfinite Surface {310000 + 100*y + x} = {} AlternateLeft;
+    // EndIf
+  EndFor
+EndFor
+
+
+
+
+Line Loop(3000) = {
+  210101:210110,
+  220111:221011:100,
+  -211110:-211101,
+  -221001:-220101:100
+};
+Physical Curve("outer",3000) = {
+  210101:210110,
+  220111:221011:100,
+  -211110:-211101,
+  -221001:-220101:100
+};
+
+Line Loop(3100) = {
+  210404:210407,
+  220408:220708:100,
+  -210807:-210804,
+  -220704:-220404:100
+};
+Physical Curve("inner",3100) = {
+  210404:210407,
+  220408:220708:100,
+  -210807:-210804,
+  -220704:-220404:100
+};
+
+Physical Surface("mesh",4000) = {
+  310101:310110,
+  310201:310210,
+  310301:310310,
+  310401:310403,310408:310410,
+  310501:310503,310508:310510,
+  310601:310603,310608:310610,
+  310701:310703,310708:310710,
+  310801:310810,
+  310901:310910,
+  311001:311010
+};
+
