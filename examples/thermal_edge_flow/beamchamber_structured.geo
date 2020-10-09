@@ -1,13 +1,13 @@
 // Command line Parameters
 If(!Exists(p))
-  p = 3;
+  p = 4;
 EndIf
 
 // Settings
 res = 100;
 Mesh.CharacteristicLengthMax = 1.0 * 2^(-p);
 Mesh.MshFileVersion = 2.0;
-nnodes = 10;
+nnodes = 65;
 bumpval = 0.25;
 
 Point(1001) = {0, 0, 0, res};

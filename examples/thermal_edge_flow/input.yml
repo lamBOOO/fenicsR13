@@ -9,6 +9,8 @@ output_folder: results_thermal_edge_flow
 meshes:
   # - beamchamber4.h5
   - beamchamber_structured4.h5
+  # - beamchamber_structured_2.h5
+  # - beamchamber_structured_3.h5
 
 # Numerical Parameters
 # ====================
