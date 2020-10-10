@@ -910,11 +910,12 @@ class Solver:
             print("mass flow rate of BC", bc_id, ":", mass_flow_rate)
             self.write_content_to_file("massflow_" + str(bc_id), mass_flow_rate)
 
-        avgvel = df.assemble(
-            abs(df.inner(self.sol["u"], self.sol["u"])) * df.dx
-        )
-        print("avg vel:", avgvel)
-        self.write_content_to_file("avgvel", avgvel)
+        if self.mode == "stress" or self.mode == "r13":
+            avgvel = df.assemble(
+                abs(df.inner(self.sol["u"], self.sol["u"])) * df.dx
+            )
+            print("avg vel:", avgvel)
+            self.write_content_to_file("avgvel", avgvel)
 
     def __load_exact_solution(self):
         """
