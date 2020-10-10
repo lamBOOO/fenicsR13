@@ -910,6 +910,12 @@ class Solver:
             print("mass flow rate of BC", bc_id, ":", mass_flow_rate)
             self.write_content_to_file("massflow_" + str(bc_id), mass_flow_rate)
 
+        avgvel = df.assemble(
+            abs(df.inner(self.sol["u"], self.sol["u"])) * df.dx
+        )
+        print("avg vel:", avgvel)
+        self.write_content_to_file("avgvel", avgvel)
+
     def __load_exact_solution(self):
         """
         Load exact solution from the location given in ``input.yml``.
@@ -1236,7 +1242,7 @@ class Solver:
 
     def write_content_to_file(self, filename, content):
         """Write content to a file in the output folder."""
-        path = self.output_folder + filename
+        path = self.output_folder + filename + "_" + str(self.time)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, mode='w') as file:
             print("Write: {}".format(path))

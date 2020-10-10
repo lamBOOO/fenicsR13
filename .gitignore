@@ -45,6 +45,9 @@ examples/**/*.pdf
 
 # Ignore time infos
 *.time
+*assemble_*
+*solve_*
+*avgvel_*
 
 # Ignore pip folder
 *egg-info/*
