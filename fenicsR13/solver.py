@@ -818,11 +818,10 @@ class Solver:
                 "linear_solver": "mumps" # or
                 "linear_solver": "mumps"
             }
-            # List all available solvers:
-            list_linear_solver_methods()
-            list_krylov_solver_preconditioners()
-            Solver method  |  Description
 
+            # List all available solvers and preconditioners:
+
+            list_linear_solver_methods()
             bicgstab  | Biconjugate gradient stabilized method
             cg        | Conjugate gradient method
             default   | default linear solver
@@ -837,6 +836,19 @@ class Solver:
             # "direct" means "default" means "lu" of default backend
             print(parameters["linear_algebra_backend"]) # usually PETSc
 
+            list_krylov_solver_preconditioners()
+            amg              |  Algebraic multigrid
+            default          |  default preconditioner
+            hypre_amg        |  Hypre algebraic multigrid (BoomerAMG)
+            hypre_euclid     |  Hypre parallel incomplete LU factorization
+            hypre_parasails  |  Hypre parallel sparse approximate inverse
+            icc              |  Incomplete Cholesky factorization
+            ilu              |  Incomplete LU factorization
+            jacobi           |  Jacobi iteration
+            none             |  No preconditioner
+            petsc_amg        |  PETSc algebraic multigrid
+            sor              |  Successive over-relaxation
+
         """
 
         if self.mode == "heat":
@@ -846,15 +858,26 @@ class Solver:
         elif self.mode == "r13":
             w = self.mxd_fspaces["r13"]
 
-        print("Start solving system..")
+        print("Start assemble")
+        start_t = time_module.time()
+        AA = df.assemble(self.form_lhs)
+        LL = df.assemble(self.form_rhs)
+        end_t = time_module.time()
+        secs = end_t - start_t
+        self.__write_time("assemble", secs)
+        print("Finish assemble: {}".format(str(secs)))
+
+        print("Start solve")
         start_t = time_module.time()
         sol = df.Function(w)
         df.solve(
-            self.form_lhs == self.form_rhs, sol, [],
-            solver_parameters={"linear_solver": "mumps"}
+            AA, sol.vector(), LL, "mumps", "none"
         )
+        # TODO: Add solver params to YML
         end_t = time_module.time()
-        print("Finished solving system in: {}".format(str(end_t - start_t)))
+        secs = end_t - start_t
+        self.__write_time("solve", secs)
+        print("Finished solve: {}".format(str(secs)))
 
         if self.mode == "heat":
             (self.sol["theta"], self.sol["s"]) = sol.split()
@@ -886,6 +909,16 @@ class Solver:
             )
             print("mass flow rate of BC", bc_id, ":", mass_flow_rate)
             self.write_content_to_file("massflow_" + str(bc_id), mass_flow_rate)
+
+    def __write_time(self, filename, time):
+        """
+        Write the time to the filename.time
+        """
+        path = (
+            self.output_folder + "/{}_{}.time".format(filename, str(self.time))
+        )
+        with open(path, mode='w') as file:
+            file.write(str(time))
 
     def __load_exact_solution(self):
         """
