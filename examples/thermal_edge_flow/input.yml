@@ -11,7 +11,13 @@ meshes:
   # - beamchamber4.h5
   # - beamchamber_structured_old_1.h5
   # - beamchamber_structured_old_2.h5
-  - beamchamber_structured.h5
+  # - beamchamber_structured.h5
+  - 2.h5
+  - 3.h5
+  - 4.h5
+  - 5.h5
+  - 6.h5
+  - 7.h5
 
 # Numerical Parameters
 # ====================
@@ -82,7 +88,8 @@ body_force: [0,0]
 #     - kn: Knudsen number
 regs:
   4000:
-    kn: 0.003544908 # 2*1.772453851*0.001
+    # kn: 0.003544908 # 2*1.772453851*0.001
+    kn: 0.001
 
 # Boundary Conditions
 # ===================
@@ -132,7 +139,7 @@ convergence_study:
 # - write_vecs: Write all solution fields as vectors
 # - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
 postprocessing:
-  write_pdfs: True
+  write_pdfs: False
   write_vecs: False
   massflow: []
 
