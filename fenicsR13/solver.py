@@ -864,7 +864,7 @@ class Solver:
         LL = df.assemble(self.form_rhs)
         end_t = time_module.time()
         secs = end_t - start_t
-        self.__write_time("assemble", secs)
+        self.write_content_to_file("assemble", secs)
         print("Finish assemble: {}".format(str(secs)))
 
         print("Start solve")
@@ -876,7 +876,7 @@ class Solver:
         # TODO: Add solver params to YML
         end_t = time_module.time()
         secs = end_t - start_t
-        self.__write_time("solve", secs)
+        self.write_content_to_file("solve", secs)
         print("Finished solve: {}".format(str(secs)))
 
         if self.mode == "heat":
@@ -909,16 +909,6 @@ class Solver:
             )
             print("mass flow rate of BC", bc_id, ":", mass_flow_rate)
             self.write_content_to_file("massflow_" + str(bc_id), mass_flow_rate)
-
-    def __write_time(self, filename, time):
-        """
-        Write the time to the filename.time
-        """
-        path = (
-            self.output_folder + "{}_{}.time".format(filename, str(self.time))
-        )
-        with open(path, mode='w') as file:
-            file.write(str(time))
 
     def __load_exact_solution(self):
         """
