@@ -915,7 +915,7 @@ class Solver:
         Write the time to the filename.time
         """
         path = (
-            self.output_folder + "/{}_{}.time".format(filename, str(self.time))
+            self.output_folder + "{}_{}.time".format(filename, str(self.time))
         )
         with open(path, mode='w') as file:
             file.write(str(time))
@@ -1246,7 +1246,7 @@ class Solver:
 
     def write_content_to_file(self, filename, content):
         """Write content to a file in the output folder."""
-        path = self.output_folder + "/" + filename
+        path = self.output_folder + filename
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, mode='w') as file:
             print("Write: {}".format(path))
