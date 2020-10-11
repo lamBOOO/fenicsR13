@@ -8,6 +8,7 @@ Solver module, contains the Solver class.
 For usage examples, see the :class:`solver.Solver` description.
 """
 
+import sys
 import os
 import copy
 import time as time_module
@@ -859,6 +860,7 @@ class Solver:
             w = self.mxd_fspaces["r13"]
 
         print("Start assemble")
+        sys.stdout.flush()
         start_t = time_module.time()
         AA = df.assemble(self.form_lhs)
         LL = df.assemble(self.form_rhs)
@@ -868,6 +870,7 @@ class Solver:
         print("Finish assemble: {}".format(str(secs)))
 
         print("Start solve")
+        sys.stdout.flush()
         start_t = time_module.time()
         sol = df.Function(w)
         df.solve(
