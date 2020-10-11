@@ -1,14 +1,14 @@
 #!/bin/bash
 
-for exp1 in $(seq -3 -1 -3)
+for p1 in $(seq -3 -1 -3)
 do
-  for exp2 in $(seq -6 -1 -6)
+  for p2 in $(seq -6 -1 -6)
   do
-    for exp3 in $(seq -6 -1 -10)
+    for p3 in $(seq -6 -1 -10)
     do
-      outname=study2_"$exp1"_"$exp2"_"$exp3".h5
+      outname=study2_"$p1"_"$p2"_"$p3".h5
       echo $outname
-      geoToH5 beamchamber_unstructured_nonuniform.geo "$outname" "-setnumber exp1 $exp1 -setnumber exp2 $exp2 -setnumber exp3 $exp3"
+      geoToH5 beamchamber_unstructured_nonuniform.geo "$outname" "-setnumber p1 $p1 -setnumber p2 $p2 -setnumber p3 $p3"
     done
   done
 done
