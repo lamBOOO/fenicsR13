@@ -33,6 +33,7 @@ services:
           nocopy: true
     stdin_open: true
     tty: true
+    shm_size: "512m" # MPI issue https://github.com/FEniCS/dolfinx/issues/994
 
 volumes:
   instant-cache:
