@@ -1,26 +1,36 @@
 // Command line Parameters
-If(!Exists(p))
-  p = 2;
+If(!Exists(p1))
+  p1 = -3;
 EndIf
+If(!Exists(p2))
+  p2 = -6;
+EndIf
+If(!Exists(p3))
+  p3 = -10;
+EndIf
+Printf("p1=%g", p1);
+Printf("p2=%g", p2);
+Printf("p3=%g", p3);
 
 // Settings
-res1 = 0.0005;
-res2 = 0.04;
-res3 = 0.1;
+res1 = 2^p1;
+res2 = 2^p2;
+res3 = 2^p3;
+
 // Mesh.CharacteristicLengthMax = 1.0 * 2^(-p);
 Mesh.MshFileVersion = 2.0;
 
 Point(1001) = {0, 0, 0, res2};
 Point(1002) = {4, 0, 0, res2};
-Point(1003) = {8, 0, 0, res3};
-Point(1004) = {8, 8, 0, res3};
-Point(1005) = {0, 8, 0, res3};
+Point(1003) = {8, 0, 0, res1};
+Point(1004) = {8, 8, 0, res1};
+Point(1005) = {0, 8, 0, res1};
 Point(1006) = {0, 4, 0, res2};
 
-Point(1011) = {1, 1, 0, res1};
-Point(1012) = {3, 1, 0, res1};
-Point(1013) = {3, 3, 0, res1};
-Point(1014) = {1, 3, 0, res1};
+Point(1011) = {1, 1, 0, res3};
+Point(1012) = {3, 1, 0, res3};
+Point(1013) = {3, 3, 0, res3};
+Point(1014) = {1, 3, 0, res3};
 
 Point(1021) = {4, 4, 0, res2};
 
