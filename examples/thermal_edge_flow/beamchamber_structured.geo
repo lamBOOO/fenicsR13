@@ -2,10 +2,10 @@ Mesh.MshFileVersion = 2.0;
 
 // Command line Parameters
 If(!Exists(exp))
-  exp = 5;
+  exp = 2;
 EndIf
 If(!Exists(nnodes))
-  nnodes = 5;
+  nnodes = 4 + (7-exp); // for exp=7, n=10 works well
 EndIf
 Printf("exp=%g", exp);
 Printf("nnodes=%g", nnodes);
