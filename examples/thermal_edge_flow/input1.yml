@@ -2,18 +2,31 @@
 # =======
 # - output_folder: Used as output folder
 # output_folder:
-output_folder: study1
+output_folder: beamchamber_unstructured_nonuniform
 
 # Meshes
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
+  # - beamchamber4.h5
+  # - beamchamber_structured_old_1.h5
+  # - beamchamber_structured_old_2.h5
+  # - beamchamber_structured.h5
+  # - 7_10.h5
+  # - 7_12.h5
+  # - 7_14.h5
+  # - 7_16.h5
+  # - 7_18.h5
+  # - 7_20.h5
+  # - 7_22.h5
+  # - 7_24.h5
   - 2_15.h5
   - 3_14.h5
   - 4_13.h5
   - 5_12.h5
   - 6_11.h5
   - 7_10.h5
+  # - beamchamber_unstructured_nonuniform.h5
 
 # Numerical Parameters
 # ====================
