@@ -1,12 +1,12 @@
 // Command line Parameters
 If(!Exists(p1))
-  p1 = -3;
+  p1 = -5;
 EndIf
 If(!Exists(p2))
   p2 = -6;
 EndIf
 If(!Exists(p3))
-  p3 = -10;
+  p3 = -11;
 EndIf
 Printf("p1=%g", p1);
 Printf("p2=%g", p2);
@@ -22,9 +22,9 @@ Mesh.MshFileVersion = 2.0;
 
 Point(1001) = {0, 0, 0, res3};
 Point(1002) = {4, 0, 0, res3};
-Point(1003) = {8, 0, 0, res1};
+Point(1003) = {8, 0, 0, res2};
 Point(1004) = {8, 8, 0, res1};
-Point(1005) = {0, 8, 0, res1};
+Point(1005) = {0, 8, 0, res2};
 Point(1006) = {0, 4, 0, res3};
 
 Point(1011) = {1, 1, 0, res3};
