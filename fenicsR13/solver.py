@@ -264,7 +264,9 @@ class Solver:
             elif self.var_ranks[var] == 1:
                 self.elems[var] = df.VectorElement(e, cell, deg)
             elif self.var_ranks[var] == 2:
-                self.elems[var] = df.TensorElement(e, cell, deg, symmetry=True)
+                self.elems[var] = df.TensorElement(
+                    e, cell, deg, symmetry={(0,1):(1,0)}
+                )
             self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
 
         # Bundle elements per mode into `mxd_elems` dict
@@ -1422,7 +1424,7 @@ class Solver:
                 el_symm = df.TensorElement(
                     df.FiniteElement(
                         "Lagrange", df.triangle, degree + 1
-                    ), symmetry=True
+                    ), symmetry={(0,1):(1,0)}
                 )  # symmetric tensor element
                 el_sol = field.ufl_function_space().ufl_element()
                 if el_sol == el_symm:
