@@ -914,9 +914,10 @@ class Solver:
             self.write_content_to_file("massflow_" + str(bc_id), mass_flow_rate)
 
         if self.mode == "stress" or self.mode == "r13":
+            vol = assemble(Constant(1)*dx, mesh=mesh)
             avgvel = df.assemble(
                 abs(df.inner(self.sol["u"], self.sol["u"])) * df.dx
-            )
+            ) / vol
             print("avg vel:", avgvel)
             self.write_content_to_file("avgvel", avgvel)
 
