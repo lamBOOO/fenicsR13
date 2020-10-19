@@ -1,19 +1,10 @@
 Mesh.MshFileVersion = 2.0;
 
 // Command line Parameters
-If(!Exists(exp))
-  exp = 2;
+If(!Exists(split))
+  split = 0;
 EndIf
-If(!Exists(nnodes))
-  nnodes = 4 + (7-exp); // for exp=7, n=10 works well
-EndIf
-Printf("exp=%g", exp);
-Printf("nnodes=%g", nnodes);
-
-If (exp<2)
-  Printf("exp>=2 needed!");
-  Abort;
-EndIf
+Printf("split=%g", split);
 
 // TODO REMOVE 1/prog!!!! maybe with -LINEID = prog?
 // TODO Exlcude middle
@@ -29,8 +20,7 @@ nn2 = 30;
 // nn3 = 20;
 
 prog1 = 2.0;
-prog2 = 1.1;
-prog3 = 1.5;
+prog2 = 1.25;
 
 res1 = 10000;
 res2 = 1000;
@@ -54,22 +44,22 @@ Point(1103) = {8.0-dist1, 8.0-dist1, 0, res1};
 Point(1104) = {0.0+dist1, 8.0-dist1, 0, res1};
 
 // Point(1201) = {1.0+0.0, 1.0+0.0, 0, res2};
-Point(1202) = {1.0+0.0+dist2, 1.0+0.0, 0, res2};
-Point(1203) = {1.0+2.0-dist2, 1.0+0.0, 0, res2};
+Point(1202) = {1.0, 1.0-dist2, 0, res2};
+Point(1203) = {3.0, 1.0-dist2, 0, res2};
 // Point(1204) = {1.0+2.0, 1.0+0.0, 0, res2};
-Point(1205) = {1.0+2.0, 1.0+0.0+dist2, 0, res2};
-Point(1206) = {1.0+2.0, 1.0+2.0-dist2, 0, res2};
+Point(1205) = {3.0+dist2, 1.0, 0, res2};
+Point(1206) = {3.0+dist2, 3.0, 0, res2};
 // Point(1207) = {1.0+2.0, 1.0+2.0, 0, res2};
-Point(1208) = {1.0+2.0-dist2, 1.0+2.0, 0, res2};
-Point(1209) = {1.0+0.0+dist2, 1.0+2.0, 0, res2};
+Point(1208) = {3.0, 3.0+dist2, 0, res2};
+Point(1209) = {1.0, 3.0+dist2, 0, res2};
 // Point(1210) = {1.0+0.0, 1.0+2.0, 0, res2};
-Point(1211) = {1.0+0.0, 1.0+2.0-dist2, 0, res2};
-Point(1212) = {1.0+0.0, 1.0+0.0+dist2, 0, res2};
+Point(1211) = {1.0-dist2, 3.0, 0, res2};
+Point(1212) = {1.0-dist2, 1.0, 0, res2};
 
-Point(1301) = {1.0+0.0+dist2, 1.0+0.0+dist2, 0, res2};
-Point(1302) = {1.0+2.0-dist2, 1.0+0.0+dist2, 0, res2};
-Point(1303) = {1.0+2.0-dist2, 1.0+2.0-dist2, 0, res2};
-Point(1304) = {1.0+0.0+dist2, 1.0+2.0-dist2, 0, res2};
+Point(1301) = {1.0, 1.0, 0, res2};
+Point(1302) = {3.0, 1.0, 0, res2};
+Point(1303) = {3.0, 3.0, 0, res2};
+Point(1304) = {1.0, 3.0, 0, res2};
 
 
 Line(2001) = {1001, 1002}; Transfinite Line {2001} = nn1 Using Progression prog1;
@@ -192,29 +182,24 @@ Curve Loop(3205) = {2104, 2101, 2102, 2103};
 Curve Loop(3206) = {2202, 2602, 2205, 2603, 2208, 2604, 2211, 2601};
 Plane Surface(4205) = {3205, 3206};
 
-// Physical Curve("outer",3000) = {
-//   210101:210110,
-//   220111:221011:100,
-//   -211110:-211101,
-//   -221001:-220101:100
-// };
+Physical Curve("outer",3000) = {
+  2001:2012
+};
 
-// Physical Curve("inner",3100) = {
-//   210404:210407,
-//   220408:220708:100,
-//   -210807:-210804,
-//   -220704:-220404:100
-// };
+Physical Curve("inner",3100) = {
+  2301:2304
+};
 
-// Physical Surface("mesh",4000) = {
-//   310101:310110,
-//   310201:310210,
-//   310301:310310,
-//   310401:310403,310408:310410,
-//   310501:310503,310508:310510,
-//   310601:310603,310608:310610,
-//   310701:310703,310708:310710,
-//   310801:310810,
-//   310901:310910,
-//   311001:311010
-// };
+Physical Surface("mesh",4000) = {
+  4001:4008,
+  4102, 4104, 4106, 4108,
+  4201:4204,
+  4205
+};
+
+
+Mesh 2;
+For i In{1:split}
+  Printf("Split=%g", i);
+  RefineMesh;
+EndFor
