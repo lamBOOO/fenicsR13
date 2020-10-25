@@ -45,7 +45,7 @@ E.g.: geoToH5 lid.geo lid5.h5 "-setnumber p 5"
     geo_input_file = sys.argv[1]
     h5_output_file = sys.argv[2]
     gmsh_arguments = sys.argv[3] if len(sys.argv) == 4 else ""
-    tmp_name = "tmp_" + datetime.now().time() + random.random()
+    tmp_name = "tmp_" + str(datetime.now().time()) + str(random.random())
 
     # Create msh-mesh with Gmsh
     os.system(
