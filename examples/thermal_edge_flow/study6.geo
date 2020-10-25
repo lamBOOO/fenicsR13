@@ -2,15 +2,15 @@ Mesh.MshFileVersion = 2.0;
 
 // Command line Parameters
 If(!Exists(exp1))
-  exp1 = 4;
+  exp1 = 5;
 EndIf
 Printf("exp1=%g", exp1);
 If(!Exists(exp2))
-  exp2 = 4;
+  exp2 = 6;
 EndIf
 Printf("exp2=%g", exp2);
 If(!Exists(exp3))
-  exp3 = 10;
+  exp3 = 9;
 EndIf
 Printf("exp3=%g", exp3);
 
@@ -18,9 +18,9 @@ res1 = 2^-exp1;
 res2 = 2^-exp2;
 res3 = 2^-exp3;
 
-dist1 = 0.10;
-dist2 = 0.25;
-dist3 = 0.25;
+dist1 = 0.10 * 2^-(exp1-3);
+dist2 = 0.40;
+dist3 = 0.10;
 rho1 = 1 / res1;
 nn1 = 10;
 prog1 = 2.0;
