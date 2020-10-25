@@ -1,11 +1,11 @@
 #!/bin/bash
 
 
-for exp1 in $(seq 5 1 5)
+for exp1 in $(seq 4 1 4)
 do
-  for exp2 in $(seq 6 1 6)
+  for exp2 in $(seq 4 1 4)
   do
-    for exp3 in $(seq 10 1 14)
+    for exp3 in $(seq 10 1 15)
     do
       outname=study6_"$exp1"_"$exp2"_"$exp3".h5
       echo $outname

@@ -69,23 +69,23 @@ Point(1412) = {1.0-(dist2+dist3), 1.0, 0, res1};
 
 
 Line(2001) = {1001, 1002}; Transfinite Line {2001} = nn1 Using Progression prog1;
-Line(2002) = {1002, 1003}; Transfinite Line {2002} = 8.0*rho1;
+Line(2002) = {1002, 1003}; Transfinite Line {2002} = 8.0*rho1*2^+0;
 Line(2003) = {1003, 1004}; Transfinite Line {-2003} = nn1 Using Progression prog1;
 Line(2004) = {1004, 1005}; Transfinite Line {2004} = nn1 Using Progression prog1;
-Line(2005) = {1005, 1006}; Transfinite Line {2005} = 8.0*rho1;
+Line(2005) = {1005, 1006}; Transfinite Line {2005} = 8.0*rho1*2^-0;
 Line(2006) = {1006, 1007}; Transfinite Line {-2006} = nn1 Using Progression prog1;
 Line(2007) = {1007, 1008}; Transfinite Line {2007} = nn1 Using Progression prog1;
-Line(2008) = {1008, 1009}; Transfinite Line {2008} = 8.0*rho1;
+Line(2008) = {1008, 1009}; Transfinite Line {2008} = 8.0*rho1*2^-0;
 Line(2009) = {1009, 1010}; Transfinite Line {-2009} = nn1 Using Progression prog1;
 Line(2010) = {1010, 1011}; Transfinite Line {2010} = nn1 Using Progression prog1;
-Line(2011) = {1011, 1012}; Transfinite Line {2011} = 8.0*rho1;
+Line(2011) = {1011, 1012}; Transfinite Line {2011} = 8.0*rho1*2^+0;
 Line(2012) = {1012, 1001}; Transfinite Line {-2012} = nn1 Using Progression prog1;
 
 
-Line(2101) = {1101, 1102}; Transfinite Line {2101} = 8.0*rho1;
-Line(2102) = {1102, 1103}; Transfinite Line {2102} = 8.0*rho1;
-Line(2103) = {1103, 1104}; Transfinite Line {2103} = 8.0*rho1;
-Line(2104) = {1104, 1101}; Transfinite Line {2104} = 8.0*rho1;
+Line(2101) = {1101, 1102}; Transfinite Line {2101} = 8.0*rho1*2^+0;
+Line(2102) = {1102, 1103}; Transfinite Line {2102} = 8.0*rho1*2^-0;
+Line(2103) = {1103, 1104}; Transfinite Line {2103} = 8.0*rho1*2^-0;
+Line(2104) = {1104, 1101}; Transfinite Line {2104} = 8.0*rho1*2^+0;
 
 
 Line(2202) = {1202, 1203};
