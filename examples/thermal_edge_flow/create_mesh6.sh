@@ -1,9 +1,9 @@
 #!/bin/bash
 
 
-for exp1 in $(seq 4 1 5)
+for exp1 in $(seq 6 1 5)
 do
-  for exp2 in $(seq 5 1 6)
+  for exp2 in $(seq 6 1 6)
   do
     for exp3 in $(seq 10 1 14)
     do

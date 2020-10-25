@@ -8,21 +8,6 @@ output_folder: study6
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  - study6_4_5_10.h5
-  - study6_4_5_11.h5
-  - study6_4_5_12.h5
-  - study6_4_5_13.h5
-  - study6_4_5_14.h5
-  - study6_5_5_10.h5
-  - study6_5_5_11.h5
-  - study6_5_5_12.h5
-  - study6_5_5_13.h5
-  - study6_5_5_14.h5
-  - study6_4_6_10.h5
-  - study6_4_6_11.h5
-  - study6_4_6_12.h5
-  - study6_4_6_13.h5
-  - study6_4_6_14.h5
   - study6_5_6_10.h5
   - study6_5_6_11.h5
   - study6_5_6_12.h5
