@@ -8,4 +8,5 @@ do
     outname=study10_"$exp5"_"$split".h5
     echo $outname
     geoToH5 study10.geo "$outname" "-setnumber split $split -setnumber exp5 $exp5"
+  done
 done
