@@ -8,10 +8,10 @@ output_folder: study10
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  - study10_8_0.h5
-  - study10_9_0.h5
-  - study10_10_0.h5
-  - study10_11_0.h5
+  - study10_8_3.h5
+  - study10_9_3.h5
+  - study10_10_3.h5
+  - study10_11_3.h5
 
 # Numerical Parameters
 # ====================
