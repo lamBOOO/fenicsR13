@@ -878,6 +878,22 @@ class Solver:
         df.solve(
             AA, sol.vector(), LL, "mumps", "none"
         )
+        # TODO: Test this
+        # # Create Krylov solver
+        # solver = df.PETScKrylovSolver("bicgstab", "amg")
+        # solver.set_operator(AA)
+
+        # # Create vector that spans the null space and normalize
+        # null_vec = df.Vector(sol.vector())
+        # w.dofmap().set(null_vec, 1.0)
+        # null_vec *= 1.0/null_vec.norm("l2")
+
+        # # Create null space basis object and attach to PETSc matrix
+        # null_space = df.VectorSpaceBasis([null_vec])
+        # df.as_backend_type(AA).set_nullspace(null_space)
+
+        # null_space.orthogonalize(LL);
+        # solver.solve(sol.vector(), LL)
         # TODO: Add solver params to YML
         end_t = time_module.time()
         secs = end_t - start_t
