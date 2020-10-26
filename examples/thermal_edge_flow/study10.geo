@@ -8,7 +8,7 @@ EndIf
 Printf("split=%g", split);
 
 If(!Exists(exp5))
-  exp5
+  exp5 = 8;
 EndIf
 Printf("exp5=%g", exp5);
 
