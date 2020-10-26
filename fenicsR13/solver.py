@@ -1405,14 +1405,12 @@ class Solver:
         <BLANKLINE>
         """
         file_ending = ".mat"
-        np.savetxt(
-            self.output_folder + "A_{}".format(self.time) + file_ending,
-            df.assemble(self.form_lhs).array()
-        )
-        np.savetxt(
-            self.output_folder + "b_{}".format(self.time) + file_ending,
-            df.assemble(self.form_rhs)
-        )
+        A_name = self.output_folder + "A_{}".format(self.time) + file_ending
+        b_name = self.output_folder + "b_{}".format(self.time) + file_ending
+        print("Write {}".format(A_name))
+        np.savetxt(A_name, df.assemble(self.form_lhs).array())
+        print("Write {}".format(b_name))
+        np.savetxt(b_name,df.assemble(self.form_rhs))
 
     def __write_xdmf(self, name, field, write_pdf):
         """
