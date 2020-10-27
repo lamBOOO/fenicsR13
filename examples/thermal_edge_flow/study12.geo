@@ -17,7 +17,7 @@ dist1 = 0.05;
 dist2 = 0.10;
 
 res1 = 2^-split * 2^-6; // leftbot edge
-res2 = 2^-split * 2^-2; // bulk
+res2 = 2^-split * 2^-1; // bulk
 res3 = 2^-split * 2^-6; // topright edge
 res4 = 2^-split * 2^-8; // leftbot focus
 res5 = 2^-split * 2^-exp5; // inner edge focus
