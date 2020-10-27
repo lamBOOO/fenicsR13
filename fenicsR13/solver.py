@@ -983,7 +983,9 @@ class Solver:
 
         def __line_integral_average(u, A, B, n):
             """
-            Integrate u over segment [A, B] partitioned into n elements
+            Integrate u over segment [A, B] partitioned into n elements.
+
+            See: https://fenicsproject.org/qa/13863/integrate-along-axes-lines/
             """
             assert u.value_rank() == 0
             assert len(A) == len(B) > 1 and np.linalg.norm(A - B) > 0
