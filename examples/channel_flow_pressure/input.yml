@@ -141,6 +141,12 @@ convergence_study:
 # - write_pdfs: Write all solution fields as PDF plot
 # - write_vecs: Write all solution fields as vectors
 # - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
+# - line_integrals: List of line integral dicts:
+#   - name: Name for output
+#   - expr: Expression to evaluate
+#   - start: Start point
+#   - end: End point
+#   - res: Sampling resolution of line
 postprocessing:
   write_pdfs: True
   write_vecs: False

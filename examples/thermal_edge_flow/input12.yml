@@ -133,10 +133,27 @@ convergence_study:
 # - write_pdfs: Write all solution fields as PDF plot
 # - write_vecs: Write all solution fields as vectors
 # - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
+# - line_integrals: List of line integral dicts:
+#   - name: Name for output
+#   - expr: Expression to evaluate
+#   - start: Start point
+#   - end: End point
+#   - res: Sampling resolution of line
 postprocessing:
   write_pdfs: False
   write_vecs: False
   massflow: []
+  line_integrals:
+    - name: "avg(abs(uy(x,y=0.5)))"
+      expr: abs(uy)/8
+      start: [0, 0.5]
+      end: [8, 0.5]
+      res: 10000
+    - name: "avg(abs(uy(x,y=4.5)))"
+      expr: abs(uy)/8
+      start: [0, 4.5]
+      end: [8, 4.5]
+      res: 10000
 
 # Parameter Study
 # ==============

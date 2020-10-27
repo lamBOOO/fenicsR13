@@ -71,6 +71,9 @@ class Solver:
         self.time = time
         self.mode = params["mode"]
 
+        self.comm = df.MPI.comm_world
+        self.rank = df.MPI.rank(self.comm)
+
         # CIP
         self.use_cip = self.params["stabilization"]["cip"]["enable"]
         self.delta_theta = self.params["stabilization"]["cip"]["delta_theta"]
@@ -88,6 +91,7 @@ class Solver:
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
         self.write_vecs = self.params["postprocessing"]["write_vecs"]
         self.massflow = self.params["postprocessing"]["massflow"]
+        self.line_integrals = self.params["postprocessing"]["line_integrals"]
 
         # Create region field expressions
         self.regs = copy.deepcopy(self.params["regs"])
@@ -166,6 +170,42 @@ class Solver:
             "sigma": None,
         }
         self.errors = {}
+
+    def __createSolMacroScaExpr(self, cpp_string):
+        """
+        Return a DOLFIN scalar expression with predefined macros after solve.
+
+        These macros include:
+
+        ============================ =========== ===============================
+        Name                         Macro   CPP Replacement
+        ============================ =========== ===============================
+        ``theta``                    ``theta``   ``sol["theta"]``
+        ``sx``                       ``sx``      ``sol["s"].split()[0]``
+        ``sy``                       ``sy``      ``sol["s"].split()[1]``
+        ``p``                        ``p``       ``sol["p"]``
+        ``ux``                       ``ux``      ``sol["u"].split()[0]``
+        ``uy``                       ``uy``      ``sol["u"].split()[1]``
+        ``sigmaxx``                  ``sigmaxx`` ``sol["sigma"].split()[0]``
+        ``sigmaxy``                  ``sigmaxy`` ``sol["sigma"].split()[1]``
+        ``sigmayx``                  ``sigmayx`` ``sol["sigma"].split()[1]``
+        ``sigmayy``                  ``sigmayy`` ``sol["sigma"].split()[2]``
+        ============================ =========== ===============================
+        """
+        return df.Expression(
+            str(cpp_string),
+            degree=2,
+            theta = self.sol["theta"],
+            sx = self.sol["s"].split()[0],
+            sy = self.sol["s"].split()[1],
+            p = self.sol["p"],
+            ux = self.sol["u"].split()[0],
+            uy = self.sol["u"].split()[1],
+            sigmaxx = self.sol["sigma"].split()[0],
+            sigmaxy = self.sol["sigma"].split()[1],
+            sigmayx = self.sol["sigma"].split()[1],
+            sigmayy = self.sol["sigma"].split()[2]
+        )
 
     def __createMacroScaExpr(self, cpp_string):
         """
@@ -870,6 +910,7 @@ class Solver:
         secs = end_t - start_t
         self.write_content_to_file("assemble", secs)
         print("Finish assemble: {}".format(str(secs)))
+        sys.stdout.flush()
 
         print("Start solve")
         sys.stdout.flush()
@@ -899,6 +940,7 @@ class Solver:
         secs = end_t - start_t
         self.write_content_to_file("solve", secs)
         print("Finished solve: {}".format(str(secs)))
+        sys.stdout.flush()
 
         if self.mode == "heat":
             (self.sol["theta"], self.sol["s"]) = sol.split()
@@ -938,6 +980,86 @@ class Solver:
             ) / vol
             print("avg vel:", avgvel)
             self.write_content_to_file("avgvel", avgvel)
+
+        def __line_integral_average(u, A, B, n):
+            """
+            Integrate u over segment [A, B] partitioned into n elements
+            """
+            assert u.value_rank() == 0
+            assert len(A) == len(B) > 1 and np.linalg.norm(A-B) > 0
+            assert n > 0
+
+            # Mesh line for integration
+            mesh_points = [A + t*(B-A) for t in np.linspace(0, 1, n+1)]
+            tdim, gdim = 1, len(A)
+
+            # Create line mesh
+            mesh = df.Mesh(df.MPI.comm_world)
+            if self.rank == 0:
+                editor = df.MeshEditor()
+                editor.open(mesh, "interval", tdim, gdim)
+                editor.init_vertices(n+1)
+                editor.init_cells(n)
+                for vi, v in enumerate(mesh_points):
+                    editor.add_vertex(vi, v)
+                for ci in range(n):
+                    editor.add_cell(ci, np.array([ci, ci+1], dtype='uintp'))
+                editor.close()
+            df.MeshPartitioning.build_distributed_mesh(mesh)
+            print(mesh)
+            sys.stdout.flush()
+
+            # Setup function space
+            elm = u.function_space().ufl_element()
+            family = elm.family()
+            degree = elm.degree()
+            V = df.FunctionSpace(mesh, family, degree)
+            v = df.Function(V)
+
+            # Interpolate to line mesh
+            # df.interpolate does not work in parallel from different meshes
+            # -> https://fenicsproject.org/docs/dolfin/1.6.0/python/
+            #    programmers-reference/cpp/function/LagrangeInterpolator.html
+            # Use LagrangeInterpolator, which works in parallel
+            # -> https://fenicsproject.org/qa/7758/
+            #    function-interpolation-in-parallel/?show=12144#c12144
+            df.LagrangeInterpolator.interpolate(v, u)
+
+            custom_dx = df.Measure("dx", domain=mesh)
+
+            return df.assemble(v * custom_dx)
+
+        print("Start line_integrals")
+        start_t = time_module.time()
+        sys.stdout.flush()
+        for li in self.line_integrals:
+            name = li["name"]
+
+            # Interpolate in "best" Lagrange space
+            maxdeg = max([
+                self.params["elements"]["theta"]["degree"],
+                self.params["elements"]["s"]["degree"],
+                self.params["elements"]["p"]["degree"],
+                self.params["elements"]["u"]["degree"],
+                self.params["elements"]["sigma"]["degree"]
+            ])
+            expr = df.interpolate(
+                self.__createSolMacroScaExpr(li["expr"]),
+                df.FunctionSpace(self.mesh, "Lagrange", maxdeg)
+            )
+            start = np.array(li["start"])
+            end = np.array(li["end"])
+            res = li["res"]
+            result = __line_integral_average(
+                expr, start, end, res
+            )
+            self.write_content_to_file(
+                "line_integral_{}".format(name), result
+            )
+        end_t = time_module.time()
+        secs = end_t - start_t
+        print("Finish line_integrals: {}".format(str(secs)))
+        sys.stdout.flush()
 
     def __load_exact_solution(self):
         """
