@@ -3,7 +3,7 @@
 
 for split in $(seq 0 1 3)
 do
-  for exp5 in $(seq 12 1 12)
+  for exp5 in $(seq 13 1 13)
   do
     outname=study12_"$exp5"_"$split".h5
     echo $outname
