@@ -8,7 +8,7 @@ EndIf
 Printf("split=%g", split);
 
 If(!Exists(exp5))
-  exp5 = 12;
+  exp5 = 13;
 EndIf
 Printf("exp5=%g", exp5);
 
@@ -21,9 +21,10 @@ res2 = 2^-split * 2^-1; // bulk
 res3 = 2^-split * 2^-6; // topright edge
 res4 = 2^-split * 2^-8; // leftbot focus
 res5 = 2^-split * 2^-exp5; // inner edge focus
-res6 = 2^-split * 2^-7; // inner edge topright
+res6 = 2^-split * 2^-8; // inner edge topright
 res7 = 2^-split * 2^-5; // focus bulk
-res8 = 2^-split * 2^-8; // inner edge leftbot
+res8 = 2^-split * 2^-9; // inner edge leftbot
+res9 = 2^-split * 2^-2; // inner bulk middle
 
 
 Point(1001) = {0.0, 0.0, 0, res1};
@@ -71,7 +72,14 @@ Point(1311) = {1.0, 3.0-dist2, 0, res8};
 Point(1312) = {1.0, 1.0+dist2, 0, res8};
 
 
-Point(1401) = {4.0, 4.0, 0, res7};
+Point(1401) = {0.5, 4.0, 0, res2};
+Point(1402) = {4.0, 4.0, 0, res2};
+Point(1403) = {4.0, 0.5, 0, res2};
+
+Point(1501) = {0.5, 0.5, 0, res9};
+Point(1502) = {3.5, 0.5, 0, res9};
+Point(1503) = {3.5, 3.5, 0, res9};
+Point(1504) = {0.5, 3.5, 0, res9};
 
 
 Line(2001) = {1001, 1002};
@@ -117,7 +125,14 @@ Line(2311) = {1311, 1312};
 Line(2312) = {1312, 1301};
 
 Line(2401) = {1106, 1401};
-Line(2402) = {1401, 1102};
+Line(2402) = {1401, 1402};
+Line(2403) = {1402, 1403};
+Line(2404) = {1403, 1102};
+
+Line(2501) = {1501, 1502};
+Line(2502) = {1502, 1503};
+Line(2503) = {1503, 1504};
+Line(2504) = {1504, 1501};
 
 Circle(2601) = {1212, 1301, 1202};
 Circle(2602) = {1203, 1304, 1205};
@@ -131,10 +146,12 @@ Plane Surface(4207) = {3207, 3208};
 Curve Loop(3209) = {2105, 2106, 2101, 2102, 2103, 2104};
 Curve Loop(3210) = {2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2001};
 Plane Surface(4209) = {3210, 3209};
-Curve Loop(3211) = {2102, 2103, 2104, 2105, 2401, 2402};
+Curve Loop(3211) = {2102, 2103, 2104, 2105, 2401, 2402, 2403, 2404};
 Plane Surface(4210) = {3211};
-Curve Loop(3212) = {2101, -2402, -2401, 2106};
-Plane Surface(4211) = {3212, 3207};
+Curve Loop(3212) = {2101, -2404, -2403, -2402, -2401, 2106};
+Curve Loop(3213) = {2501:2504};
+Plane Surface(4211) = {3212, 3213};
+Plane Surface(4212) = {3213, 3207};
 
 
 Physical Curve("outer",3000) = {
@@ -149,6 +166,8 @@ Physical Surface("mesh",4000) = {
   4207,
   4209,
   4210,
-  4211
+  4211,
+  4212
 };
 
+Mesh.Algorithm = 6;
