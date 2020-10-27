@@ -17,14 +17,15 @@ dist1 = 0.05;
 dist2 = 0.10;
 
 res1 = 2^-split * 2^-6; // leftbot edge
-res2 = 2^-split * 2^-2; // bulk
+res2 = 2^-split * 2^-1; // bulk
 res3 = 2^-split * 2^-6; // topright edge
 res4 = 2^-split * 2^-8; // leftbot focus
 res5 = 2^-split * 2^-exp5; // inner edge focus
 res6 = 2^-split * 2^-9; // inner edge topright
 res7 = 2^-split * 2^-5; // focus bulk
 res8 = 2^-split * 2^-10; // inner edge leftbot
-res9 = 2^-split * 2^-2; // inner bulk middle
+res9 = 2^-split * 2^-3; // inner bulk middle
+res10 = 2^-split * 2^-11; // inner topright edge focus
 
 
 
