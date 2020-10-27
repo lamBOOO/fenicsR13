@@ -1410,7 +1410,7 @@ class Solver:
         print("Write {}".format(A_name))
         np.savetxt(A_name, df.assemble(self.form_lhs).array())
         print("Write {}".format(b_name))
-        np.savetxt(b_name,df.assemble(self.form_rhs))
+        np.savetxt(b_name, df.assemble(self.form_rhs))
 
     def __write_xdmf(self, name, field, write_pdf):
         """
