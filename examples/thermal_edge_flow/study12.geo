@@ -3,7 +3,7 @@ Mesh.MshFileVersion = 2.0;
 // Command line Parameters
 
 If(!Exists(split))
-  split = 4;
+  split = 3;
 EndIf
 Printf("split=%g", split);
 
@@ -21,9 +21,9 @@ res2 = 2^-split * 2^-2; // bulk
 res3 = 2^-split * 2^-6; // topright edge
 res4 = 2^-split * 2^-8; // leftbot focus
 res5 = 2^-split * 2^-exp5; // inner edge focus
-res6 = 2^-split * 2^-8; // inner edge topright
-res7 = 2^-split * 2^-3; // focus bulk
-res8 = 2^-split * 2^-9; // inner edge leftbot
+res6 = 2^-split * 2^-7; // inner edge topright
+res7 = 2^-split * 2^-5; // focus bulk
+res8 = 2^-split * 2^-8; // inner edge leftbot
 
 
 Point(1001) = {0.0, 0.0, 0, res1};
