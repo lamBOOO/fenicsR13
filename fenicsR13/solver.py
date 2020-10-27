@@ -1393,6 +1393,8 @@ class Solver:
         >>> solver.form_rhs = L
         >>> solver.output_folder = "./"
         >>> solver._Solver__write_discrete_system()
+        Write ./A_0.mat
+        Write ./b_0.mat
         >>> print(open("A_0.mat","r").read())
         2.0000...00000e+00 -2.0000...00000e+00 0.000...000000e+00
         -2.0000...00000e+00 4.0000...00000e+00 -2.0000...00000e+00
