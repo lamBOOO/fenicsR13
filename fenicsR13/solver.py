@@ -195,16 +195,16 @@ class Solver:
         return df.Expression(
             str(cpp_string),
             degree=2,
-            theta = self.sol["theta"],
-            sx = self.sol["s"].split()[0],
-            sy = self.sol["s"].split()[1],
-            p = self.sol["p"],
-            ux = self.sol["u"].split()[0],
-            uy = self.sol["u"].split()[1],
-            sigmaxx = self.sol["sigma"].split()[0],
-            sigmaxy = self.sol["sigma"].split()[1],
-            sigmayx = self.sol["sigma"].split()[1],
-            sigmayy = self.sol["sigma"].split()[2]
+            theta=self.sol["theta"],
+            sx=self.sol["s"].split()[0],
+            sy=self.sol["s"].split()[1],
+            p=self.sol["p"],
+            ux=self.sol["u"].split()[0],
+            uy=self.sol["u"].split()[1],
+            sigmaxx=self.sol["sigma"].split()[0],
+            sigmaxy=self.sol["sigma"].split()[1],
+            sigmayx=self.sol["sigma"].split()[1],
+            sigmayy=self.sol["sigma"].split()[2]
         )
 
     def __createMacroScaExpr(self, cpp_string):
@@ -986,11 +986,11 @@ class Solver:
             Integrate u over segment [A, B] partitioned into n elements
             """
             assert u.value_rank() == 0
-            assert len(A) == len(B) > 1 and np.linalg.norm(A-B) > 0
+            assert len(A) == len(B) > 1 and np.linalg.norm(A - B) > 0
             assert n > 0
 
             # Mesh line for integration
-            mesh_points = [A + t*(B-A) for t in np.linspace(0, 1, n+1)]
+            mesh_points = [A + t * (B - A) for t in np.linspace(0, 1, n + 1)]
             tdim, gdim = 1, len(A)
 
             # Create line mesh
@@ -998,12 +998,12 @@ class Solver:
             if self.rank == 0:
                 editor = df.MeshEditor()
                 editor.open(mesh, "interval", tdim, gdim)
-                editor.init_vertices(n+1)
+                editor.init_vertices(n + 1)
                 editor.init_cells(n)
                 for vi, v in enumerate(mesh_points):
                     editor.add_vertex(vi, v)
                 for ci in range(n):
-                    editor.add_cell(ci, np.array([ci, ci+1], dtype='uintp'))
+                    editor.add_cell(ci, np.array([ci, ci + 1], dtype='uintp'))
                 editor.close()
             df.MeshPartitioning.build_distributed_mesh(mesh)
             print(mesh)
