@@ -151,6 +151,7 @@ postprocessing:
   write_pdfs: True
   write_vecs: False
   massflow: [3002]
+  line_integrals: []
 
 # Parameter Study
 # ==============
