@@ -1008,8 +1008,6 @@ class Solver:
                     editor.add_cell(ci, np.array([ci, ci + 1], dtype='uintp'))
                 editor.close()
             df.MeshPartitioning.build_distributed_mesh(mesh)
-            print(mesh)
-            sys.stdout.flush()
 
             # Setup function space
             elm = u.function_space().ufl_element()
