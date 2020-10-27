@@ -8,7 +8,7 @@ EndIf
 Printf("split=%g", split);
 
 If(!Exists(exp5))
-  exp5 = 13;
+  exp5 = 12;
 EndIf
 Printf("exp5=%g", exp5);
 
@@ -23,7 +23,7 @@ res4 = 2^-split * 2^-8; // leftbot focus
 res5 = 2^-split * 2^-exp5; // inner edge focus
 res6 = 2^-split * 2^-9; // inner edge topright
 res7 = 2^-split * 2^-5; // focus bulk
-res8 = 2^-split * 2^-9; // inner edge leftbot
+res8 = 2^-split * 2^-10; // inner edge leftbot
 res9 = 2^-split * 2^-2; // inner bulk middle
 
 
