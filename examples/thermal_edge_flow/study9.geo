@@ -15,7 +15,7 @@ res_tmp1 = 2^-split * 2^-6; // leftbot edge
 res_tmp2 = 2^-split * 2^-3; // bulk
 res_tmp3 = 2^-split * 2^-4; // topright edge
 res_tmp4 = 2^-split * 2^-7; // leftbot focus
-res_tmp5 = 2^-split * 2^-12; // inner edge focus
+res_tmp5 = 2^-split * 2^-11; // inner edge focus
 res_tmp6 = 2^-split * 2^-7; // inner edge
 res_tmp7 = 2^-split * 2^-4; // focus bulk
 
