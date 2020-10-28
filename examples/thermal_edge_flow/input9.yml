@@ -142,7 +142,17 @@ postprocessing:
   write_pdfs: False
   write_vecs: False
   massflow: []
-  line_integrals: []
+  line_integrals:
+    - name: "avg(abs(uy(x,y=0.5)))"
+      expr: abs(uy)/8
+      start: [0, 0.5]
+      end: [8, 0.5]
+      res: 10000
+    - name: "avg(abs(uy(x,y=4.5)))"
+      expr: abs(uy)/8
+      start: [0, 4.5]
+      end: [8, 4.5]
+      res: 10000
 
 # Parameter Study
 # ==============
