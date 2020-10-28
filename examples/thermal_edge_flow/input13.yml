@@ -8,14 +8,14 @@ output_folder: study13
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  - study13_3_6_3_4_7_12_7_4.h5
-  - study13_3_5_3_4_7_12_7_4.h5
-  - study13_3_6_2_4_7_12_7_4.h5
-  - study13_3_6_3_3_7_12_7_4.h5
-  - study13_3_6_3_4_6_12_7_4.h5
   - study13_3_6_3_4_7_11_7_4.h5
-  - study13_3_6_3_4_7_12_6_4.h5
-  - study13_3_6_3_4_7_12_7_3.h5
+  - study13_3_5_3_4_7_11_7_4.h5
+  - study13_3_6_2_4_7_11_7_4.h5
+  - study13_3_6_3_3_7_11_7_4.h5
+  - study13_3_6_3_4_6_11_7_4.h5
+  - study13_3_6_3_4_7_10_7_4.h5
+  - study13_3_6_3_4_7_11_6_4.h5
+  - study13_3_6_3_4_7_11_7_3.h5
 
 # Numerical Parameters
 # ====================

@@ -25,7 +25,7 @@ If(!Exists(exp4))
 EndIf
 Printf("exp4=%g", exp4);
 If(!Exists(exp5))
-  exp5 = 12;
+  exp5 = 11;
 EndIf
 Printf("exp5=%g", exp5);
 If(!Exists(exp6))
