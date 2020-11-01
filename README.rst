@@ -395,7 +395,7 @@ Contact
     :target: https://git.rwth-aachen.de/lamboo/fenicsR13/pipelines
     :alt: Test coverage
 
-.. |version| image:: https://img.shields.io/badge/version-1.3-blue.svg
+.. |version| image:: https://img.shields.io/badge/version-1.4-blue.svg
     :target: https://git.rwth-aachen.de/lamBOO/fenicsR13/-/tags
     :alt: Documentation Website
 

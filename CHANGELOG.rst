@@ -1,10 +1,25 @@
 Change log
 ----------
 
+1.4 (2020-11-01)
+~~~~~~~~~~~~~~~~
+
+- Add convergence study for Knudsen pump
+- Add thermal edge flow example
+    - With SLURM script and Amazon EC2 setup script
+- Add timing reports in debug log for assemble, solve
+- Add average velocity postproccessing
+- Update docker-compose by:
+    - Remove Git binding
+    - Increase SHM size for clusters
+- Improve geoToH5 by using unique tmp names
+    - This allows for parallel execution
+- Add feature to evaluate arbitrary line integrals
+
 1.3 (2020-08-18)
 ~~~~~~~~~~~~~~~~
 
-- Add option to use Garlerkign Least Squares (GLS) stabilization
+- Add option to use Garlerkin Least Squares (GLS) stabilization
 - Allow for different chi_tilde on boundaries
 - Add option for multiple mesh regions:
     - Allows for different Knudsen numbers in regions
