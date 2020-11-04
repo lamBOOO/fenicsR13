@@ -399,8 +399,8 @@ Contact
     :target: https://git.rwth-aachen.de/lamBOO/fenicsR13/-/tags
     :alt: Documentation Website
 
-.. |zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3673040.svg
-    :target: https://doi.org/10.5281/zenodo.3673040
+.. |zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3673039.svg
+    :target: https://doi.org/10.5281/zenodo.3673039
     :alt: Zenodo Link with DOI
 
 .. |website| image:: https://img.shields.io/badge/doc-https%3A%2F%2Flamboo.pages.rwth--aachen.de%2FfenicsR13%2F-blue.svg
