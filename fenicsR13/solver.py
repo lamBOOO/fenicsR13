@@ -356,6 +356,16 @@ class Solver:
             if edge_id not in [0] + bcs_specified:  # inner zero allowed
                 raise Exception("Mesh edge {} has no bcs!".format(edge_id))
 
+    def normal(self):
+        mesh1 =self.mesh
+        v1 = df.as_vector([1.0, 0, 0])
+        v2 = df.as_vector([0, 1, 0])
+        n_vec = df.FacetNormal(mesh1)
+        # t1=df.cross(n_vec,v)#I am not sure whther we have to convert that to as_vector
+        t1 = df.conditional(df.gt(abs(n_vec[0]),np.finfo(float).eps), df.cross(n_vec, v2/df.sqrt(n_vec[0]**2+n_vec[2]**2)), df.cross(n_vec, v1/df.sqrt(n_vec[1]**2+n_vec[2]**2)))
+        t2 = df.cross(n_vec, t1)
+        return n_vec,t1,t2
+
     def assemble(self):
         r"""
         Assemble the weak form of the system, depending on the mode. This
@@ -622,22 +632,37 @@ class Solver:
         # Setup normal/tangential projections
         # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
         n_vec = df.FacetNormal(mesh)
-        t_vec = ufl.perp(n_vec)
+        t_vec1 = ufl.perp(n_vec)
+        t_vec2 = df.as_vector([0, 0]) # the second tangent is zeroed.
+
+        if nsd > 2: #defnining normals and tangents for 3D case
+            n_vec, t_vec1, t_vec2 = self.normal()
 
         def n(rank1):
             return df.dot(rank1, n_vec)
 
-        def t(rank1):
-            return df.dot(rank1, t_vec)
+        def t1(rank1):
+            return df.dot(rank1, t_vec1)
+
+        def t2(rank1):
+            return df.dot(rank1, t_vec2)
 
         def nn(rank2):
             return df.dot(rank2 * n_vec, n_vec)
 
-        def tt(rank2):
-            return df.dot(rank2 * t_vec, t_vec)
+        def t1t1(rank2):
+            return df.dot(rank2 * t_vec1, t_vec1)
 
-        def nt(rank2):
-            return df.dot(rank2 * n_vec, t_vec)
+        def nt1(rank2):
+            return df.dot(rank2 * n_vec, t_vec1)
+
+        def nt2(rank2):
+            return df.dot(rank2 * n_vec, t_vec2)
+
+        def t1t2(rank2):
+            return df.dot(rank2 * t_vec1, t_vec2)
+
+
 
         # Sub functionals:
         # 1) Diagonals:
@@ -655,8 +680,10 @@ class Solver:
                 + 4 / 15 * (1 / regs[reg]["kn"]) * df.inner(s, r)
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + 1 / (2 * bcs[bc]["chi_tilde"]) * n(s) * n(r)
-                + 11 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
-                + cpl * 1 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
+                + 11 / 25 * bcs[bc]["chi_tilde"] * t1(s) * t1(r)
+                + cpl * 1 / 25 * bcs[bc]["chi_tilde"] * t1(s) * t1(r)
+                + 11 / 25 * bcs[bc]["chi_tilde"] * t2(s) * t2(r)
+                + cpl * 1 / 25 * bcs[bc]["chi_tilde"] * t2(s) * t2(r)
             ) * df.ds(bc) for bc in bcs.keys()])
 
         def d(si, ps):
@@ -674,11 +701,13 @@ class Solver:
                 + bcs[bc]["chi_tilde"] * 21 / 20 * nn(si) * nn(ps)
                 + bcs[bc]["chi_tilde"] * cpl * 3 / 40 * nn(si) * nn(ps)
                 + bcs[bc]["chi_tilde"] * (
-                    (tt(si) + (1 / 2) * nn(si)) *
-                    (tt(ps) + (1 / 2) * nn(ps))
+                    (t1t1(si) + (1 / 2) * nn(si)) *
+                    (t1t1(ps) + (1 / 2) * nn(ps))
                 )
-                + (1 / bcs[bc]["chi_tilde"]) * nt(si) * nt(ps)
+                + (1 / bcs[bc]["chi_tilde"]) * nt1(si) * nt1(ps)
+                + (1 / bcs[bc]["chi_tilde"]) * nt2(si) * nt2(ps)
                 + bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * nn(si) * nn(ps)
+                + bcs[bc]["chi_tilde"] * t1t2(si) * t1t2(ps)
             ) * df.ds(bc) for bc in bcs.keys()])
 
         def h(p, q):
@@ -697,7 +726,8 @@ class Solver:
                 2 / 5 * df.inner(si, df.grad(r))
             ) * df.dx(reg) for reg in regs.keys()]) - sum([(
                 3 / 20 * nn(si) * n(r)
-                + 1 / 5 * nt(si) * t(r)
+                + 1 / 5 * nt1(si) * t1(r)
+                + 1 / 5 * nt2(si) * t2(r)
             ) * df.ds(bc) for bc in bcs.keys()]))
 
         def e(u, ps):
@@ -802,7 +832,7 @@ class Solver:
         # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
         L[1] = (f_heat - f_mass) * kappa * df.dx
         L[2] = - sum([(
-            + bcs[bc]["u_t_w"] * nt(psi)
+            + bcs[bc]["u_t_w"] * nt1(psi)
             + (
                 + bcs[bc]["u_n_w"]
                 - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
