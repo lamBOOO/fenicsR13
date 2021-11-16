@@ -20,6 +20,30 @@ above 2.
 import dolfin as df
 import ufl
 
+def maketf3D(sigma):
+    """
+    The stress variable in particular is converted into a symmetric and trace free tensor(both 2D and 3D)
+    N = number of dimensions
+    """
+
+    n = sigma.ufl_shape[0]
+
+    if n == 2:
+        sigma1 = df.as_tensor([[sigma[0, 0], sigma[0, 1], 0], [sigma[1, 0], sigma[1, 1], 0], [0, 0, -sigma[0, 0] - sigma[1, 1]]])
+
+    else:
+        # n = 3
+        sigma1 = df.as_tensor([
+        [sigma[0, 0], sigma[0, 1], sigma[0, 2]],
+        [sigma[1,0], sigma[1,1], sigma[1,2]],
+        [sigma[2, 0], sigma[2, 1], -sigma[0, 0] - sigma[1, 1]]])
+
+
+    return sigma1
+
+
+
+
 
 def stf3d2(rank2_2d):
     r"""

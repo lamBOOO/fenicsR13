@@ -70,7 +70,7 @@ class Solver:
         self.cell = self.mesh.ufl_cell()
         self.time = time
         self.mode = params["mode"]
-
+        self.nsd = params["nsd"]
         self.comm = df.MPI.comm_world
         self.rank = df.MPI.rank(self.comm)
 
@@ -556,6 +556,7 @@ class Solver:
         # Get local variables
         mesh = self.mesh
         regions = self.regions
+        nsd = self.nsd
         regs = self.regs
         boundaries = self.boundaries
         bcs = self.bcs
@@ -594,6 +595,8 @@ class Solver:
             (kappa, r) = df.TestFunctions(w_heat)
             (p, u, sigma) = df.TrialFunctions(w_stress)
             (q, v, psi) = df.TestFunctions(w_stress)
+
+
 
         # Setup source functions
         f_heat = self.heat_source
@@ -661,11 +664,11 @@ class Solver:
             # 21/20+3/40=45/40=9/8
             return sum([(
                 + regs[reg]["kn"] * df.inner(
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(si))),
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(ps)))
+                    to.stf3d3(to.grad3dOf2(to.maketf3D(si))),
+                    to.stf3d3(to.grad3dOf2(to.maketf3D(ps)))
                 )
                 + (1 / (2 * regs[reg]["kn"])) * df.inner(
-                    to.gen3dTF2(si), to.gen3dTF2(ps)
+                    to.maketf3D(si), to.maketf3D(ps)
                 )
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + bcs[bc]["chi_tilde"] * 21 / 20 * nn(si) * nn(ps)
@@ -766,18 +769,18 @@ class Solver:
                 )  # momentum
                 + tau_stress * h_msh**1.5 *
                 df.inner(
-                    cpl * (4 / 5) * to.gen3dTF2(df.grad(r))
+                    cpl * (4 / 5) * to.maketf3D(df.grad(r))
                     + 2 * to.stf3d2(to.gen3d2(df.grad(v)))
                     - 2 * regs[reg]["kn"] * to.div3d3(
-                        to.stf3d3(to.grad3dOf2(to.gen3dTF2(psi)))
+                        to.stf3d3(to.grad3dOf2(to.maketf3D(psi)))
                     )
-                    + (1 / regs[reg]["kn"]) * to.gen3dTF2(psi),
-                    cpl * (4 / 5) * to.gen3dTF2(df.grad(s))
+                    + (1 / regs[reg]["kn"]) * to.maketf3D(psi),
+                    cpl * (4 / 5) * to.maketf3D(df.grad(s))
                     + 2 * to.stf3d2(to.gen3d2(df.grad(u)))
                     - 2 * regs[reg]["kn"] * to.div3d3(
-                        to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma)))
+                        to.stf3d3(to.grad3dOf2(to.maketf3D(sigma)))
                     )
-                    + (1 / regs[reg]["kn"]) * to.gen3dTF2(sigma)
+                    + (1 / regs[reg]["kn"]) * to.maketf3D(sigma)
                 )  # stress
             ) * df.dx(reg) for reg in regs.keys()])
 
