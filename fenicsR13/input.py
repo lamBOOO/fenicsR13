@@ -223,7 +223,7 @@ class Input:
             "nsd": {
                 "type": "integer",
                 "required": True,
-                "allowed": [2]
+                "allowed": [2, 3]
             },
             "mode": {
                 "type": "string",
@@ -267,15 +267,27 @@ class Input:
                         },
                         "u_t_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
-                            "required": True
+                            "required": False
                         },
                         "u_n_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
-                            "required": True
+                            "required": False
+                        },
+                        "ux": {
+                            "anyof": [{"type": "string"}, {"type": "float"}],
+                            "required": False
+                        },
+                        "uy": {
+                            "anyof": [{"type": "string"}, {"type": "float"}],
+                            "required": False
+                        },
+                        "uz": {
+                            "anyof": [{"type": "string"}, {"type": "float"}],
+                            "required": False
                         },
                         "p_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
-                            "required": True
+                            "required": False
                         },
                         "epsilon_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
@@ -399,6 +411,10 @@ class Input:
                     "relative_error": {
                         "type": "boolean",
                         "required": True
+                    },
+                    "enable2": {
+                        "type": "boolean",
+                        "required": False
                     },
                 }
             },
