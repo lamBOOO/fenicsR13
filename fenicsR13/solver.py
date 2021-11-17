@@ -1411,6 +1411,9 @@ class Solver:
             ers["theta"] = se[0]
             ers["sx"] = ve[0]
             ers["sy"] = ve[1]
+            if self.nsd > 2:
+                ers["sz"] = ve[2]
+
         if self.mode == "stress" or self.mode == "r13":
             se = self.__calc_field_errors(
                 self.sol["p"], self.esol["p"],
@@ -1427,12 +1430,23 @@ class Solver:
                 ), "sigma"
             )
             ers = self.errors
-            ers["p"] = se[0]
-            ers["ux"] = ve[0]
-            ers["uy"] = ve[1]
-            ers["sigmaxx"] = te[0]
-            ers["sigmaxy"] = te[1]
-            ers["sigmayy"] = te[3]
+            if self.nsd == 2:
+                ers["p"] = se[0]
+                ers["ux"] = ve[0]
+                ers["uy"] = ve[1]
+                ers["sigmaxx"] = te[0]
+                ers["sigmaxy"] = te[1]
+                ers["sigmayy"] = te[3]
+            else:
+                ers["p"] = se[0]
+                ers["ux"] = ve[0]
+                ers["uy"] = ve[1]
+                ers["uz"] = ve[2]
+                ers["sigmaxx"] = te[0]
+                ers["sigmaxy"] = te[1]
+                ers["sigmaxz"] = te[2]
+                ers["sigmayy"] = te[4]
+                ers["sigmayz"] = te[5]
 
         return self.errors
 
