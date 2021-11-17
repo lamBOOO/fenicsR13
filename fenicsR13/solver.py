@@ -304,9 +304,14 @@ class Solver:
             elif self.var_ranks[var] == 1:
                 self.elems[var] = df.VectorElement(e, cell, deg)
             elif self.var_ranks[var] == 2:
-                self.elems[var] = df.TensorElement(
-                    e, cell, deg, symmetry={(0, 1): (1, 0)}
-                )
+                if self.nsd == 2:
+                    self.elems[var] = df.TensorElement(
+                        e, cell, deg, symmetry={(0, 1): (1, 0)}
+                    )
+                else :  #nsd =3 in this case
+                    self.elems[var] = df.TensorElement(
+                        e, cell, deg, symmetry={(0, 1): (1, 0), (2, 0): (0, 2), (1, 2): (2, 1), (0, 0): (2, 2)}
+                    )
             self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
 
         # Bundle elements per mode into `mxd_elems` dict
