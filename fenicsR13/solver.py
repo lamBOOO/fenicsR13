@@ -933,6 +933,7 @@ class Solver:
             w = self.mxd_fspaces["stress"]
         elif self.mode == "r13":
             w = self.mxd_fspaces["r13"]
+        deg = self.params["elements"]["sigma"]["degree"]
 
         print("Start assemble")
         sys.stdout.flush()
@@ -944,7 +945,7 @@ class Solver:
         self.write_content_to_file("assemble", secs)
         print("Finish assemble: {}".format(str(secs)))
         sys.stdout.flush()
-
+        preconditioner = "icc"
         print("Start solve")
         sys.stdout.flush()
         start_t = time_module.time()
@@ -978,12 +979,22 @@ class Solver:
         if self.mode == "heat":
             (self.sol["theta"], self.sol["s"]) = sol.split()
         elif self.mode == "stress":
-            (self.sol["p"], self.sol["u"], self.sol["sigma"]) = sol.split()
+            (self.sol["p"], self.sol["u"], dummy) = sol.split()
+            self.sol["sigma"] = df.project(
+                dummy, df.TensorFunctionSpace(
+                    self.mesh, "Lagrange", deg
+                )
+            )  # Projects the symmteric tensor onto full unsymmetric-tensor functionspace
         elif self.mode == "r13":
             (
                 self.sol["theta"], self.sol["s"],
-                self.sol["p"], self.sol["u"], self.sol["sigma"]
+                self.sol["p"], self.sol["u"], dummy
             ) = sol.split()
+            self.sol["sigma"] = df.project(
+                dummy, df.TensorFunctionSpace(
+                    self.mesh, "Lagrange", deg
+                )
+            )
 
         if self.mode == "stress" or self.mode == "r13":
             if self.rescale_p:
@@ -1379,7 +1390,7 @@ class Solver:
 
         """
         print("Calculate errors..")
-
+        deg = self.params["elements"]["sigma"]["degree"]
         self.__load_exact_solution()
 
         if self.mode == "heat" or self.mode == "r13":
@@ -1406,7 +1417,9 @@ class Solver:
             )
             te = self.__calc_field_errors(
                 self.sol["sigma"], self.esol["sigma"],
-                self.fspaces["sigma"], "sigma"
+                df.TensorFunctionSpace(
+                    self.mesh, "Lagrange", deg
+                ), "sigma"
             )
             ers = self.errors
             ers["p"] = se[0]
@@ -1414,7 +1427,7 @@ class Solver:
             ers["uy"] = ve[1]
             ers["sigmaxx"] = te[0]
             ers["sigmaxy"] = te[1]
-            ers["sigmayy"] = te[2]
+            ers["sigmayy"] = te[3]
 
         return self.errors
 
@@ -1586,26 +1599,6 @@ class Solver:
             self.output_folder + name + "_" + str(self.time) + ".xdmf"
         )
         with df.XDMFFile(self.mesh.mpi_comm(), fname_xdmf) as file:
-            for degree in range(5):  # test until degree five
-                # Writing symmetric tensors crashes.
-                # Therefore project symmetric tensor in nonsymmetric space
-                # This is only a temporary fix, see:
-                # https://fenicsproject.discourse.group/t/...
-                # ...writing-symmetric-tensor-function-fails/1136
-                el_symm = df.TensorElement(
-                    df.FiniteElement(
-                        "Lagrange", df.triangle, degree + 1
-                    ), symmetry={(0, 1): (1, 0)}
-                )  # symmetric tensor element
-                el_sol = field.ufl_function_space().ufl_element()
-                if el_sol == el_symm:
-                    # Remove symmetry with projection
-                    field = df.project(
-                        field, df.TensorFunctionSpace(
-                            self.mesh, "Lagrange", degree + 1
-                        )
-                    )
-                    break
 
             field.rename(name, name)
 
