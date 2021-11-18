@@ -88,6 +88,9 @@ class Solver:
         self.tau_momentum = self.params["stabilization"]["gls"]["tau_momentum"]
         self.tau_stress = self.params["stabilization"]["gls"]["tau_stress"]
 
+        self.solver_name = self.params["solver"]["solver_name"]
+        self.preconditioner = self.params["solver"]["preconditioner"]
+
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
         self.write_vecs = self.params["postprocessing"]["write_vecs"]
         self.massflow = self.params["postprocessing"]["massflow"]
@@ -108,6 +111,8 @@ class Solver:
                 self.bcs[edge_id][field] = self.__createMacroScaExpr(
                     self.bcs[edge_id][field]
                 )
+
+        self.polar_system = self.params["polar_coord_syst"]
 
         self.heat_source = self.__createMacroScaExpr(self.params["heat_source"])
         self.mass_source = self.__createMacroScaExpr(self.params["mass_source"])
@@ -584,6 +589,7 @@ class Solver:
         tau_momentum = df.Constant(self.tau_momentum)
         tau_stress = df.Constant(self.tau_stress)
 
+
         # Define custom measeasures for boundary edges and inner edges
         df.dx = df.Measure("dx", domain=mesh, subdomain_data=regions)
         df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
@@ -822,9 +828,12 @@ class Solver:
         v1 = {}
 
         if nsd == 2:
-
-            for bc in bcs.keys():
-                v1.update({bc: bcs[bc]["u_n_w"]*n_vec + bcs[bc]["u_t_w"]*t_vec1})
+            if self.polar_system == True: #Polar implementation
+                for bc in bcs.keys():
+                    v1.update({bc: bcs[bc]["u_n_w"]*n_vec + bcs[bc]["u_t_w"]*t_vec1})
+            else:  #Cartesian Implementation
+                for bc in bcs.keys():
+                    v1.update({bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"]])})
         else:
             for bc in bcs.keys():
                 v1.update({bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"], bcs[bc]["uz"]])})
@@ -948,6 +957,10 @@ class Solver:
 
         """
 
+        solver_name = self.solver_name
+        preconditioner = self.preconditioner
+
+
         if self.mode == "heat":
             w = self.mxd_fspaces["heat"]
         elif self.mode == "stress":
@@ -966,13 +979,13 @@ class Solver:
         self.write_content_to_file("assemble", secs)
         print("Finish assemble: {}".format(str(secs)))
         sys.stdout.flush()
-        preconditioner = "icc"
+
         print("Start solve")
         sys.stdout.flush()
         start_t = time_module.time()
         sol = df.Function(w)
         df.solve(
-            AA, sol.vector(), LL, "mumps", "none"
+            AA, sol.vector(), LL, solver_name, preconditioner
         )
         # TODO: Test this
         # # Create Krylov solver
@@ -1335,8 +1348,8 @@ class Solver:
         field_e_i = df.interpolate(field_e_, v_field)
         field_i = df.interpolate(field_, v_field)
 
-        difference = df.project(field_e_i - field_i, v_field)
-        self.__write_xdmf("difference_{}".format(name_), difference, False)
+       # difference = df.project(field_e_i - field_i, v_field)
+       # self.__write_xdmf("difference_{}".format(name_), difference, False)
 
         dofs = len(field_e_i.split()) or 1
 

@@ -247,6 +247,11 @@ class Input:
                     }
                 }
             },
+            "polar_coord_syst": {
+                "type": "boolean",
+                "required": True,
+
+            },
             "bcs": {
                 "type": "dict",
                 "required": True,
@@ -304,10 +309,26 @@ class Input:
                 "anyof": [{"type": "string"}, {"type": "float"}],
                 "required": True,
             },
+
             "body_force": {
                 "type": "list",
                 "required": True,
                 "schema": {"anyof": [{"type": "string"}, {"type": "float"}]}
+            },
+            "solver": {
+                "type": "dict",
+                "required": True,
+                "schema": {
+                    "solver_name": {
+                        "type": "string",
+                        "required": True,
+                    },
+                    "preconditioner": {
+                        "type": "string",
+                        "required": False,
+                    }
+
+                }
             },
             "postprocessing": {
                 "type": "dict",
