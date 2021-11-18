@@ -819,6 +819,18 @@ class Solver:
                 )  # stress
             ) * df.dx(reg) for reg in regs.keys()])
 
+        v1 = {}
+
+        if nsd == 2:
+
+            for bc in bcs.keys():
+                v1.update({bc: bcs[bc]["u_n_w"]*n_vec + bcs[bc]["u_t_w"]*t_vec1})
+        else:
+            for bc in bcs.keys():
+                v1.update({bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"], bcs[bc]["uz"]])})
+
+
+
         # Setup all equations
         A = [None] * 5
         L = [None] * 5
@@ -831,22 +843,26 @@ class Solver:
         A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
         # 2) Right-hand sides, linear functional L[..]:
         # TODO: Create subfunctionals l_1 to l_5 as in article
+
+
+
         L[0] = - sum([(
             bcs[bc]["theta_w"] * n(r)
         ) * df.ds(bc) for bc in bcs.keys()])
         # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
         L[1] = (f_heat - f_mass) * kappa * df.dx
         L[2] = - sum([(
-            + bcs[bc]["u_t_w"] * nt1(psi)
+            + t1(v1[bc]) * nt1(psi)
+            + t2(v1[bc]) * nt2(psi)
             + (
-                + bcs[bc]["u_n_w"]
+                + n(v1[bc])
                 - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
             ) * nn(psi)
         ) * df.ds(bc) for bc in bcs.keys()])
         L[3] = + df.dot(f_body, v) * df.dx
         L[4] = + (f_mass * q) * df.dx - sum([(
             (
-                + bcs[bc]["u_n_w"]
+                + n(v1[bc])
                 - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
             ) * q
         ) * df.ds(bc) for bc in bcs.keys()])

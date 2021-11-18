@@ -287,7 +287,7 @@ class Input:
                         },
                         "p_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
-                            "required": False
+                            "required": True
                         },
                         "epsilon_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
