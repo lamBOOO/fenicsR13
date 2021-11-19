@@ -276,7 +276,7 @@ class Solver:
                 R=R
             )
         else:
-            raise Exception("Only 2d body force allowed")
+            return df.Expression(cpp_strings, degree=2) #TODO wrtie it properly for 3D
 
     def __setup_function_spaces(self):
         """
@@ -642,11 +642,12 @@ class Solver:
 
         # Setup normal/tangential projections
         # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
-        n_vec = df.FacetNormal(mesh)
-        t_vec1 = ufl.perp(n_vec)
-        t_vec2 = df.as_vector([0, 0]) # the second tangent is zeroed.
 
-        if nsd > 2: #defnining normals and tangents for 3D case
+        if nsd == 2:
+            n_vec = df.FacetNormal(mesh)
+            t_vec1 = ufl.perp(n_vec)
+            t_vec2 = df.as_vector([0, 0]) # the second tangent is zeroed.
+        else: #defnining normals and tangents for 3D case
             n_vec, t_vec1, t_vec2 = self.normal()
 
         def n(rank1):
@@ -674,7 +675,7 @@ class Solver:
             return df.dot(rank2 * t_vec1, t_vec2)
 
 
-
+        switch = np.floor(nsd/3) - 1 #returns 0 if 3D and -1 if 2D
         # Sub functionals:
         # 1) Diagonals:
         def a(s, r):
@@ -685,7 +686,7 @@ class Solver:
                 + 24 / 25 * regs[reg]["kn"] * df.inner(
                     df.sym(df.grad(s)), df.sym(df.grad(r))
                 )
-                - 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
+                +switch * 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
                 # For Delta-term, works for R13 but fails for heat:
                 + 4 / 5 * cpl * regs[reg]["kn"] * df.div(s) * df.div(r)
                 + 4 / 15 * (1 / regs[reg]["kn"]) * df.inner(s, r)
@@ -1015,7 +1016,7 @@ class Solver:
         elif self.mode == "stress":
             (self.sol["p"], self.sol["u"], dummy) = sol.split()
             if self.nsd == 3: #necessary post-processing in 3D
-                dummy = to.maketf3d(dummy)
+                dummy = to.maketf3D(dummy)
             self.sol["sigma"] = df.project(
                 dummy, df.TensorFunctionSpace(
                     self.mesh, "Lagrange", deg
@@ -1027,7 +1028,7 @@ class Solver:
                 self.sol["p"], self.sol["u"], dummy
             ) = sol.split()
             if self.nsd == 3: #necessary post-processing in 3D
-                dummy = to.maketf3d(dummy)
+                dummy = to.maketf3D(dummy)
             self.sol["sigma"] = df.project(
                 dummy, df.TensorFunctionSpace(
                     self.mesh, "Lagrange", deg
