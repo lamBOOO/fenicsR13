@@ -1014,6 +1014,8 @@ class Solver:
             (self.sol["theta"], self.sol["s"]) = sol.split()
         elif self.mode == "stress":
             (self.sol["p"], self.sol["u"], dummy) = sol.split()
+            if self.nsd == 3: #necessary post-processing in 3D
+                dummy = to.maketf3d(dummy)
             self.sol["sigma"] = df.project(
                 dummy, df.TensorFunctionSpace(
                     self.mesh, "Lagrange", deg
@@ -1024,6 +1026,8 @@ class Solver:
                 self.sol["theta"], self.sol["s"],
                 self.sol["p"], self.sol["u"], dummy
             ) = sol.split()
+            if self.nsd == 3: #necessary post-processing in 3D
+                dummy = to.maketf3d(dummy)
             self.sol["sigma"] = df.project(
                 dummy, df.TensorFunctionSpace(
                     self.mesh, "Lagrange", deg
@@ -1297,6 +1301,8 @@ class Solver:
         """
         v = scalar_function.compute_vertex_values()
         mean = np.mean(v)
+        print("The mean pressure value is",mean)
+
         return mean
 
     def __calc_field_errors(self, field_, field_e_, v_field, name_):
@@ -1355,7 +1361,7 @@ class Solver:
 
         if dofs == 1:
             # scalar
-            errs_f_L2 = [df.errornorm(field_e_i, field_i, "L2")]
+            errs_f_L2 = [df.errornorm(field_e_i, field_i, "L2", degree_rise=1)]
             errs_v_linf = [
                 np.max(
                     np.abs(
@@ -1367,7 +1373,7 @@ class Solver:
         else:
             # vector or tensor
             errs_f_L2 = [df.errornorm(
-                field_e_i.split()[i], field_i.split()[i], "L2"
+                field_e_i.split()[i], field_i.split()[i], "L2", degree_rise=1
             ) for i in range(dofs)]
             errs_v_linf = [
                 np.max(
@@ -1502,9 +1508,9 @@ class Solver:
         self.__write_solutions()
         if self.write_vecs:
             self.__write_vecs()
-        self.__write_parameters()
-        if self.write_systemmatrix:
-            self.__write_discrete_system()
+        #self.__write_parameters()
+        #if self.write_systemmatrix:
+            #self.__write_discrete_system()
 
     def __write_solutions(self):
         """Write all solutions fields."""
