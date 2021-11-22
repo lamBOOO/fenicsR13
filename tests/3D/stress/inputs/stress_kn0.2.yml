@@ -79,7 +79,15 @@ nsd: 3
 mode: stress
 heat_source: 0
 mass_source: 0
-body_force: [0,0]
+body_force: [0,0,0]
+
+#Solver Parameters
+#- Solver_type : Enter the solver name. (Use iterative solvers for 3D and linear solves for 2D)
+#- Preconditioner : Enter the preconditioner  ONLY relevant if an iterative solver is used
+
+solver:
+  solver_name: gmres
+  preconditioner : icc
 
 # Region Parameters
 # =================
@@ -102,6 +110,11 @@ regs:
 #     - u_n_w: Value for normal velocity at wall
 #     - p_w: Value for pressure at wall
 #     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
+#     -Specify the coordinate system in which the velocity boundary conditions are input-> Polar or Cartesian.
+#     -If the flag Polar coordinate system is set to False, then it is assumed that the system is solved in Cartesian.
+#     -Please input only the u_n_w and u_t_w for polar and ux,uy and uz for Cartesian
+#     -Polar coordinates is only supported in 2D.
+polar_coord_syst: False
 bcs:
   10000: # inner
     chi_tilde: 1.0
@@ -136,7 +149,6 @@ convergence_study:
   write_systemmatrix: False
   rescale_pressure: True
   relative_error: True
-  enable2: False #this enables the plotting of error norms with stab params
 
 # Postprocessing
 # ==============
@@ -163,5 +175,5 @@ postprocessing:
 # - parameter_values: List of value for parameter, e.g. [0.01,0.1,1,10]
 parameter_study:
   enable: False
-  parameter_key: ["stabilization","gls","tau_stress"]
-  parameter_values: [0.01,0.1]
+  parameter_key: []
+  parameter_values: []

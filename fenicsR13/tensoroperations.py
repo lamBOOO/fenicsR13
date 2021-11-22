@@ -20,6 +20,18 @@ above 2.
 import dolfin as df
 import ufl
 
+def stf3D(sigma):
+
+    n = sigma.ufl_shape[0]
+
+    if n == 2:
+        return sigma
+    else:
+        return df.as_tensor([
+            [sigma[0, 0], sigma[0, 1], sigma[0, 2]],
+            [sigma[1, 0], sigma[1, 1], sigma[1, 2]],
+            [sigma[2, 0], sigma[2, 1], -sigma[0, 0] - sigma[1, 1]]])
+
 def maketf3D(sigma):
     """
     The stress variable in particular is converted into a symmetric and trace free tensor(both 2D and 3D)
@@ -33,10 +45,7 @@ def maketf3D(sigma):
 
     else:
         # n = 3
-        sigma1 = df.as_tensor([
-        [sigma[0, 0], sigma[0, 1], sigma[0, 2]],
-        [sigma[1,0], sigma[1,1], sigma[1,2]],
-        [sigma[2, 0], sigma[2, 1], -sigma[0, 0] - sigma[1, 1]]])
+        sigma1 = sigma
 
 
     return sigma1
@@ -289,7 +298,7 @@ def gen3d2(rank2_2d):
         return (rank2_2d)
 
 
-def grad3dOf2(rank2_3d):
+def grad3dOf2(rank2_3d,dim):
     r"""
     Return 3D gradient of 3D 2-tensor.
 
@@ -356,15 +365,14 @@ def grad3dOf2(rank2_3d):
                 0
             \end{pmatrix}
     """
-    n = rank2_3d[0, 2] + rank2_3d[1, 2] + rank2_3d[2, 1]
+    #n = rank2_3d[0, 2] + rank2_3d[1, 2] + rank2_3d[2, 1]
 
-    if n == 0: #2D
+    if dim == 2: #2D
         grad2d = df.grad(rank2_3d)
         dim3 = df.as_tensor([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
         grad3d = df.as_tensor([grad2d[:, :, 0], grad2d[:, :, 1], dim3[:, :]])
         return grad3d
 
     else:
-
         return df.grad(rank2_3d)
 

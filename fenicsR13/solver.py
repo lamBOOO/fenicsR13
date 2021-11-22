@@ -313,7 +313,7 @@ class Solver:
                     self.elems[var] = df.TensorElement(
                         e, cell, deg, symmetry={(0, 1): (1, 0)}
                     )
-                else :  #nsd =3 in this case
+                else:  #nsd =3 in this case
                     self.elems[var] = df.TensorElement(
                         e, cell, deg, symmetry={(0, 1): (1, 0), (2, 0): (0, 2), (1, 2): (2, 1), (0, 0): (2, 2)}
                     )
@@ -618,6 +618,8 @@ class Solver:
             (q, v, psi) = df.TestFunctions(w_stress)
 
 
+        sigma = to.stf3D(sigma)
+        psi = to.stf3D(psi)
 
         # Setup source functions
         f_heat = self.heat_source
@@ -703,8 +705,8 @@ class Solver:
             # 21/20+3/40=45/40=9/8
             return sum([(
                 + regs[reg]["kn"] * df.inner(
-                    to.stf3d3(to.grad3dOf2(to.maketf3D(si))),
-                    to.stf3d3(to.grad3dOf2(to.maketf3D(ps)))
+                    to.stf3d3(to.grad3dOf2(to.maketf3D(si), nsd)),
+                    to.stf3d3(to.grad3dOf2(to.maketf3D(ps), nsd))
                 )
                 + (1 / (2 * regs[reg]["kn"])) * df.inner(
                     to.maketf3D(si), to.maketf3D(ps)
@@ -814,13 +816,13 @@ class Solver:
                     cpl * (4 / 5) * to.maketf3D(df.grad(r))
                     + 2 * to.stf3d2(to.gen3d2(df.grad(v)))
                     - 2 * regs[reg]["kn"] * to.div3d3(
-                        to.stf3d3(to.grad3dOf2(to.maketf3D(psi)))
+                        to.stf3d3(to.grad3dOf2(to.maketf3D(psi), 2))
                     )
                     + (1 / regs[reg]["kn"]) * to.maketf3D(psi),
                     cpl * (4 / 5) * to.maketf3D(df.grad(s))
                     + 2 * to.stf3d2(to.gen3d2(df.grad(u)))
                     - 2 * regs[reg]["kn"] * to.div3d3(
-                        to.stf3d3(to.grad3dOf2(to.maketf3D(sigma)))
+                        to.stf3d3(to.grad3dOf2(to.maketf3D(sigma), 2))
                     )
                     + (1 / regs[reg]["kn"]) * to.maketf3D(sigma)
                 )  # stress
@@ -1015,24 +1017,23 @@ class Solver:
             (self.sol["theta"], self.sol["s"]) = sol.split()
         elif self.mode == "stress":
             (self.sol["p"], self.sol["u"], dummy) = sol.split()
-            if self.nsd == 3: #necessary post-processing in 3D
-                dummy = to.maketf3D(dummy)
+            dummy = to.stf3D(dummy)
             self.sol["sigma"] = df.project(
                 dummy, df.TensorFunctionSpace(
                     self.mesh, "Lagrange", deg
-                )
-            )  # Projects the symmteric tensor onto full unsymmetric-tensor functionspace
+                ), solver_type='gmres', preconditioner_type='icc'
+            )
+
         elif self.mode == "r13":
             (
                 self.sol["theta"], self.sol["s"],
                 self.sol["p"], self.sol["u"], dummy
             ) = sol.split()
-            if self.nsd == 3: #necessary post-processing in 3D
-                dummy = to.maketf3D(dummy)
+            dummy = to.stf3D(dummy)
             self.sol["sigma"] = df.project(
                 dummy, df.TensorFunctionSpace(
                     self.mesh, "Lagrange", deg
-                )
+                ), solver_type='gmres', preconditioner_type='icc'
             )
 
         if self.mode == "stress" or self.mode == "r13":
@@ -1430,7 +1431,9 @@ class Solver:
             dict -- Errors
 
         """
-        print("Calculate errors..")
+        cell = self.cell
+        msh = self.mesh
+        e = self.params["elements"]["sigma"]["shape"]
         deg = self.params["elements"]["sigma"]["degree"]
         self.__load_exact_solution()
 
@@ -1461,9 +1464,9 @@ class Solver:
             )
             te = self.__calc_field_errors(
                 self.sol["sigma"], self.esol["sigma"],
-                df.TensorFunctionSpace(
-                    self.mesh, "Lagrange", deg
-                ), "sigma"
+                df.FunctionSpace(msh, df.TensorElement(
+                    e, cell, deg))
+                , "sigma"
             )
             ers = self.errors
             if self.nsd == 2:
@@ -1483,6 +1486,8 @@ class Solver:
                 ers["sigmaxz"] = te[2]
                 ers["sigmayy"] = te[4]
                 ers["sigmayz"] = te[5]
+                ers["sigmazz"] = te[8]
+
 
         return self.errors
 
