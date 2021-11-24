@@ -223,7 +223,7 @@ class Input:
             "nsd": {
                 "type": "integer",
                 "required": True,
-                "allowed": [2]
+                "allowed": [2, 3]
             },
             "mode": {
                 "type": "string",
@@ -247,6 +247,11 @@ class Input:
                     }
                 }
             },
+            "polar_coord_syst": {
+                "type": "boolean",
+                "required": True,
+
+            },
             "bcs": {
                 "type": "dict",
                 "required": True,
@@ -267,11 +272,23 @@ class Input:
                         },
                         "u_t_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
-                            "required": True
+                            "required": False
                         },
                         "u_n_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
-                            "required": True
+                            "required": False
+                        },
+                        "ux": {
+                            "anyof": [{"type": "string"}, {"type": "float"}],
+                            "required": False
+                        },
+                        "uy": {
+                            "anyof": [{"type": "string"}, {"type": "float"}],
+                            "required": False
+                        },
+                        "uz": {
+                            "anyof": [{"type": "string"}, {"type": "float"}],
+                            "required": False
                         },
                         "p_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
@@ -292,10 +309,26 @@ class Input:
                 "anyof": [{"type": "string"}, {"type": "float"}],
                 "required": True,
             },
+
             "body_force": {
                 "type": "list",
                 "required": True,
                 "schema": {"anyof": [{"type": "string"}, {"type": "float"}]}
+            },
+            "solver": {
+                "type": "dict",
+                "required": True,
+                "schema": {
+                    "solver_name": {
+                        "type": "string",
+                        "required": True,
+                    },
+                    "preconditioner": {
+                        "type": "string",
+                        "required": False,
+                    }
+
+                }
             },
             "postprocessing": {
                 "type": "dict",
@@ -399,6 +432,10 @@ class Input:
                     "relative_error": {
                         "type": "boolean",
                         "required": True
+                    },
+                    "enable2": {
+                        "type": "boolean",
+                        "required": False
                     },
                 }
             },

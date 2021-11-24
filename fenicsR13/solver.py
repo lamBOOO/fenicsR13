@@ -70,7 +70,7 @@ class Solver:
         self.cell = self.mesh.ufl_cell()
         self.time = time
         self.mode = params["mode"]
-
+        self.nsd = params["nsd"]
         self.comm = df.MPI.comm_world
         self.rank = df.MPI.rank(self.comm)
 
@@ -87,6 +87,9 @@ class Solver:
         self.tau_mass = self.params["stabilization"]["gls"]["tau_mass"]
         self.tau_momentum = self.params["stabilization"]["gls"]["tau_momentum"]
         self.tau_stress = self.params["stabilization"]["gls"]["tau_stress"]
+
+        self.solver_name = self.params["solver"]["solver_name"]
+        self.preconditioner = self.params["solver"]["preconditioner"]
 
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
         self.write_vecs = self.params["postprocessing"]["write_vecs"]
@@ -108,6 +111,8 @@ class Solver:
                 self.bcs[edge_id][field] = self.__createMacroScaExpr(
                     self.bcs[edge_id][field]
                 )
+
+        self.polar_system = self.params["polar_coord_syst"]
 
         self.heat_source = self.__createMacroScaExpr(self.params["heat_source"])
         self.mass_source = self.__createMacroScaExpr(self.params["mass_source"])
@@ -271,7 +276,7 @@ class Solver:
                 R=R
             )
         else:
-            raise Exception("Only 2d body force allowed")
+            return df.Expression(cpp_strings, degree=2)
 
     def __setup_function_spaces(self):
         """
@@ -304,9 +309,14 @@ class Solver:
             elif self.var_ranks[var] == 1:
                 self.elems[var] = df.VectorElement(e, cell, deg)
             elif self.var_ranks[var] == 2:
-                self.elems[var] = df.TensorElement(
-                    e, cell, deg, symmetry={(0, 1): (1, 0)}
-                )
+                if self.nsd == 2:
+                    self.elems[var] = df.TensorElement(
+                        e, cell, deg, symmetry={(0, 1): (1, 0)}
+                    )
+                else:  # nsd =3 in this case
+                    self.elems[var] = df.TensorElement(
+                        e, cell, deg, symmetry={(0, 1): (1, 0), (2, 0): (0, 2), (1, 2): (2, 1), (0, 0): (2, 2)}
+                    )
             self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
 
         # Bundle elements per mode into `mxd_elems` dict
@@ -355,6 +365,15 @@ class Solver:
         for edge_id in boundary_ids:
             if edge_id not in [0] + bcs_specified:  # inner zero allowed
                 raise Exception("Mesh edge {} has no bcs!".format(edge_id))
+
+    def normal(self):
+        mesh1 = self.mesh
+        v1 = df.as_vector([1.0, 0, 0])
+        v2 = df.as_vector([0, 1, 0])
+        n_vec = df.FacetNormal(mesh1)
+        t1 = df.conditional(df.gt(abs(n_vec[0]), np.finfo(float).eps), df.cross(n_vec, v2/df.sqrt(n_vec[0]**2+n_vec[2]**2)), df.cross(n_vec, v1/df.sqrt(n_vec[1]**2+n_vec[2]**2)))
+        t2 = df.cross(n_vec, t1)
+        return n_vec, t1, t2
 
     def assemble(self):
         r"""
@@ -556,6 +575,7 @@ class Solver:
         # Get local variables
         mesh = self.mesh
         regions = self.regions
+        nsd = self.nsd
         regs = self.regs
         boundaries = self.boundaries
         bcs = self.bcs
@@ -595,6 +615,9 @@ class Solver:
             (p, u, sigma) = df.TrialFunctions(w_stress)
             (q, v, psi) = df.TestFunctions(w_stress)
 
+        sigma = to.stf3D(sigma)
+        psi = to.stf3D(psi)
+
         # Setup source functions
         f_heat = self.heat_source
         f_mass = self.mass_source
@@ -618,26 +641,45 @@ class Solver:
 
         # Setup normal/tangential projections
         # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
-        n_vec = df.FacetNormal(mesh)
-        t_vec = ufl.perp(n_vec)
+
+        if nsd == 2:
+            n_vec = df.FacetNormal(mesh)
+            t_vec1 = ufl.perp(n_vec)
+            t_vec2 = df.as_vector([0, 0])  # the second tangent is zeroed.
+        else:  # defnining normals and tangents for 3D case
+            n_vec, t_vec1, t_vec2 = self.normal()
 
         def n(rank1):
             return df.dot(rank1, n_vec)
 
-        def t(rank1):
-            return df.dot(rank1, t_vec)
+        def t1(rank1):
+            return df.dot(rank1, t_vec1)
+
+        def t2(rank1):
+            return df.dot(rank1, t_vec2)
 
         def nn(rank2):
             return df.dot(rank2 * n_vec, n_vec)
 
-        def tt(rank2):
-            return df.dot(rank2 * t_vec, t_vec)
+        def t1t1(rank2):
+            return df.dot(rank2 * t_vec1, t_vec1)
 
-        def nt(rank2):
-            return df.dot(rank2 * n_vec, t_vec)
+        def nt1(rank2):
+            return df.dot(rank2 * n_vec, t_vec1)
 
+        def nt2(rank2):
+            return df.dot(rank2 * n_vec, t_vec2)
+
+        def t1t2(rank2):
+            return df.dot(rank2 * t_vec1, t_vec2)
+
+        if self.mode == "heat" and nsd == 3:
+            switch = 0
+        else:
+            switch = 1
         # Sub functionals:
         # 1) Diagonals:
+
         def a(s, r):
             # Notes:
             # 4/5-24/75 = (60-24)/75 = 36/75 = 12/25
@@ -646,14 +688,16 @@ class Solver:
                 + 24 / 25 * regs[reg]["kn"] * df.inner(
                     df.sym(df.grad(s)), df.sym(df.grad(r))
                 )
-                - 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
+                - switch * 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
                 # For Delta-term, works for R13 but fails for heat:
                 + 4 / 5 * cpl * regs[reg]["kn"] * df.div(s) * df.div(r)
                 + 4 / 15 * (1 / regs[reg]["kn"]) * df.inner(s, r)
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + 1 / (2 * bcs[bc]["chi_tilde"]) * n(s) * n(r)
-                + 11 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
-                + cpl * 1 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
+                + 11 / 25 * bcs[bc]["chi_tilde"] * t1(s) * t1(r)
+                + cpl * 1 / 25 * bcs[bc]["chi_tilde"] * t1(s) * t1(r)
+                + 11 / 25 * bcs[bc]["chi_tilde"] * t2(s) * t2(r)
+                + cpl * 1 / 25 * bcs[bc]["chi_tilde"] * t2(s) * t2(r)
             ) * df.ds(bc) for bc in bcs.keys()])
 
         def d(si, ps):
@@ -661,21 +705,23 @@ class Solver:
             # 21/20+3/40=45/40=9/8
             return sum([(
                 + regs[reg]["kn"] * df.inner(
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(si))),
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(ps)))
+                    to.stf3d3(to.grad3dOf2(to.maketf3D(si), nsd)),
+                    to.stf3d3(to.grad3dOf2(to.maketf3D(ps), nsd))
                 )
                 + (1 / (2 * regs[reg]["kn"])) * df.inner(
-                    to.gen3dTF2(si), to.gen3dTF2(ps)
+                    to.maketf3D(si), to.maketf3D(ps)
                 )
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + bcs[bc]["chi_tilde"] * 21 / 20 * nn(si) * nn(ps)
                 + bcs[bc]["chi_tilde"] * cpl * 3 / 40 * nn(si) * nn(ps)
                 + bcs[bc]["chi_tilde"] * (
-                    (tt(si) + (1 / 2) * nn(si)) *
-                    (tt(ps) + (1 / 2) * nn(ps))
+                    (t1t1(si) + (1 / 2) * nn(si)) *
+                    (t1t1(ps) + (1 / 2) * nn(ps))
                 )
-                + (1 / bcs[bc]["chi_tilde"]) * nt(si) * nt(ps)
+                + (1 / bcs[bc]["chi_tilde"]) * nt1(si) * nt1(ps)
+                + (1 / bcs[bc]["chi_tilde"]) * nt2(si) * nt2(ps)
                 + bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * nn(si) * nn(ps)
+                + bcs[bc]["chi_tilde"] * t1t2(si) * t1t2(ps)
             ) * df.ds(bc) for bc in bcs.keys()])
 
         def h(p, q):
@@ -694,7 +740,8 @@ class Solver:
                 2 / 5 * df.inner(si, df.grad(r))
             ) * df.dx(reg) for reg in regs.keys()]) - sum([(
                 3 / 20 * nn(si) * n(r)
-                + 1 / 5 * nt(si) * t(r)
+                + 1 / 5 * nt1(si) * t1(r)
+                + 1 / 5 * nt2(si) * t2(r)
             ) * df.ds(bc) for bc in bcs.keys()]))
 
         def e(u, ps):
@@ -766,21 +813,33 @@ class Solver:
                 )  # momentum
                 + tau_stress * h_msh**1.5 *
                 df.inner(
-                    cpl * (4 / 5) * to.gen3dTF2(df.grad(r))
+                    cpl * (4 / 5) * to.maketf3D(df.grad(r))
                     + 2 * to.stf3d2(to.gen3d2(df.grad(v)))
                     - 2 * regs[reg]["kn"] * to.div3d3(
-                        to.stf3d3(to.grad3dOf2(to.gen3dTF2(psi)))
+                        to.stf3d3(to.grad3dOf2(to.maketf3D(psi), 2))
                     )
-                    + (1 / regs[reg]["kn"]) * to.gen3dTF2(psi),
-                    cpl * (4 / 5) * to.gen3dTF2(df.grad(s))
+                    + (1 / regs[reg]["kn"]) * to.maketf3D(psi),
+                    cpl * (4 / 5) * to.maketf3D(df.grad(s))
                     + 2 * to.stf3d2(to.gen3d2(df.grad(u)))
                     - 2 * regs[reg]["kn"] * to.div3d3(
-                        to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma)))
+                        to.stf3d3(to.grad3dOf2(to.maketf3D(sigma), 2))
                     )
-                    + (1 / regs[reg]["kn"]) * to.gen3dTF2(sigma)
+                    + (1 / regs[reg]["kn"]) * to.maketf3D(sigma)
                 )  # stress
             ) * df.dx(reg) for reg in regs.keys()])
 
+        v1 = {}
+
+        if nsd == 2:
+            if self.polar_system is True:  # Polar implementation
+                for bc in bcs.keys():
+                    v1.update({bc: bcs[bc]["u_n_w"]*n_vec + bcs[bc]["u_t_w"]*t_vec1})
+            else:   # Cartesian Implementation
+                for bc in bcs.keys():
+                    v1.update({bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"]])})
+        else:
+            for bc in bcs.keys():
+                v1.update({bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"], bcs[bc]["uz"]])})
         # Setup all equations
         A = [None] * 5
         L = [None] * 5
@@ -793,22 +852,24 @@ class Solver:
         A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
         # 2) Right-hand sides, linear functional L[..]:
         # TODO: Create subfunctionals l_1 to l_5 as in article
+
         L[0] = - sum([(
             bcs[bc]["theta_w"] * n(r)
         ) * df.ds(bc) for bc in bcs.keys()])
         # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
         L[1] = (f_heat - f_mass) * kappa * df.dx
         L[2] = - sum([(
-            + bcs[bc]["u_t_w"] * nt(psi)
+            + t1(v1[bc]) * nt1(psi)
+            + t2(v1[bc]) * nt2(psi)
             + (
-                + bcs[bc]["u_n_w"]
+                + n(v1[bc])
                 - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
             ) * nn(psi)
         ) * df.ds(bc) for bc in bcs.keys()])
         L[3] = + df.dot(f_body, v) * df.dx
         L[4] = + (f_mass * q) * df.dx - sum([(
             (
-                + bcs[bc]["u_n_w"]
+                + n(v1[bc])
                 - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
             ) * q
         ) * df.ds(bc) for bc in bcs.keys()])
@@ -894,12 +955,16 @@ class Solver:
 
         """
 
+        solver_name = self.solver_name
+        preconditioner = self.preconditioner
+
         if self.mode == "heat":
             w = self.mxd_fspaces["heat"]
         elif self.mode == "stress":
             w = self.mxd_fspaces["stress"]
         elif self.mode == "r13":
             w = self.mxd_fspaces["r13"]
+        deg = self.params["elements"]["sigma"]["degree"]
 
         print("Start assemble")
         sys.stdout.flush()
@@ -917,7 +982,7 @@ class Solver:
         start_t = time_module.time()
         sol = df.Function(w)
         df.solve(
-            AA, sol.vector(), LL, "mumps", "none"
+            AA, sol.vector(), LL, solver_name, preconditioner
         )
         # TODO: Test this
         # # Create Krylov solver
@@ -945,12 +1010,25 @@ class Solver:
         if self.mode == "heat":
             (self.sol["theta"], self.sol["s"]) = sol.split()
         elif self.mode == "stress":
-            (self.sol["p"], self.sol["u"], self.sol["sigma"]) = sol.split()
+            (self.sol["p"], self.sol["u"], dummy) = sol.split()
+            dummy = to.stf3D(dummy)
+            self.sol["sigma"] = df.project(
+                dummy, df.TensorFunctionSpace(
+                    self.mesh, "Lagrange", deg
+                ), solver_type='gmres', preconditioner_type='icc'
+            )
+
         elif self.mode == "r13":
             (
                 self.sol["theta"], self.sol["s"],
-                self.sol["p"], self.sol["u"], self.sol["sigma"]
+                self.sol["p"], self.sol["u"], dummy
             ) = sol.split()
+            dummy = to.stf3D(dummy)
+            self.sol["sigma"] = df.project(
+                dummy, df.TensorFunctionSpace(
+                    self.mesh, "Lagrange", deg
+                ), solver_type='gmres', preconditioner_type='icc'
+            )
 
         if self.mode == "stress" or self.mode == "r13":
             if self.rescale_p:
@@ -1219,6 +1297,8 @@ class Solver:
         """
         v = scalar_function.compute_vertex_values()
         mean = np.mean(v)
+        print("The mean pressure value is", mean)
+
         return mean
 
     def __calc_field_errors(self, field_, field_e_, v_field, name_):
@@ -1270,14 +1350,14 @@ class Solver:
         field_e_i = df.interpolate(field_e_, v_field)
         field_i = df.interpolate(field_, v_field)
 
-        difference = df.project(field_e_i - field_i, v_field)
-        self.__write_xdmf("difference_{}".format(name_), difference, False)
+    # difference = df.project(field_e_i - field_i, v_field)
+    # self.__write_xdmf("difference_{}".format(name_), difference, False)
 
         dofs = len(field_e_i.split()) or 1
 
         if dofs == 1:
             # scalar
-            errs_f_L2 = [df.errornorm(field_e_i, field_i, "L2")]
+            errs_f_L2 = [df.errornorm(field_e_i, field_i, "L2", degree_rise=1)]
             errs_v_linf = [
                 np.max(
                     np.abs(
@@ -1289,7 +1369,7 @@ class Solver:
         else:
             # vector or tensor
             errs_f_L2 = [df.errornorm(
-                field_e_i.split()[i], field_i.split()[i], "L2"
+                field_e_i.split()[i], field_i.split()[i], "L2", degree_rise=1
             ) for i in range(dofs)]
             errs_v_linf = [
                 np.max(
@@ -1345,8 +1425,10 @@ class Solver:
             dict -- Errors
 
         """
-        print("Calculate errors..")
-
+        cell = self.cell
+        msh = self.mesh
+        e = self.params["elements"]["sigma"]["shape"]
+        deg = self.params["elements"]["sigma"]["degree"]
         self.__load_exact_solution()
 
         if self.mode == "heat" or self.mode == "r13":
@@ -1362,6 +1444,9 @@ class Solver:
             ers["theta"] = se[0]
             ers["sx"] = ve[0]
             ers["sy"] = ve[1]
+            if self.nsd > 2:
+                ers["sz"] = ve[2]
+
         if self.mode == "stress" or self.mode == "r13":
             se = self.__calc_field_errors(
                 self.sol["p"], self.esol["p"],
@@ -1373,15 +1458,27 @@ class Solver:
             )
             te = self.__calc_field_errors(
                 self.sol["sigma"], self.esol["sigma"],
-                self.fspaces["sigma"], "sigma"
+                df.FunctionSpace(msh, df.TensorElement(
+                    e, cell, deg)), "sigma"
             )
             ers = self.errors
-            ers["p"] = se[0]
-            ers["ux"] = ve[0]
-            ers["uy"] = ve[1]
-            ers["sigmaxx"] = te[0]
-            ers["sigmaxy"] = te[1]
-            ers["sigmayy"] = te[2]
+            if self.nsd == 2:
+                ers["p"] = se[0]
+                ers["ux"] = ve[0]
+                ers["uy"] = ve[1]
+                ers["sigmaxx"] = te[0]
+                ers["sigmaxy"] = te[1]
+                ers["sigmayy"] = te[3]
+            else:
+                ers["p"] = se[0]
+                ers["ux"] = ve[0]
+                ers["uy"] = ve[1]
+                ers["uz"] = ve[2]
+                ers["sigmaxx"] = te[0]
+                ers["sigmaxy"] = te[1]
+                ers["sigmaxz"] = te[2]
+                ers["sigmayy"] = te[4]
+                ers["sigmayz"] = te[5]
 
         return self.errors
 
@@ -1408,9 +1505,9 @@ class Solver:
         self.__write_solutions()
         if self.write_vecs:
             self.__write_vecs()
-        self.__write_parameters()
-        if self.write_systemmatrix:
-            self.__write_discrete_system()
+        # self.__write_parameters()
+        # if self.write_systemmatrix:
+            # self.__write_discrete_system()
 
     def __write_solutions(self):
         """Write all solutions fields."""
@@ -1553,26 +1650,6 @@ class Solver:
             self.output_folder + name + "_" + str(self.time) + ".xdmf"
         )
         with df.XDMFFile(self.mesh.mpi_comm(), fname_xdmf) as file:
-            for degree in range(5):  # test until degree five
-                # Writing symmetric tensors crashes.
-                # Therefore project symmetric tensor in nonsymmetric space
-                # This is only a temporary fix, see:
-                # https://fenicsproject.discourse.group/t/...
-                # ...writing-symmetric-tensor-function-fails/1136
-                el_symm = df.TensorElement(
-                    df.FiniteElement(
-                        "Lagrange", df.triangle, degree + 1
-                    ), symmetry={(0, 1): (1, 0)}
-                )  # symmetric tensor element
-                el_sol = field.ufl_function_space().ufl_element()
-                if el_sol == el_symm:
-                    # Remove symmetry with projection
-                    field = df.project(
-                        field, df.TensorFunctionSpace(
-                            self.mesh, "Lagrange", degree + 1
-                        )
-                    )
-                    break
 
             field.rename(name, name)
 

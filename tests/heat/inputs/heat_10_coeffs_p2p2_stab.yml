@@ -79,6 +79,14 @@ heat_source: 2.0 - 1.0 * pow(sqrt(pow(x[0],2)+pow(x[1],2)),2)
 mass_source: 0
 body_force: [0,0]
 
+#Solver Parameters
+#- Solver_type : Enter the solver name. (Use iterative solvers for 3D and linear solves for 2D)
+#- Preconditioner : Enter the preconditioner  ONLY relevant if an iterative solver is used
+
+solver:
+  solver_name: mumps
+  preconditioner : none
+
 # Region Parameters
 # =================
 # - regs: Dictionary of all mesh regions
@@ -98,6 +106,11 @@ regs:
 #     - u_n_w: Value for normal velocity at wall
 #     - p_w: Value for pressure at wall
 #     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
+#     -Specify the coordinate system in which the velocity boundary conditions are input-> Polar or Cartesian.
+#     -If the flag Polar coordinate system is set to False, then it is assumed that the system is solved in Cartesian.
+#     -Please input only the u_n_w and u_t_w for polar and ux,uy and uz for Cartesian
+#     -Polar coordinates is only supported in 2D.
+polar_coord_syst: True
 bcs:
   3000:
     chi_tilde: 1.0

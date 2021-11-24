@@ -54,3 +54,6 @@ examples/**/*.pdf
 
 # Ignore pip folder
 *egg-info/*
+
+# Ignore venv files
+venv
