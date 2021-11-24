@@ -840,9 +840,6 @@ class Solver:
         else:
             for bc in bcs.keys():
                 v1.update({bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"], bcs[bc]["uz"]])})
-
-
-
         # Setup all equations
         A = [None] * 5
         L = [None] * 5
