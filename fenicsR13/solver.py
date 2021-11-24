@@ -276,7 +276,7 @@ class Solver:
                 R=R
             )
         else:
-            return df.Expression(cpp_strings, degree=2)  # TODO write it properly for 3D
+            return df.Expression(cpp_strings, degree=2)
 
     def __setup_function_spaces(self):
         """

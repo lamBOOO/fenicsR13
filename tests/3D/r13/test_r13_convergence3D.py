@@ -73,5 +73,3 @@ class TestR13Convergence(object):
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
-
-
