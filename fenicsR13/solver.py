@@ -1486,7 +1486,6 @@ class Solver:
                 ers["sigmaxz"] = te[2]
                 ers["sigmayy"] = te[4]
                 ers["sigmayz"] = te[5]
-                ers["sigmazz"] = te[8]
 
 
         return self.errors
