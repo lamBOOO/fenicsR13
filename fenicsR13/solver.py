@@ -276,7 +276,7 @@ class Solver:
                 R=R
             )
         else:
-            return df.Expression(cpp_strings, degree=2) #TODO wrtie it properly for 3D
+            return df.Expression(cpp_strings, degree=2)  # TODO write it properly for 3D
 
     def __setup_function_spaces(self):
         """
@@ -313,7 +313,7 @@ class Solver:
                     self.elems[var] = df.TensorElement(
                         e, cell, deg, symmetry={(0, 1): (1, 0)}
                     )
-                else:  #nsd =3 in this case
+                else:  # nsd =3 in this case
                     self.elems[var] = df.TensorElement(
                         e, cell, deg, symmetry={(0, 1): (1, 0), (2, 0): (0, 2), (1, 2): (2, 1), (0, 0): (2, 2)}
                     )
@@ -367,14 +367,13 @@ class Solver:
                 raise Exception("Mesh edge {} has no bcs!".format(edge_id))
 
     def normal(self):
-        mesh1 =self.mesh
+        mesh1 = self.mesh
         v1 = df.as_vector([1.0, 0, 0])
         v2 = df.as_vector([0, 1, 0])
         n_vec = df.FacetNormal(mesh1)
-        # t1=df.cross(n_vec,v)#I am not sure whther we have to convert that to as_vector
-        t1 = df.conditional(df.gt(abs(n_vec[0]),np.finfo(float).eps), df.cross(n_vec, v2/df.sqrt(n_vec[0]**2+n_vec[2]**2)), df.cross(n_vec, v1/df.sqrt(n_vec[1]**2+n_vec[2]**2)))
+        t1 = df.conditional(df.gt(abs(n_vec[0]), np.finfo(float).eps), df.cross(n_vec, v2/df.sqrt(n_vec[0]**2+n_vec[2]**2)), df.cross(n_vec, v1/df.sqrt(n_vec[1]**2+n_vec[2]**2)))
         t2 = df.cross(n_vec, t1)
-        return n_vec,t1,t2
+        return n_vec, t1, t2
 
     def assemble(self):
         r"""
@@ -589,7 +588,6 @@ class Solver:
         tau_momentum = df.Constant(self.tau_momentum)
         tau_stress = df.Constant(self.tau_stress)
 
-
         # Define custom measeasures for boundary edges and inner edges
         df.dx = df.Measure("dx", domain=mesh, subdomain_data=regions)
         df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
@@ -616,7 +614,6 @@ class Solver:
             (kappa, r) = df.TestFunctions(w_heat)
             (p, u, sigma) = df.TrialFunctions(w_stress)
             (q, v, psi) = df.TestFunctions(w_stress)
-
 
         sigma = to.stf3D(sigma)
         psi = to.stf3D(psi)
@@ -648,8 +645,8 @@ class Solver:
         if nsd == 2:
             n_vec = df.FacetNormal(mesh)
             t_vec1 = ufl.perp(n_vec)
-            t_vec2 = df.as_vector([0, 0]) # the second tangent is zeroed.
-        else: #defnining normals and tangents for 3D case
+            t_vec2 = df.as_vector([0, 0])  # the second tangent is zeroed.
+        else:  # defnining normals and tangents for 3D case
             n_vec, t_vec1, t_vec2 = self.normal()
 
         def n(rank1):
@@ -676,10 +673,13 @@ class Solver:
         def t1t2(rank2):
             return df.dot(rank2 * t_vec1, t_vec2)
 
-
-        switch = np.floor(nsd/3) - 1 #returns 0 if 3D and -1 if 2D
+        if self.mode == "heat" and nsd == 3:
+            switch = 0
+        else:
+            switch = 1
         # Sub functionals:
         # 1) Diagonals:
+
         def a(s, r):
             # Notes:
             # 4/5-24/75 = (60-24)/75 = 36/75 = 12/25
@@ -688,7 +688,7 @@ class Solver:
                 + 24 / 25 * regs[reg]["kn"] * df.inner(
                     df.sym(df.grad(s)), df.sym(df.grad(r))
                 )
-                +switch * 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
+                - switch * 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
                 # For Delta-term, works for R13 but fails for heat:
                 + 4 / 5 * cpl * regs[reg]["kn"] * df.div(s) * df.div(r)
                 + 4 / 15 * (1 / regs[reg]["kn"]) * df.inner(s, r)
@@ -831,10 +831,10 @@ class Solver:
         v1 = {}
 
         if nsd == 2:
-            if self.polar_system == True: #Polar implementation
+            if self.polar_system is True:  # Polar implementation
                 for bc in bcs.keys():
                     v1.update({bc: bcs[bc]["u_n_w"]*n_vec + bcs[bc]["u_t_w"]*t_vec1})
-            else:  #Cartesian Implementation
+            else:   # Cartesian Implementation
                 for bc in bcs.keys():
                     v1.update({bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"]])})
         else:
@@ -855,8 +855,6 @@ class Solver:
         A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
         # 2) Right-hand sides, linear functional L[..]:
         # TODO: Create subfunctionals l_1 to l_5 as in article
-
-
 
         L[0] = - sum([(
             bcs[bc]["theta_w"] * n(r)
@@ -962,7 +960,6 @@ class Solver:
 
         solver_name = self.solver_name
         preconditioner = self.preconditioner
-
 
         if self.mode == "heat":
             w = self.mxd_fspaces["heat"]
@@ -1303,7 +1300,7 @@ class Solver:
         """
         v = scalar_function.compute_vertex_values()
         mean = np.mean(v)
-        print("The mean pressure value is",mean)
+        print("The mean pressure value is", mean)
 
         return mean
 
@@ -1356,8 +1353,8 @@ class Solver:
         field_e_i = df.interpolate(field_e_, v_field)
         field_i = df.interpolate(field_, v_field)
 
-       # difference = df.project(field_e_i - field_i, v_field)
-       # self.__write_xdmf("difference_{}".format(name_), difference, False)
+    # difference = df.project(field_e_i - field_i, v_field)
+    # self.__write_xdmf("difference_{}".format(name_), difference, False)
 
         dofs = len(field_e_i.split()) or 1
 
@@ -1465,8 +1462,7 @@ class Solver:
             te = self.__calc_field_errors(
                 self.sol["sigma"], self.esol["sigma"],
                 df.FunctionSpace(msh, df.TensorElement(
-                    e, cell, deg))
-                , "sigma"
+                    e, cell, deg)), "sigma"
             )
             ers = self.errors
             if self.nsd == 2:
@@ -1486,7 +1482,6 @@ class Solver:
                 ers["sigmaxz"] = te[2]
                 ers["sigmayy"] = te[4]
                 ers["sigmayz"] = te[5]
-
 
         return self.errors
 
@@ -1513,9 +1508,9 @@ class Solver:
         self.__write_solutions()
         if self.write_vecs:
             self.__write_vecs()
-        #self.__write_parameters()
-        #if self.write_systemmatrix:
-            #self.__write_discrete_system()
+        # self.__write_parameters()
+        # if self.write_systemmatrix:
+            # self.__write_discrete_system()
 
     def __write_solutions(self):
         """Write all solutions fields."""
