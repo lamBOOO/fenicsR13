@@ -43,7 +43,7 @@ class TestHeatConvergence(object):
             ], cwd=self.working_dir)
         """
         print(subprocess.check_output([
-            "numdiff", "-s", "\"\n\r ,\"", "-a", "1E-10",
+            "numdiff", "-s", "\"\n\r ,\"", "-a", "1E-6",
             errorsfile, ref_errorsfile
         ], cwd=self.working_dir))
 
