@@ -76,23 +76,3 @@ class TestStressConvergence(object):
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
-
-    def test_stress_kn0_005(self):
-        r"""
-        Execute decoupled heat system test and check with reference errors.
-
-        ========================= =============================================
-        Parameter     Value
-        ========================= =============================================
-        :math:`Kn`                :math:`0.1`
-        :math:`f_{\mathrm{mass}}` :math:`0`
-        :math:`v_t^1`             :math:`10.0`
-        Elements                  :math:`P_1P_1P_1`
-        Stabilization             CIP, :math:`\delta_u=1, \delta_p=0.01`
-        ========================= =============================================
-        """
-        name = "stress_kn0.005"
-        self.run_solver("inputs/" + name + ".yml")
-        errors = name + "/" + "errors.csv"
-        referrors = "referrors/" + name + "/errors.csv"
-        self.compare_errors(errors, referrors)
