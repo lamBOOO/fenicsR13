@@ -15,9 +15,6 @@ meshes:
   #- ./mesh/annulus11.h5
   #- ./mesh/annulus12.h5
   #- ./mesh/annulus13.h5
-  #- ./mesh/annulus14.h5
-
-
 
 # Numerical Parameters
 # ====================
@@ -81,9 +78,10 @@ heat_source: 0
 mass_source: 0
 body_force: [0,0,0]
 
-#Solver Parameters
-#- Solver_type : Enter the solver name. (Use iterative solvers for 3D and linear solves for 2D)
-#- Preconditioner : Enter the preconditioner  ONLY relevant if an iterative solver is used
+# Solver Parameters
+# =================
+# - Solver_type : Enter the solver name. (Use iterative solvers for 3D and linear solves for 2D)
+# - Preconditioner : Enter the preconditioner  ONLY relevant if an iterative solver is used
 
 solver:
   solver_name: gmres
@@ -110,10 +108,7 @@ regs:
 #     - u_n_w: Value for normal velocity at wall
 #     - p_w: Value for pressure at wall
 #     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
-#     -Specify the coordinate system in which the velocity boundary conditions are input-> Polar or Cartesian.
-#     -If the flag Polar coordinate system is set to False, then it is assumed that the system is solved in Cartesian.
-#     -Please input only the u_n_w and u_t_w for polar and ux,uy and uz for Cartesian
-#     -Polar coordinates is only supported in 2D.
+#     -Cartesian is default(if polar coord syst is false. -Polar coordinates is only supported in 2D.
 polar_coord_syst: False
 bcs:
   10000: # inner
@@ -132,7 +127,6 @@ bcs:
     uz: 1
     p_w: -0.027*x[2]/pow((pow(x[0],2)+pow(x[1],2)+pow(x[2],2)),0.5)
     epsilon_w: 100
-
 
 # Convergence Study
 # =================
@@ -166,7 +160,6 @@ postprocessing:
   write_vecs: False
   massflow: []
   line_integrals: []
-
 
 # Parameter Study
 # ==============

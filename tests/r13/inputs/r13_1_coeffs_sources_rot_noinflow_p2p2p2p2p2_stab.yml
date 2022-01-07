@@ -103,10 +103,7 @@ regs:
 #     - u_n_w: Value for normal velocity at wall
 #     - p_w: Value for pressure at wall
 #     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
-#     -Specify the coordinate system in which the velocity boundary conditions are input-> Polar or Cartesian.
-#     -If the flag Polar coordinate system is set to False, then it is assumed that the system is solved in Cartesian.
-#     -Please input only the u_n_w and u_t_w for polar and ux,uy and uz for Cartesian
-#     -Polar coordinates is only supported in 2D.
+#     -Cartesian is default(if polar coord syst is false. -Polar coordinates is only supported in 2D.
 polar_coord_syst: True
 bcs:
   3000:
