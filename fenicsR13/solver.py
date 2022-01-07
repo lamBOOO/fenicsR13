@@ -369,11 +369,11 @@ class Solver:
     def normal(self):
         mesh1 = self.mesh
         v1 = df.as_vector([1.0, 0, 0])
-        v2 = df.as_vector([0, 1, 0])
+        v2 = df.as_vector([0.0, 1.0, 0.0])
         n_vec = df.FacetNormal(mesh1)
-        t1 = df.conditional(df.gt(abs(n_vec[0]), np.finfo(float).eps), df.cross(n_vec, v2/df.sqrt(n_vec[0]**2+n_vec[2]**2)), df.cross(n_vec, v1/df.sqrt(n_vec[1]**2+n_vec[2]**2)))
-        t2 = df.cross(n_vec, t1)
-        return n_vec, t1, t2
+        t_vec1 = df.conditional(df.gt(abs(n_vec[0]), np.finfo(float).eps), df.cross(n_vec, v2/df.sqrt(n_vec[0]**2+n_vec[2]**2)), df.cross(n_vec, v1/df.sqrt(n_vec[1]**2+n_vec[2]**2)))
+        t_vec2 = df.cross(n_vec, t_vec1)
+        return n_vec, t_vec1, t_vec2
 
     def assemble(self):
         r"""
@@ -674,9 +674,10 @@ class Solver:
             return df.dot(rank2 * t_vec1, t_vec2)
 
         if self.mode == "heat" and nsd == 3:
-            switch = 0
+            incl_delta = 0
+            # Done to match the analytical solution differences in 2D and 3D heat systems
         else:
-            switch = 1
+            incl_delta = 1
         # Sub functionals:
         # 1) Diagonals:
 
@@ -688,7 +689,7 @@ class Solver:
                 + 24 / 25 * regs[reg]["kn"] * df.inner(
                     df.sym(df.grad(s)), df.sym(df.grad(r))
                 )
-                - switch * 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
+                - incl_delta * 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
                 # For Delta-term, works for R13 but fails for heat:
                 + 4 / 5 * cpl * regs[reg]["kn"] * df.div(s) * df.div(r)
                 + 4 / 15 * (1 / regs[reg]["kn"]) * df.inner(s, r)
@@ -816,19 +817,19 @@ class Solver:
                     cpl * (4 / 5) * to.maketf3D(df.grad(r))
                     + 2 * to.stf3d2(to.gen3d2(df.grad(v)))
                     - 2 * regs[reg]["kn"] * to.div3d3(
-                        to.stf3d3(to.grad3dOf2(to.maketf3D(psi), 2))
+                        to.stf3d3(to.grad3dOf2(to.maketf3D(psi), nsd))
                     )
                     + (1 / regs[reg]["kn"]) * to.maketf3D(psi),
                     cpl * (4 / 5) * to.maketf3D(df.grad(s))
                     + 2 * to.stf3d2(to.gen3d2(df.grad(u)))
                     - 2 * regs[reg]["kn"] * to.div3d3(
-                        to.stf3d3(to.grad3dOf2(to.maketf3D(sigma), 2))
+                        to.stf3d3(to.grad3dOf2(to.maketf3D(sigma), nsd))
                     )
                     + (1 / regs[reg]["kn"]) * to.maketf3D(sigma)
                 )  # stress
             ) * df.dx(reg) for reg in regs.keys()])
 
-        v1 = {}
+        v1 = {} #boundary velocity vector
 
         if nsd == 2:
             if self.polar_system is True:  # Polar implementation
@@ -838,6 +839,8 @@ class Solver:
                 for bc in bcs.keys():
                     v1.update({bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"]])})
         else:
+            if self.polar_system is True:
+                raise Exception("Polar coordinates are NOT supported in 3D")
             for bc in bcs.keys():
                 v1.update({bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"], bcs[bc]["uz"]])})
         # Setup all equations
@@ -851,8 +854,6 @@ class Solver:
         A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)
         A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
         # 2) Right-hand sides, linear functional L[..]:
-        # TODO: Create subfunctionals l_1 to l_5 as in article
-
         L[0] = - sum([(
             bcs[bc]["theta_w"] * n(r)
         ) * df.ds(bc) for bc in bcs.keys()])
@@ -964,7 +965,6 @@ class Solver:
             w = self.mxd_fspaces["stress"]
         elif self.mode == "r13":
             w = self.mxd_fspaces["r13"]
-        deg = self.params["elements"]["sigma"]["degree"]
 
         print("Start assemble")
         sys.stdout.flush()
@@ -1007,6 +1007,8 @@ class Solver:
         print("Finished solve: {}".format(str(secs)))
         sys.stdout.flush()
 
+        deg = self.params["elements"]["sigma"]["degree"]
+
         if self.mode == "heat":
             (self.sol["theta"], self.sol["s"]) = sol.split()
         elif self.mode == "stress":
@@ -1021,9 +1023,9 @@ class Solver:
         elif self.mode == "r13":
             (
                 self.sol["theta"], self.sol["s"],
-                self.sol["p"], self.sol["u"], dummy
+                self.sol["p"], self.sol["u"], dummy_si
             ) = sol.split()
-            dummy = to.stf3D(dummy)
+            dummy = to.stf3D(dummy_si)
             self.sol["sigma"] = df.project(
                 dummy, df.TensorFunctionSpace(
                     self.mesh, "Lagrange", deg
@@ -1350,9 +1352,6 @@ class Solver:
         field_e_i = df.interpolate(field_e_, v_field)
         field_i = df.interpolate(field_, v_field)
 
-    # difference = df.project(field_e_i - field_i, v_field)
-    # self.__write_xdmf("difference_{}".format(name_), difference, False)
-
         dofs = len(field_e_i.split()) or 1
 
         if dofs == 1:
@@ -1398,6 +1397,7 @@ class Solver:
             errs_f_L2 = [x / y for x, y in zip(errs_f_L2, max_esols)]
             errs_v_linf = [x / y for x, y in zip(errs_v_linf, max_esols)]
 
+        print("Calculate errors..")
         print("Error " + str(name_) + " L_2:", errs_f_L2)
         print("Error " + str(name_) + " l_inf:", errs_v_linf)
 
@@ -1505,9 +1505,10 @@ class Solver:
         self.__write_solutions()
         if self.write_vecs:
             self.__write_vecs()
-        # self.__write_parameters()
-        # if self.write_systemmatrix:
-            # self.__write_discrete_system()
+        if self.nsd == 2:
+            self.__write_parameters()
+        if self.write_systemmatrix:
+            self.__write_discrete_system()
 
     def __write_solutions(self):
         """Write all solutions fields."""
