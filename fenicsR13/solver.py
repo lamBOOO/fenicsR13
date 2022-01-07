@@ -315,7 +315,8 @@ class Solver:
                     )
                 else:  # nsd =3 in this case
                     self.elems[var] = df.TensorElement(
-                        e, cell, deg, symmetry={(0, 1): (1, 0), (2, 0): (0, 2), (1, 2): (2, 1), (0, 0): (2, 2)}
+                        e, cell, deg,
+                        symmetry={(0, 1): (1, 0), (2, 0): (0, 2), (1, 2): (2, 1), (0, 0): (2, 2)}
                     )
             self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
 
@@ -371,7 +372,9 @@ class Solver:
         v1 = df.as_vector([1.0, 0, 0])
         v2 = df.as_vector([0.0, 1.0, 0.0])
         n_vec = df.FacetNormal(mesh1)
-        t_vec1 = df.conditional(df.gt(abs(n_vec[0]), np.finfo(float).eps), df.cross(n_vec, v2/df.sqrt(n_vec[0]**2+n_vec[2]**2)), df.cross(n_vec, v1/df.sqrt(n_vec[1]**2+n_vec[2]**2)))
+        t_vec1 = df.conditional(df.gt(abs(n_vec[0]), np.finfo(float).eps),
+                                df.cross(n_vec, v2 / df.sqrt(n_vec[0] ** 2 + n_vec[2] ** 2)),
+                                df.cross(n_vec, v1 / df.sqrt(n_vec[1] ** 2 + n_vec[2] ** 2)))
         t_vec2 = df.cross(n_vec, t_vec1)
         return n_vec, t_vec1, t_vec2
 
@@ -615,8 +618,8 @@ class Solver:
             (p, u, sigma) = df.TrialFunctions(w_stress)
             (q, v, psi) = df.TestFunctions(w_stress)
 
-        sigma = to.stf3D(sigma)
-        psi = to.stf3D(psi)
+        sigma = to.gen3DTFdim3(sigma)
+        psi = to.gen3DTFdim3(psi)
 
         # Setup source functions
         f_heat = self.heat_source
@@ -706,11 +709,11 @@ class Solver:
             # 21/20+3/40=45/40=9/8
             return sum([(
                 + regs[reg]["kn"] * df.inner(
-                    to.stf3d3(to.grad3dOf2(to.maketf3D(si), nsd)),
-                    to.stf3d3(to.grad3dOf2(to.maketf3D(ps), nsd))
+                    to.stf3d3(to.grad3dOf2(to.gen3DTFdim2(si), nsd)),
+                    to.stf3d3(to.grad3dOf2(to.gen3DTFdim2(ps), nsd))
                 )
                 + (1 / (2 * regs[reg]["kn"])) * df.inner(
-                    to.maketf3D(si), to.maketf3D(ps)
+                    to.gen3DTFdim2(si), to.gen3DTFdim2(ps)
                 )
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + bcs[bc]["chi_tilde"] * 21 / 20 * nn(si) * nn(ps)
@@ -814,27 +817,27 @@ class Solver:
                 )  # momentum
                 + tau_stress * h_msh**1.5 *
                 df.inner(
-                    cpl * (4 / 5) * to.maketf3D(df.grad(r))
+                    cpl * (4 / 5) * to.gen3DTFdim2(df.grad(r))
                     + 2 * to.stf3d2(to.gen3d2(df.grad(v)))
                     - 2 * regs[reg]["kn"] * to.div3d3(
-                        to.stf3d3(to.grad3dOf2(to.maketf3D(psi), nsd))
+                        to.stf3d3(to.grad3dOf2(to.gen3DTFdim2(psi), nsd))
                     )
-                    + (1 / regs[reg]["kn"]) * to.maketf3D(psi),
-                    cpl * (4 / 5) * to.maketf3D(df.grad(s))
+                    + (1 / regs[reg]["kn"]) * to.gen3DTFdim2(psi),
+                    cpl * (4 / 5) * to.gen3DTFdim2(df.grad(s))
                     + 2 * to.stf3d2(to.gen3d2(df.grad(u)))
                     - 2 * regs[reg]["kn"] * to.div3d3(
-                        to.stf3d3(to.grad3dOf2(to.maketf3D(sigma), nsd))
+                        to.stf3d3(to.grad3dOf2(to.gen3DTFdim2(sigma), nsd))
                     )
-                    + (1 / regs[reg]["kn"]) * to.maketf3D(sigma)
+                    + (1 / regs[reg]["kn"]) * to.gen3DTFdim2(sigma)
                 )  # stress
             ) * df.dx(reg) for reg in regs.keys()])
 
-        v1 = {} #boundary velocity vector
+        v1 = {}  # boundary velocity vector
 
         if nsd == 2:
             if self.polar_system is True:  # Polar implementation
                 for bc in bcs.keys():
-                    v1.update({bc: bcs[bc]["u_n_w"]*n_vec + bcs[bc]["u_t_w"]*t_vec1})
+                    v1.update({bc: bcs[bc]["u_n_w"] * n_vec + bcs[bc]["u_t_w"] * t_vec1})
             else:   # Cartesian Implementation
                 for bc in bcs.keys():
                     v1.update({bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"]])})
@@ -1013,7 +1016,7 @@ class Solver:
             (self.sol["theta"], self.sol["s"]) = sol.split()
         elif self.mode == "stress":
             (self.sol["p"], self.sol["u"], dummy) = sol.split()
-            dummy = to.stf3D(dummy)
+            dummy = to.gen3DTFdim3(dummy)
             self.sol["sigma"] = df.project(
                 dummy, df.TensorFunctionSpace(
                     self.mesh, "Lagrange", deg
@@ -1025,7 +1028,7 @@ class Solver:
                 self.sol["theta"], self.sol["s"],
                 self.sol["p"], self.sol["u"], dummy_si
             ) = sol.split()
-            dummy = to.stf3D(dummy_si)
+            dummy = to.gen3DTFdim3(dummy_si)
             self.sol["sigma"] = df.project(
                 dummy, df.TensorFunctionSpace(
                     self.mesh, "Lagrange", deg

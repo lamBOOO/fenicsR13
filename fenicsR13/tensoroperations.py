@@ -20,7 +20,12 @@ above 2.
 import dolfin as df
 import ufl
 
-def stf3D(sigma):
+
+def gen3DTFdim3(sigma):
+    """
+    Return the symmetric and trace-free matrix for a 2-rank tensor if 3D.
+    Returns the same matrix if 2D
+    """
 
     n = sigma.ufl_shape[0]
 
@@ -32,26 +37,24 @@ def stf3D(sigma):
             [sigma[1, 0], sigma[1, 1], sigma[1, 2]],
             [sigma[2, 0], sigma[2, 1], -sigma[0, 0] - sigma[1, 1]]])
 
-def maketf3D(sigma):
+
+def gen3DTFdim2(sigma):
     """
-    The stress variable in particular is converted into a symmetric and trace free tensor(both 2D and 3D)
-    N = number of dimensions
+    Return the symmetric and trace-free matrix for a 2-rank tensor if 2D.
+    Returns the same matrix if 3D
     """
 
     n = sigma.ufl_shape[0]
 
     if n == 2:
-        sigma1 = df.as_tensor([[sigma[0, 0], sigma[0, 1], 0], [sigma[1, 0], sigma[1, 1], 0], [0, 0, -sigma[0, 0] - sigma[1, 1]]])
+        sigma1 = df.as_tensor([[sigma[0, 0], sigma[0, 1], 0],
+                               [sigma[1, 0], sigma[1, 1], 0],
+                               [0, 0, -sigma[0, 0] - sigma[1, 1]]])
 
     else:
-        # n = 3
         sigma1 = sigma
 
-
     return sigma1
-
-
-
 
 
 def stf3d2(rank2_2d):
@@ -287,18 +290,17 @@ def gen3d2(rank2_2d):
     """
     n = rank2_2d.ufl_shape[0]
 
-    if n == 2: #2D case
-
+    if n == 2:
         return df.as_tensor([
             [rank2_2d[0, 0], rank2_2d[0, 1], 0],
             [rank2_2d[1, 0], rank2_2d[1, 1], 0],
             [0, 0, 0]
         ])
-    else: #3D case
+    else:
         return (rank2_2d)
 
 
-def grad3dOf2(rank2_3d,dim):
+def grad3dOf2(rank2_3d, dim):
     r"""
     Return 3D gradient of 3D 2-tensor.
 
@@ -365,9 +367,8 @@ def grad3dOf2(rank2_3d,dim):
                 0
             \end{pmatrix}
     """
-    #n = rank2_3d[0, 2] + rank2_3d[1, 2] + rank2_3d[2, 1]
 
-    if dim == 2: #2D
+    if dim == 2:
         grad2d = df.grad(rank2_3d)
         dim3 = df.as_tensor([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
         grad3d = df.as_tensor([grad2d[:, :, 0], grad2d[:, :, 1], dim3[:, :]])
@@ -375,4 +376,3 @@ def grad3dOf2(rank2_3d,dim):
 
     else:
         return df.grad(rank2_3d)
-
