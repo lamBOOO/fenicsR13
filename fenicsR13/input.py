@@ -309,7 +309,6 @@ class Input:
                 "anyof": [{"type": "string"}, {"type": "float"}],
                 "required": True,
             },
-
             "body_force": {
                 "type": "list",
                 "required": True,
@@ -432,10 +431,6 @@ class Input:
                     "relative_error": {
                         "type": "boolean",
                         "required": True
-                    },
-                    "enable2": {
-                        "type": "boolean",
-                        "required": False
                     },
                 }
             },
