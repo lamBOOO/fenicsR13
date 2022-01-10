@@ -58,7 +58,7 @@ build:docs:
       - ${DOCS_DIRECTORY}/_build/latex/
     expire_in: 6 month
   tags:
-    - docker
+    - dockerindocker
 
 # **************************************************************************** #
 # test
@@ -66,13 +66,15 @@ build:docs:
 
 .test: # dot means "hidden", acts as base class
   stage: test
+  dependencies:
+    - prepare:docker
   before_script:
     - pip install -e . # local install to have right coverage
   image:
     name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     entrypoint: [""]
   tags:
-    - docker
+    - dockerindocker
 
 test:flake8:
   extends: .test
@@ -99,10 +101,12 @@ test:pytest:
 
 .deploy:docker:
   stage: deploy
+  dependencies:
+    - prepare:docker
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   tags:
-    - shell
+    - dockerindocker
 
 deploy:docker:dev:
   extends: .deploy:docker
@@ -136,7 +140,7 @@ deploy:latex:
     - master
     - tags
   tags:
-    - docker
+    - dockerindocker
 
 pages:
   stage: deploy
@@ -151,4 +155,4 @@ pages:
     - master
     - tags
   tags:
-    - shell
+    - dockerindocker
