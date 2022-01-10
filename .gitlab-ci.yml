@@ -43,6 +43,8 @@ build:docs:
   image:
     name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     entrypoint: [""]
+  services:
+    - docker:19.03.12-dind
   script:
     - cd ${DOCS_DIRECTORY}
     - sphinx-apidoc -f -o source/fenicsR13 ../fenicsR13
@@ -73,6 +75,8 @@ build:docs:
   image:
     name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     entrypoint: [""]
+  services:
+    - docker:19.03.12-dind
   tags:
     - dockerindocker
 
