@@ -375,7 +375,7 @@ class Solver:
 
     def normal(self):
         mesh1 = self.mesh
-        v1 = df.as_vector([1.0, 0, 0])
+        v1 = df.as_vector([1.0, 0.0, 0.0])
         v2 = df.as_vector([0.0, 1.0, 0.0])
         n_vec = df.FacetNormal(mesh1)
         t_vec1 = df.conditional(
