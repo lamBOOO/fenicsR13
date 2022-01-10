@@ -1030,28 +1030,22 @@ class Solver:
         print("Finished solve: {}".format(str(secs)))
         sys.stdout.flush()
 
-        deg = self.params["elements"]["sigma"]["degree"]
-
         if self.mode == "heat":
             (self.sol["theta"], self.sol["s"]) = sol.split()
         elif self.mode == "stress":
-            (self.sol["p"], self.sol["u"], dummy) = sol.split()
-            dummy = to.gen3DTFdim3(dummy)
-            self.sol["sigma"] = df.project(
-                dummy, df.TensorFunctionSpace(
-                    self.mesh, "Lagrange", deg
-                ), solver_type='gmres', preconditioner_type='icc'
-            )
+            (self.sol["p"], self.sol["u"], self.sol["sigma"]) = sol.split()
         elif self.mode == "r13":
             (
                 self.sol["theta"], self.sol["s"],
-                self.sol["p"], self.sol["u"], dummy_si
+                self.sol["p"], self.sol["u"], self.sol["sigma"]
             ) = sol.split()
-            dummy = to.gen3DTFdim3(dummy_si)
+        # Special treatment for sigma
+        if self.mode == "stress" or self.mode == "r13":
             self.sol["sigma"] = df.project(
-                dummy, df.TensorFunctionSpace(
-                    self.mesh, "Lagrange", deg
-                ), solver_type='gmres', preconditioner_type='icc'
+                to.gen3DTFdim3(self.sol["sigma"]), df.TensorFunctionSpace(
+                    self.mesh, "Lagrange",
+                    self.params["elements"]["sigma"]["degree"]
+                ), solver_type=solver_name, preconditioner_type=preconditioner
             )
 
         if self.mode == "stress" or self.mode == "r13":
