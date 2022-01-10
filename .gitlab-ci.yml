@@ -58,7 +58,7 @@ build:docs:
       - ${DOCS_DIRECTORY}/_build/latex/
     expire_in: 6 month
   tags:
-    - dockerindocker
+    - docker
 
 # **************************************************************************** #
 # test
@@ -137,7 +137,7 @@ deploy:latex:
     - master
     - tags
   tags:
-    - dockerindocker
+    - docker
 
 pages:
   stage: deploy
