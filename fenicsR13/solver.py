@@ -267,6 +267,7 @@ class Solver:
         """
         R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
         phi = df.Expression("atan2(x[1],x[0])", degree=2)
+        # TODO Handle R, phi for 3D case => raise error?
         cpp_strings = [str(i) for i in cpp_strings]
         if len(cpp_strings) == 2:
             return df.Expression(
@@ -313,10 +314,15 @@ class Solver:
                     self.elems[var] = df.TensorElement(
                         e, cell, deg, symmetry={(0, 1): (1, 0)}
                     )
-                else:  # nsd =3 in this case
+                else:  # nsd==3 in this case
                     self.elems[var] = df.TensorElement(
                         e, cell, deg,
-                        symmetry={(0, 1): (1, 0), (2, 0): (0, 2), (1, 2): (2, 1), (0, 0): (2, 2)}
+                        symmetry={
+                            (0, 1): (1, 0),
+                            (2, 0): (0, 2),
+                            (1, 2): (2, 1),
+                            (0, 0): (2, 2)
+                        }
                     )
             self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
 
@@ -372,9 +378,11 @@ class Solver:
         v1 = df.as_vector([1.0, 0, 0])
         v2 = df.as_vector([0.0, 1.0, 0.0])
         n_vec = df.FacetNormal(mesh1)
-        t_vec1 = df.conditional(df.gt(abs(n_vec[0]), np.finfo(float).eps),
-                                df.cross(n_vec, v2 / df.sqrt(n_vec[0] ** 2 + n_vec[2] ** 2)),
-                                df.cross(n_vec, v1 / df.sqrt(n_vec[1] ** 2 + n_vec[2] ** 2)))
+        t_vec1 = df.conditional(
+            df.gt(abs(n_vec[0]), np.finfo(float).eps),
+            df.cross(n_vec, v2 / df.sqrt(n_vec[0] ** 2 + n_vec[2] ** 2)),
+            df.cross(n_vec, v1 / df.sqrt(n_vec[1] ** 2 + n_vec[2] ** 2))
+        )
         t_vec2 = df.cross(n_vec, t_vec1)
         return n_vec, t_vec1, t_vec2
 
@@ -678,9 +686,13 @@ class Solver:
 
         if self.mode == "heat" and nsd == 3:
             incl_delta = 0
-            # Done to match the analytical solution differences in 2D and 3D heat systems
+            # To match the esols differences in 2D and 3D heat systems
+            # Caused by Manuel not including Delta for 3D in Mathematica
+            # and Lambert added Delta only for 2D case
+            # TODO: Fix this by including Delta also for 3D
         else:
             incl_delta = 1
+
         # Sub functionals:
         # 1) Diagonals:
 
@@ -837,15 +849,23 @@ class Solver:
         if nsd == 2:
             if self.polar_system is True:  # Polar implementation
                 for bc in bcs.keys():
-                    v1.update({bc: bcs[bc]["u_n_w"] * n_vec + bcs[bc]["u_t_w"] * t_vec1})
-            else:   # Cartesian Implementation
+                    v1.update({
+                        bc: bcs[bc]["u_n_w"] * n_vec + bcs[bc]["u_t_w"] * t_vec1
+                    })
+            else:  # Cartesian implementation
                 for bc in bcs.keys():
-                    v1.update({bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"]])})
+                    v1.update({
+                        bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"]])
+                    })
         else:
             if self.polar_system is True:
                 raise Exception("Polar coordinates are NOT supported in 3D")
             for bc in bcs.keys():
-                v1.update({bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"], bcs[bc]["uz"]])})
+                v1.update({
+                    bc: df.as_vector([
+                        bcs[bc]["ux"], bcs[bc]["uy"], bcs[bc]["uz"]
+                    ])
+                })
         # Setup all equations
         A = [None] * 5
         L = [None] * 5
