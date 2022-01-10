@@ -10,11 +10,11 @@ meshes:
   - ../3d_mesh/annulus6.h5
   - ../3d_mesh/annulus7.h5
   - ../3d_mesh/annulus8.h5
-  #- ./3d_mesh/annulus9.h5
-  #- ./3d_mesh/annulus10.h5
-  #- ./3d_mesh/annulus11.h5
-  #- ./3d_mesh/annulus12.h5
-  #- ./3d_mesh/annulus13.h5
+  #- ../3d_mesh/annulus9.h5
+  #- ../3d_mesh/annulus10.h5
+  #- ../3d_mesh/annulus11.h5
+  #- ../3d_mesh/annulus12.h5
+  #- ../3d_mesh/annulus13.h5
 
 # Numerical Parameters
 # ====================
