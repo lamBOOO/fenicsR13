@@ -99,33 +99,12 @@ test:pytest:
 # deploy
 # **************************************************************************** #
 
-.deploy:docker:
-  stage: deploy
-  dependencies:
-    - prepare:docker
-  services:
-    - docker:19.03.12-dind
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  tags:
-    - dockerindocker
-
-deploy:docker:dev:
-  extends: .deploy:docker
-  script:
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-
-deploy:docker:latest:
-  extends: .deploy:docker
-  script:
-    - docker push $CI_REGISTRY_IMAGE:latest
-
 deploy:latex:
   stage: deploy
   image:
     # name: blang/latex:ctanfull # only TexLive 2017
     name: aergus/latex:latest
-    entrypoint: ["/bin/sh", "-c"]
+    entrypoint: ["/bin/sh"]
   dependencies:
     - build:docs
   script:
