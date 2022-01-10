@@ -25,10 +25,10 @@ prepare:docker:
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA || true
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME || true
     - docker build
-      --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+      --cache-from $CI_REGISTRY_IMAGE:latest
       --tag $CI_REGISTRY_IMAGE:latest
-      --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
       --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME .
+    - docker push $CI_REGISTRY_IMAGE:latest
   tags:
     - dockerindocker
 
@@ -41,10 +41,8 @@ build:docs:
   dependencies:
     - prepare:docker
   image:
-    name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    name: $CI_REGISTRY_IMAGE:latest
     entrypoint: [""]
-  services:
-    - docker:19.03.12-dind
   script:
     - cd ${DOCS_DIRECTORY}
     - sphinx-apidoc -f -o source/fenicsR13 ../fenicsR13
@@ -73,12 +71,10 @@ build:docs:
   before_script:
     - pip install -e . # local install to have right coverage
   image:
-    name: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    name: $CI_REGISTRY_IMAGE:latest
     entrypoint: [""]
-  services:
-    - docker:19.03.12-dind
   tags:
-    - dockerindocker
+    - docker
 
 test:flake8:
   extends: .test
@@ -121,9 +117,6 @@ deploy:docker:latest:
   extends: .deploy:docker
   script:
     - docker push $CI_REGISTRY_IMAGE:latest
-  only:
-    - master
-    - tags
 
 deploy:latex:
   stage: deploy
@@ -159,4 +152,4 @@ pages:
     - master
     - tags
   tags:
-    - dockerindocker
+    - shell
