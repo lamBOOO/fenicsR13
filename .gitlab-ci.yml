@@ -103,6 +103,8 @@ test:pytest:
   stage: deploy
   dependencies:
     - prepare:docker
+  services:
+    - docker:19.03.12-dind
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   tags:
@@ -123,7 +125,7 @@ deploy:latex:
   image:
     # name: blang/latex:ctanfull # only TexLive 2017
     name: aergus/latex:latest
-    entrypoint: [""]
+    entrypoint: ["/bin/sh", "-c"]
   dependencies:
     - build:docs
   script:
