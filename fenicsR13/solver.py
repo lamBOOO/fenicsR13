@@ -56,7 +56,7 @@ class Solver:
     ...     "tests/2d_heat/inputs/heat_01_coeffs_p1p1_stab.yml"
     ... ) # doctest: +ELLIPSIS
     Input:...
-    >>> msh = H5Mesh("tests/mesh/ring0.h5")
+    >>> msh = H5Mesh("tests/2d_mesh/ring0.h5")
     >>> solver = Solver(params.dict, msh, "0") # "0" means time=0
 
     """
@@ -1622,7 +1622,7 @@ class Solver:
         ...     "tests/2d_heat/inputs/heat_01_coeffs_p1p1_stab.yml"
         ... ) # doctest: +ELLIPSIS
         Input:...
-        >>> msh = H5Mesh("tests/mesh/ring0.h5")
+        >>> msh = H5Mesh("tests/2d_mesh/ring0.h5")
         >>> solver = Solver(params.dict, msh, "0") # "0" means time=0
         >>> solver.form_lhs = a
         >>> solver.form_rhs = L
