@@ -104,7 +104,6 @@ deploy:latex:
   image:
     # name: blang/latex:ctanfull # only TexLive 2017
     name: aergus/latex:latest
-    entrypoint: ["/bin/sh"]
   dependencies:
     - build:docs
   script:
