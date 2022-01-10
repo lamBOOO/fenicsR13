@@ -218,8 +218,8 @@ postprocessing:
   write_vecs: False
   massflow: []
   line_integrals:
-    - name: "avg(abs(u_x_w(x=0,y)))"
-      expr: abs(u_x_w)/1.5
+    - name: "avg(abs(ux(x=0,y)))"
+      expr: abs(ux)/1.5
       start: [0, -2.0]
       end: [0, -0.5]
       res: 10000
