@@ -22,13 +22,12 @@ import ufl
 
 
 def gen3DTFdim3(sigma):
-    """
+    r"""
     Return the symmetric and trace-free matrix for a 2-rank tensor if 3D.
+
     Returns the same matrix if 2D
     """
-
     n = sigma.ufl_shape[0]
-
     if n == 2:
         return sigma
     else:
@@ -39,21 +38,18 @@ def gen3DTFdim3(sigma):
 
 
 def gen3DTFdim2(sigma):
-    """
+    r"""
     Return the symmetric and trace-free matrix for a 2-rank tensor if 2D.
+
     Returns the same matrix if 3D
     """
-
     n = sigma.ufl_shape[0]
-
     if n == 2:
         sigma1 = df.as_tensor([[sigma[0, 0], sigma[0, 1], 0],
                                [sigma[1, 0], sigma[1, 1], 0],
                                [0, 0, -sigma[0, 0] - sigma[1, 1]]])
-
     else:
         sigma1 = sigma
-
     return sigma1
 
 
