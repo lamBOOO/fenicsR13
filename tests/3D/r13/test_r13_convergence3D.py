@@ -59,7 +59,6 @@ class TestR13Convergence(object):
         subprocess.check_call(["python3", "create_meshes.py"], cwd="tests/mesh")
 
     def test_r13_kn0_2(self):
-       
         name = "r13_kn0.2"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
@@ -67,7 +66,6 @@ class TestR13Convergence(object):
         self.compare_errors(errors, referrors)
 
     def test_r13_kn0_005(self):
-       
         name = "r13_kn0.005"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
