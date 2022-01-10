@@ -855,7 +855,7 @@ class Solver:
             else:  # Cartesian implementation
                 for bc in bcs.keys():
                     v1.update({
-                        bc: df.as_vector([bcs[bc]["ux"], bcs[bc]["uy"]])
+                        bc: df.as_vector([bcs[bc]["u_x_w"], bcs[bc]["u_y_w"]])
                     })
         else:
             if self.polar_system is True:
@@ -863,7 +863,7 @@ class Solver:
             for bc in bcs.keys():
                 v1.update({
                     bc: df.as_vector([
-                        bcs[bc]["ux"], bcs[bc]["uy"], bcs[bc]["uz"]
+                        bcs[bc]["u_x_w"], bcs[bc]["u_y_w"], bcs[bc]["u_z_w"]
                     ])
                 })
         # Setup all equations
@@ -1042,7 +1042,6 @@ class Solver:
                     self.mesh, "Lagrange", deg
                 ), solver_type='gmres', preconditioner_type='icc'
             )
-
         elif self.mode == "r13":
             (
                 self.sol["theta"], self.sol["s"],
@@ -1323,7 +1322,6 @@ class Solver:
         v = scalar_function.compute_vertex_values()
         mean = np.mean(v)
         print("The mean pressure value is", mean)
-
         return mean
 
     def __calc_field_errors(self, field_, field_e_, v_field, name_):
@@ -1674,9 +1672,7 @@ class Solver:
             self.output_folder + name + "_" + str(self.time) + ".xdmf"
         )
         with df.XDMFFile(self.mesh.mpi_comm(), fname_xdmf) as file:
-
             field.rename(name, name)
-
             print("Write {}".format(fname_xdmf))
             file.write(field, self.time)
 

@@ -24,7 +24,7 @@ meshes:
 #   - gls: Collection of Garlerkin Least Squares (GLS) parameters
 #     - enable: Enable GLS stabilization
 #     - tau_energy: Stabilization with energy eq. residual
-#     - tau_heatflux: Stabilization with heatflux eq. residual
+#     - tau_heatflux: Stabilization with heatflu_x_w eq. residual
 #     - tau_mass: Stabilization with mass eq. residual
 #     - tau_momentum: Stabilization with momentum eq. residual
 #     - tau_stress: Stabilization with stress eq. residual
@@ -71,13 +71,13 @@ heat_source: 1
 mass_source: 0
 body_force: [0,0]
 
-#Solver Parameters
-#- Solver_type : Enter the solver name. (Use iterative solvers for 3D and linear solves for 2D)
-#- Preconditioner : Enter the preconditioner  ONLY relevant if an iterative solver is used
-
+# Solver Parameters
+# =================
+# - solver_name: e.g. mumps for 2D, gmres for 3D
+# - preconditioner: e.g. icc, only for iterative solvers. Set to none otherwise
 solver:
   solver_name: mumps
-  preconditioner : none
+  preconditioner: none
 
 # Region Parameters
 # =================
@@ -92,18 +92,18 @@ regs:
 
 # Boundary Conditions
 # ===================
+# - polar_coord_syst: true needs u_n_w,u_t_w; false needs u_x_w,u_y_w,u_z_w
 # - bcs: Dictionary of all boundary IDs from mesh
 #   - bc_id: must contain the following parameters
 #     - chi_tilde: Refaction coefficient in Maxwell accomodation model
 #     - theta_w: Value for temperature at wall
-#     - u_t_w: Value for tangential velocity at wall
-#     - u_n_w: Value for normal velocity at wall
+#     - u_t_w: Value for tangential velocity at wall (for polar_coord_syst=true)
+#     - u_n_w: Value for normal velocity at wall (for polar_coord_syst=true)
+#     - u_x_w: Value for x-velocity at wall (for polar_coord_syst=false)
+#     - u_y_w: Value for y-velocity at wall (for polar_coord_syst=false)
+#     - u_z_w: Value for z-velocity at wall (for polar_coord_syst=false&&nsd=3)
 #     - p_w: Value for pressure at wall
 #     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
-#     -Specify the coordinate system in which the velocity boundary conditions are input-> Polar or Cartesian.
-#     -If the flag Polar coordinate system is set to False, then it is assumed that the system is solved in Cartesian.
-#     -Please input only the u_n_w and u_t_w for polar and ux,uy and uz for Cartesian
-#     -Polar coordinates is only supported in 2D.
 polar_coord_syst: True
 bcs:
   3000: # upper slip wall
@@ -111,6 +111,9 @@ bcs:
     theta_w: 1
     u_t_w: 0
     u_n_w: 0
+    u_x_w: 1E300
+    u_y_w: 1E300
+    u_z_w: 1E300
     p_w: 0
     epsilon_w: 0
   3100: # left bottom right noslip walls
@@ -118,6 +121,9 @@ bcs:
     theta_w: 1
     u_t_w: 0
     u_n_w: 0
+    u_x_w: 1E300
+    u_y_w: 1E300
+    u_z_w: 1E300
     p_w: 0
     epsilon_w: 0
 

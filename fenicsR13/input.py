@@ -272,23 +272,23 @@ class Input:
                         },
                         "u_t_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
-                            "required": False
+                            "required": True
                         },
                         "u_n_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
-                            "required": False
+                            "required": True
                         },
-                        "ux": {
+                        "u_x_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
-                            "required": False
+                            "required": True
                         },
-                        "uy": {
+                        "u_y_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
-                            "required": False
+                            "required": True
                         },
-                        "uz": {
+                        "u_z_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
-                            "required": False
+                            "required": True
                         },
                         "p_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
@@ -324,7 +324,7 @@ class Input:
                     },
                     "preconditioner": {
                         "type": "string",
-                        "required": False,
+                        "required": True,
                     }
 
                 }
