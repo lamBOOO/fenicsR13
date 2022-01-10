@@ -46,9 +46,12 @@ build:docs:
   script:
     - cd ${DOCS_DIRECTORY}
     - sphinx-apidoc -f -o source/fenicsR13 ../fenicsR13
-    - sphinx-apidoc -f -o source/tests/heat ../tests/heat
-    - sphinx-apidoc -f -o source/tests/stress ../tests/stress
-    - sphinx-apidoc -f -o source/tests/r13 ../tests/r13
+    - sphinx-apidoc -f -o source/tests/2d_heat ../tests/2d_heat
+    - sphinx-apidoc -f -o source/tests/2d_stress ../tests/2d_stress
+    - sphinx-apidoc -f -o source/tests/2d_r13 ../tests/2d_r13
+    - sphinx-apidoc -f -o source/tests/3d_heat ../tests/3d_heat
+    - sphinx-apidoc -f -o source/tests/3d_stress ../tests/3d_stress
+    - sphinx-apidoc -f -o source/tests/3d_r13 ../tests/3d_r13
     - sphinx-apidoc -f -o source/examples ../examples
     - make html
     - make latex

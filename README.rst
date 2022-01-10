@@ -145,9 +145,9 @@ We can test the convergence of the R13 discretization on a simple double-cylindr
 .. code-block:: bash
 
     # Move to folder:
-    cd tests/r13
+    cd tests/2d_r13
     # Meshes are already in Git:
-    ls ../mesh
+    ls ../2d_mesh
     # Run program with given input file:
     fenicsR13 inputs/r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.yml
     # Go to folder with simulation results (=casename in input.yml)
@@ -209,9 +209,12 @@ Manual Generation
     # cat .gitlab-ci.yml
     cd docs
     sphinx-apidoc -o source/src ../src
-    sphinx-apidoc -o source/tests/heat ../tests/heat
-    sphinx-apidoc -o source/tests/stress ../tests/stress
-    sphinx-apidoc -o source/tests/r13 ../tests/r13
+    sphinx-apidoc -o source/tests/2d_heat ../tests/2d_heat
+    sphinx-apidoc -o source/tests/2d_stress ../tests/2d_stress
+    sphinx-apidoc -o source/tests/2d_r13 ../tests/2d_r13
+    sphinx-apidoc -o source/tests/3d_heat ../tests/3d_heat
+    sphinx-apidoc -o source/tests/3d_stress ../tests/3d_stress
+    sphinx-apidoc -o source/tests/3d_r13 ../tests/3d_r13
     sphinx-apidoc -o source/examples ../examples
     make html
     make latex

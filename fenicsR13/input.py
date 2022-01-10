@@ -199,7 +199,7 @@ class Input:
     ...
     Exception: Parsing error
 
-    >>> working_input = Input("tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml")
+    >>> working_input = Input("tests/2d_heat/inputs/heat_01_coeffs_p1p1_stab.yml")
     Input:...
 
     """

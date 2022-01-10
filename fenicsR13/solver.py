@@ -53,7 +53,7 @@ class Solver:
     >>> from fenicsR13.input import Input
     >>> from fenicsR13.meshes import H5Mesh
     >>> params = Input(
-    ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
+    ...     "tests/2d_heat/inputs/heat_01_coeffs_p1p1_stab.yml"
     ... ) # doctest: +ELLIPSIS
     Input:...
     >>> msh = H5Mesh("tests/mesh/ring0.h5")
@@ -1625,7 +1625,7 @@ class Solver:
         >>> from fenicsR13.input import Input
         >>> from fenicsR13.meshes import H5Mesh
         >>> params = Input(
-        ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
+        ...     "tests/2d_heat/inputs/heat_01_coeffs_p1p1_stab.yml"
         ... ) # doctest: +ELLIPSIS
         Input:...
         >>> msh = H5Mesh("tests/mesh/ring0.h5")

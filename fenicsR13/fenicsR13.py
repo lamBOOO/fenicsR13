@@ -70,7 +70,7 @@ def main():
 
         # Usage: <path_to_program> <input_file>
         # Goto case folder:
-        cd tests/r13
+        cd tests/2d_r13
         fenicsR13 inputs/ \
           r13_1_coeffs_nosources_norot_inflow_p1p1p1p1p1_stab.yml
 
