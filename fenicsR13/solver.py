@@ -1011,6 +1011,13 @@ class Solver:
         sys.stdout.flush()
         start_t = time_module.time()
         sol = df.Function(w)
+        df.parameters['krylov_solver']['monitor_convergence'] = True
+        df.parameters['krylov_solver']['absolute_tolerance'] = 1E-10
+        df.parameters['krylov_solver']['relative_tolerance'] = 1E-10
+        df.parameters['krylov_solver']['maximum_iterations'] = 1000
+        df.parameters['krylov_solver']['nonzero_initial_guess'] = False
+        # w.dofmap().set(sol.vector(), 1.0)
+        # w.dofmap().set(sol.split()[2].vector(), 0.0)
         df.solve(
             AA, sol.vector(), LL, solver_name, preconditioner
         )
