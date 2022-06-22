@@ -775,6 +775,13 @@ class Solver:
                 df.inner(v, df.grad(p))
             ) * df.dx(reg) for reg in regs.keys()])
 
+        # def g(p, v):
+        #     return sum([(
+        #         - df.div(v) * p
+        #     ) * df.dx(reg) for reg in regs.keys()]) + sum([(
+        #         p * n(v)
+        #     ) * df.ds(bc) for bc in bcs.keys()])
+
         # 3.1) CIP Stabilization:
         def j_theta(theta, kappa):
             return (
