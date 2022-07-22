@@ -1,0 +1,33 @@
+diff fenicsR13/solver.py fenicsR13/solver_augmented.py
+724,725c724,725
+<                     to.sym3d3(to.grad3dOf2(to.gen3DTFdim2(si), nsd)),
+<                     to.sym3d3(to.grad3dOf2(to.gen3DTFdim2(ps), nsd))
+---
+>                     to.stf3d3(to.grad3dOf2(to.gen3DTFdim2(si), nsd)),
+>                     to.stf3d3(to.grad3dOf2(to.gen3DTFdim2(ps), nsd))
+727d726
+<                 - regs[reg]["kn"] * 4/15 * df.dot(df.div(si), df.div(ps))
+730a730
+>                 + df.inner(df.div(si), df.div(ps))
+747c747,749
+<             ) * df.ds(bc) for bc in bcs.keys()])
+---
+>             ) * df.ds(bc) for bc in bcs.keys()]) + sum([(
+>                 df.dot(df.grad(p), df.grad(q))
+>             ) * df.dx(reg) for reg in regs.keys()])
+772c774,776
+<             ) * df.ds(bc) for bc in bcs.keys()])
+---
+>             ) * df.ds(bc) for bc in bcs.keys()]) + sum([(
+>                 df.inner(df.div(ps), df.grad(p))
+>             ) * df.dx(reg) for reg in regs.keys()])
+900c904,906
+<         ) * df.ds(bc) for bc in bcs.keys()])
+---
+>         ) * df.ds(bc) for bc in bcs.keys()]) + (
+>             df.dot(f_body, df.div(psi)) * df.dx
+>         )
+902c908
+<         L[4] = + (f_mass * q) * df.dx - sum([(
+---
+>         L[4] = + ((f_mass * q) + df.dot(f_body, df.grad(q))) * df.dx - sum([(
