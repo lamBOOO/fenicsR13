@@ -81,6 +81,11 @@ To execute a simulation case, go to to the case folder (e.g. ``examples/lid_driv
 
 .. code-block:: bash
 
+    # [It might be required to install the package inside the Docker container]
+    pip install --user -e .
+
+.. code-block:: bash
+
     # Move to folder:
     cd examples/lid_driven_cavity
 
