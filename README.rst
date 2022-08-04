@@ -65,9 +65,20 @@ Make sure you installed Docker and it is running on your system. You can start t
 
 .. code-block:: bash
 
-    # Run (and possibly pull) fenicsr13_release service
+    ## 1) FOR USERS:
+    ## - Pulls and runs "fenicsr13_release" service
+    ## - Uses preinstalled latest version of fenicsR13
+    docker-compose pull fenicsr13_release
     docker-compose run --rm fenicsr13_release
-    # Only for developers, install the lastest version using pip
+
+    ## 2) FOR DEVELOPERS (uncommend the last 3 lines of this block):
+    ## - Builds the "fenicsr13_debug"
+    ## - Install an editable version of fenicsR13
+    ## - The "pip"-command install an editable version of fenicsR13
+    ## - This allows a modification of the source files which can be directly
+    ##   executed within the debug container
+    # docker-compose build fenicsr13_debug
+    # docker-compose run fenicsr13_debug
     # sudo pip install -e .
 
 When you run this for the first time, docker will pull (download and extract) the container image from our repository which is roughly 800MB and the download may require some patience. After the initial download the docker image will be stored (2-3 GB) on your system and any new run will start the container immediately.
