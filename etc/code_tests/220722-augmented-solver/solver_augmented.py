@@ -727,6 +727,7 @@ class Solver:
                 + (1 / (2 * regs[reg]["kn"])) * df.inner(
                     to.gen3DTFdim2(si), to.gen3DTFdim2(ps)
                 )
+                + df.inner(df.div(si), df.div(ps))
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + bcs[bc]["chi_tilde"] * 21 / 20 * nn(si) * nn(ps)
                 + bcs[bc]["chi_tilde"] * cpl * 3 / 40 * nn(si) * nn(ps)
@@ -743,7 +744,9 @@ class Solver:
         def h(p, q):
             return sum([(
                 bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * q
-            ) * df.ds(bc) for bc in bcs.keys()])
+            ) * df.ds(bc) for bc in bcs.keys()]) + sum([(
+                df.dot(df.grad(p), df.grad(q))
+            ) * df.dx(reg) for reg in regs.keys()])
 
         # 2) Offdiagonals:
         def b(th, r):
@@ -768,7 +771,9 @@ class Solver:
         def f(p, ps):
             return sum([(
                 bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * nn(ps)
-            ) * df.ds(bc) for bc in bcs.keys()])
+            ) * df.ds(bc) for bc in bcs.keys()]) + sum([(
+                df.inner(df.div(ps), df.grad(p))
+            ) * df.dx(reg) for reg in regs.keys()])
 
         def g(p, v):
             return sum([(
@@ -896,9 +901,11 @@ class Solver:
                 + n(v1[bc])
                 - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
             ) * nn(psi)
-        ) * df.ds(bc) for bc in bcs.keys()])
+        ) * df.ds(bc) for bc in bcs.keys()]) + (
+            df.dot(f_body, df.div(psi)) * df.dx
+        )
         L[3] = + df.dot(f_body, v) * df.dx
-        L[4] = + (f_mass * q) * df.dx - sum([(
+        L[4] = + ((f_mass * q) + df.dot(f_body, df.grad(q))) * df.dx - sum([(
             (
                 + n(v1[bc])
                 - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
