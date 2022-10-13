@@ -12,9 +12,14 @@ fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations 
 ``#extendedGasDynamics`` ``#using`` ``#FEniCS``
 
 ------------
-@@@ See the paper for a full explanaition: 
+
+@@@ 
+
+See the paper for a full explanaition: 
 *Lambert Theisen and Manuel Torrilhon. 2021. fenicsR13: A Tensorial Mixed Finite Element Solver for theLinear R13 Equations Using the FEniCS Computing Platform. ACM Trans. Math. Softw. 47, 2, Article 17 (April 2021), 29 pages. 10.1145/3442378.*
 `Preprint @ arXiv (Free PDF)`_ `Final Version @ Journal`_
+
+@@@
 
 .. _`Preprint @ arXiv (Free PDF)`: https://arxiv.org/abs/2007.05944
 .. _`Final Version @ Journal`: https://dl.acm.org/doi/10.1145/3442378?cid=99659694875
