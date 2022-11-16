@@ -81,7 +81,7 @@ def main():
     df.set_log_level(100)  # 1: all logs
     df.parameters["ghost_mode"] = "shared_vertex"
 
-    inputfile = sys.argv[1] if len(sys.argv) == 2 else "input.yml"
+    inputfile = "input.yml"
 
     input_file = Input(inputfile)
     params = input_file.dict
