@@ -178,16 +178,6 @@ class Input:
             end: [8, 4.5]
             res: 10000
 
-        # Parameter Study
-        # ==============
-        # - enable: Repeat simulation with different p. values (study)
-        # - parameter_key: Key as list, e.g. ["elemenets", "p", "degree"]
-        # - parameter_values: List of value for parameter, e.g. [0.01,0.1,1,10]
-        parameter_study:
-        enable: True
-        parameter_key: ["kn"]
-        parameter_values: [1,2,3]
-
     Further input examples can be found in the ``tests`` or ``examples``
     folders.
 
@@ -351,24 +341,6 @@ class Input:
                                 },
                             },
                         },
-                    },
-                }
-            },
-            "parameter_study": {
-                "type": "dict",
-                "required": True,
-                "schema": {
-                    "enable": {
-                        "type": "boolean",
-                        "required": True
-                    },
-                    "parameter_key": {
-                        "type": "list",
-                        "required": True,
-                    },
-                    "parameter_values": {
-                        "type": "list",
-                        "required": True,
                     },
                 }
             },
@@ -551,7 +523,7 @@ class Input:
             print("! Parsing Error: \n" + str(val.errors) + "\n")
             raise Exception("Parsing error")
 
-        print("Input:\n" + dumps(self.dict, indent=None))
+        print("Input:\n" + dumps(self.dict, indent=1))
 
     def get_from_input(self, map_list):
         """
