@@ -50,13 +50,6 @@ stabilization:
     delta_theta: 1.0
     delta_u: 1.0
     delta_p: 0.1
-  gls:
-    enable: False
-    tau_energy: 0.001
-    tau_heatflux: 0.001
-    tau_mass: 0.01
-    tau_momentum: 0.01
-    tau_stress: 0.01
 
 # Formulation Parameters
 # ======================

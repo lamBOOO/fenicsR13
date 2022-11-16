@@ -80,13 +80,6 @@ class Solver:
         self.delta_u = self.params["stabilization"]["cip"]["delta_u"]
         self.delta_p = self.params["stabilization"]["cip"]["delta_p"]
 
-        # GLS
-        self.use_gls = self.params["stabilization"]["gls"]["enable"]
-        self.tau_energy = self.params["stabilization"]["gls"]["tau_energy"]
-        self.tau_heatflux = self.params["stabilization"]["gls"]["tau_heatflux"]
-        self.tau_mass = self.params["stabilization"]["gls"]["tau_mass"]
-        self.tau_momentum = self.params["stabilization"]["gls"]["tau_momentum"]
-        self.tau_stress = self.params["stabilization"]["gls"]["tau_stress"]
 
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
         self.write_vecs = self.params["postprocessing"]["write_vecs"]
@@ -154,14 +147,6 @@ class Solver:
             "u": None,
             "sigma": None,
         }
-        self.esol = {
-            "theta": None,
-            "s": None,
-            "p": None,
-            "u": None,
-            "sigma": None,
-        }
-        self.errors = {}
 
     def __createSolMacroScaExpr(self, cpp_string):
         """
@@ -320,33 +305,6 @@ class Solver:
         self.mxd_fspaces["r13"] = df.FunctionSpace(
             msh, self.mxd_elems["r13"]
         )
-
-    def __check_regions(self):
-        """
-        Check if all regions from the input mesh have params prescribed.
-
-        Raises an exception if one region is missing.
-        """
-        # TODO: Implement this
-        region_ids = self.regions.array()
-        regs_specified = list(self.regs.keys())
-
-        for reg_id in region_ids:
-            if reg_id not in [0] + regs_specified:  # inner zero allowed
-                raise Exception("Mesh region {} has no params!".format(reg_id))
-
-    def __check_bcs(self):
-        """
-        Check if all boundaries from the input mesh have BCs prescribed.
-
-        Raises an exception if one BC is missing.
-        """
-        boundary_ids = self.boundaries.array()
-        bcs_specified = list(self.bcs.keys())
-
-        for edge_id in boundary_ids:
-            if edge_id not in [0] + bcs_specified:  # inner zero allowed
-                raise Exception("Mesh edge {} has no bcs!".format(edge_id))
 
     def assemble(self):
         r"""
@@ -536,12 +494,6 @@ class Solver:
             \rangle
 
         """
-        # Check if all mesh regions have params prescribed
-        self.__check_regions()
-
-        # Check if all mesh boundaries have bcs prescribed
-        self.__check_bcs()
-
         # Setup required function spaces
         self.__setup_function_spaces()
 
@@ -554,11 +506,6 @@ class Solver:
         delta_theta = df.Constant(self.delta_theta)
         delta_u = df.Constant(self.delta_u)
         delta_p = df.Constant(self.delta_p)
-        tau_energy = df.Constant(self.tau_energy)
-        tau_heatflux = df.Constant(self.tau_heatflux)
-        tau_mass = df.Constant(self.tau_mass)
-        tau_momentum = df.Constant(self.tau_momentum)
-        tau_stress = df.Constant(self.tau_stress)
 
         # Define custom measeasures for boundary edges and inner edges
         df.dx = df.Measure("dx", domain=mesh, subdomain_data=regions)
@@ -603,10 +550,6 @@ class Solver:
             cip = 1
         else:
             cip = 0
-        if self.use_gls:
-            gls = 1
-        else:
-            gls = 0
 
         # Setup normal/tangential projections
         # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
@@ -723,56 +666,6 @@ class Solver:
                 df.jump(df.grad(p), n_vec) * df.jump(df.grad(q), n_vec)
             ) * df.dS
 
-        # 3.2) GLS Stabilization
-        def gls_heat(theta, kappa, s, r):
-            return sum([(
-                tau_energy * h_msh**1 * (
-                    df.inner(
-                        df.div(s) + cpl * df.div(u) - f_heat,
-                        df.div(r) + cpl * df.div(v)
-                    )
-                )  # energy
-                + tau_heatflux * h_msh**1 *
-                df.inner(
-                    (5 / 2) * df.grad(theta)
-                    - (12 / 5) * regs[reg]["kn"] * df.div(to.stf3d2(df.grad(s)))
-                    - (1 / 6) * regs[reg]["kn"] * 12 * df.grad(df.div(s))
-                    + 1 / regs[reg]["kn"] * 2 / 3 * s,
-                    (5 / 2) * df.grad(kappa)
-                    - (12 / 5) * regs[reg]["kn"] * df.div(to.stf3d2(df.grad(r)))
-                    - (1 / 6) * regs[reg]["kn"] * 12 * df.grad(df.div(r))
-                    + 1 / regs[reg]["kn"] * 2 / 3 * r
-                )  # heatflux
-            ) * df.dx(reg) for reg in regs.keys()])
-
-        def gls_stress(p, q, u, v, sigma, psi):
-            return sum([(
-                tau_mass * h_msh**1.5 *
-                df.inner(
-                    df.div(v), df.div(u) - f_mass
-                )  # mass
-                + tau_momentum * h_msh**1.5 *
-                df.inner(
-                    df.grad(q) + df.div(psi),
-                    df.grad(p) + df.div(sigma) - f_body
-                )  # momentum
-                + tau_stress * h_msh**1.5 *
-                df.inner(
-                    cpl * (4 / 5) * to.gen3dTF2(df.grad(r))
-                    + 2 * to.stf3d2(to.gen3d2(df.grad(v)))
-                    - 2 * regs[reg]["kn"] * to.div3d3(
-                        to.stf3d3(to.grad3dOf2(to.gen3dTF2(psi)))
-                    )
-                    + (1 / regs[reg]["kn"]) * to.gen3dTF2(psi),
-                    cpl * (4 / 5) * to.gen3dTF2(df.grad(s))
-                    + 2 * to.stf3d2(to.gen3d2(df.grad(u)))
-                    - 2 * regs[reg]["kn"] * to.div3d3(
-                        to.stf3d3(to.grad3dOf2(to.gen3dTF2(sigma)))
-                    )
-                    + (1 / regs[reg]["kn"]) * to.gen3dTF2(sigma)
-                )  # stress
-            ) * df.dx(reg) for reg in regs.keys()])
-
         # Setup all equations
         A = [None] * 5
         L = [None] * 5
@@ -809,33 +702,18 @@ class Solver:
         if self.mode == "heat":
             self.form_lhs = sum(A[0:2]) + (
                 cip * (j_theta(theta, kappa))
-                + gls * df.lhs(gls_heat(theta, kappa, s, r))
             )
-            self.form_rhs = sum(L[0:2]) + (
-                gls * df.rhs(gls_heat(theta, kappa, s, r))
-            )
+            self.form_rhs = sum(L[0:2])
         elif self.mode == "stress":
             self.form_lhs = sum(A[2:5]) + (
                 cip * (j_u(u, v) + j_p(p, q))
-                + gls * df.lhs(gls_stress(p, q, u, v, sigma, psi))
             )
-            self.form_rhs = sum(L[2:5]) + (
-                gls * df.rhs(gls_stress(p, q, u, v, sigma, psi))
-            )
+            self.form_rhs = sum(L[2:5])
         elif self.mode == "r13":
             self.form_lhs = sum(A) + (
                 cip * (j_theta(theta, kappa) + j_u(u, v) + j_p(p, q))
-                + gls * df.lhs(
-                    gls_heat(theta, kappa, s, r)
-                    + gls_stress(p, q, u, v, sigma, psi)
-                )
             )
-            self.form_rhs = sum(L) + (
-                gls * df.rhs(
-                    gls_heat(theta, kappa, s, r)
-                    + gls_stress(p, q, u, v, sigma, psi)
-                )
-            )
+            self.form_rhs = sum(L)
 
     def solve(self):
         """

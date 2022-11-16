@@ -18,7 +18,6 @@ import dolfin as df
 from fenicsR13.meshes import H5Mesh
 from fenicsR13.input import Input
 from fenicsR13.solver import Solver
-from fenicsR13.postprocessor import Postprocessor
 
 
 def print_information():
