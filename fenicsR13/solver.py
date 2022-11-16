@@ -113,14 +113,6 @@ class Solver:
         self.mass_source = self.__createMacroScaExpr(self.params["mass_source"])
         self.body_force = self.__createMacroVecExpr(self.params["body_force"])
 
-        self.exact_solution = self.params["convergence_study"]["exact_solution"]
-        self.write_systemmatrix = self.params["convergence_study"][
-            "write_systemmatrix"
-        ]
-        self.rescale_p = self.params["convergence_study"]["rescale_pressure"]
-        self.relative_error = self.params["convergence_study"][
-            "relative_error"
-        ]
         self.output_folder = self.params["output_folder"] + "/"
         self.var_ranks = {
             "theta": 0,
@@ -576,7 +568,7 @@ class Solver:
         # Define mesh measuers
         h_msh = df.CellDiameter(mesh)
         h_avg = (h_msh("+") + h_msh("-")) / 2.0
-
+    
         # TODO: Study this, is it more precise?
         # fa = df.FacetArea(mesh)
         # h_avg_new = (fa("+") + fa("-"))/2.0
@@ -952,15 +944,13 @@ class Solver:
                 self.sol["p"], self.sol["u"], self.sol["sigma"]
             ) = sol.split()
 
-        if self.mode == "stress" or self.mode == "r13":
-            if self.rescale_p:
-                # Scale pressure to have zero mean
-                p_i = df.interpolate(self.sol["p"], self.fspaces["p"])
-                mean_p_value = self.__calc_sf_mean(p_i)
-                mean_p_fct = df.Function(self.fspaces["p"])
-                mean_p_fct.assign(df.Constant(mean_p_value))
-                p_i.assign(p_i - mean_p_fct)
-                self.sol["p"] = p_i
+        # Scale pressure to have zero mean
+        p_i = df.interpolate(self.sol["p"], self.fspaces["p"])
+        mean_p_value = self.__calc_sf_mean(p_i)
+        mean_p_fct = df.Function(self.fspaces["p"])
+        mean_p_fct.assign(df.Constant(mean_p_value))
+        p_i.assign(p_i - mean_p_fct)
+        self.sol["p"] = p_i
 
         # Calculate mass flows
         for bc_id in self.massflow:
@@ -1061,140 +1051,6 @@ class Solver:
         print("Finish line_integrals: {}".format(str(secs)))
         sys.stdout.flush()
 
-    def __load_exact_solution(self):
-        """
-        Load exact solution from the location given in ``input.yml``.
-
-        The exact solution must be C++ format with a specific syntax.
-        The ``esol.cpp`` must contain the classes:
-
-        =============== =====================
-        Class           mode
-        =============== =====================
-        ``Temperature`` ``heat`` or ``r13``
-        ``Heatflux``    ``heat`` or ``r13``
-        ``Pressure``    ``stress`` or ``r13``
-        ``Velocity``    ``stress`` or ``r13``
-        ``Stress``      ``stress`` or ``r13``
-        =============== =====================
-
-        The file has to follow a specific syntax for DOLFIN.
-        An example file could look like:
-
-        .. code-block:: c++
-
-            #include <pybind11/pybind11.h>
-            #include <pybind11/eigen.h>
-            #include <cmath>
-            // additional includes
-            #include <boost/math/special_functions/bessel.hpp>
-            using namespace std;
-            namespace py = pybind11;
-            #include <dolfin/function/Expression.h>
-            double lambda_3 = sqrt(3.0/2.0); // some own constants
-            class Temperature : public dolfin::Expression {
-                public:
-                Temperature() : dolfin::Expression() {}
-                void eval(Eigen::Ref<Eigen::VectorXd> values,
-                        Eigen::Ref<const Eigen::VectorXd> x) const override {
-                    values[0] = 1; // value
-                }
-            };
-            class Heatflux : public dolfin::Expression {
-                public:
-                Heatflux() : dolfin::Expression(2) {} // note components=2!
-                void eval(Eigen::Ref<Eigen::VectorXd> values,
-                        Eigen::Ref<const Eigen::VectorXd> x) const override {
-                    values[0] = 42;
-                    values[1] = 3.14;
-                }
-            };
-            class Pressure : public dolfin::Expression {
-                public:
-                Pressure() : dolfin::Expression() {}
-                void eval(Eigen::Ref<Eigen::VectorXd> values,
-                        Eigen::Ref<const Eigen::VectorXd> x) const override {
-                    values[0] = boost::math::cyl_bessel_i(1,2.71); // external
-                }
-            };
-            class Velocity : public dolfin::Expression {
-                public:
-                Velocity() : dolfin::Expression(2) {}
-                void eval(Eigen::Ref<Eigen::VectorXd> values,
-                        Eigen::Ref<const Eigen::VectorXd> x) const override {
-                    values[0] = lambda_3;
-                    values[1] = 2;
-                }
-            };
-            class Stress : public dolfin::Expression {
-                public:
-                Stress() : dolfin::Expression(2,2) {} // note dim=2, shape=(2,2)
-                void eval(Eigen::Ref<Eigen::VectorXd> values,
-                        Eigen::Ref<const Eigen::VectorXd> x) const override {
-                    double xx_val = 1.23;
-                    double xy_val = 1.23;
-                    double yy_val = 1.23;
-                    values[0] = xx_val;
-                    values[1] = xy_val;
-                    values[2] = yy_val;
-                    // values[3] = xy_val // not used due to symmetry, skip
-                }
-            };
-            PYBIND11_MODULE(SIGNATURE, m) { // needed for DOLFIN
-                py::class_<Temperature, std::shared_ptr<Temperature>,
-                           dolfin::Expression>
-                    (m, "Temperature")
-                .def(py::init<>());
-                py::class_<Heatflux, std::shared_ptr<Heatflux>,
-                           dolfin::Expression>
-                    (m, "Heatflux")
-                .def(py::init<>());
-                py::class_<Pressure, std::shared_ptr<Pressure>,
-                           dolfin::Expression>
-                    (m, "Pressure")
-                .def(py::init<>());
-                py::class_<Velocity, std::shared_ptr<Velocity>,
-                           dolfin::Expression>
-                    (m, "Velocity")
-                .def(py::init<>());
-                py::class_<Stress, std::shared_ptr<Stress>, dolfin::Expression>
-                    (m, "Stress")
-                .def(py::init<>());
-            }
-        """
-        if self.mode == "heat" or self.mode == "r13":
-
-            with open(self.exact_solution, "r") as file:
-                exact_solution_cpp_code = file.read()
-
-            esol = df.compile_cpp_code(exact_solution_cpp_code)
-
-            self.esol["theta"] = df.CompiledExpression(
-                esol.Temperature(), degree=2
-            )
-
-            self.esol["s"] = df.CompiledExpression(
-                esol.Heatflux(), degree=2
-            )
-        if self.mode == "stress" or self.mode == "r13":
-
-            with open(self.exact_solution, "r") as file:
-                exact_solution_cpp_code = file.read()
-
-            esol = df.compile_cpp_code(exact_solution_cpp_code)
-
-            self.esol["p"] = df.CompiledExpression(
-                esol.Pressure(), degree=2
-            )
-
-            self.esol["u"] = df.CompiledExpression(
-                esol.Velocity(), degree=2
-            )
-
-            self.esol["sigma"] = df.CompiledExpression(
-                esol.Stress(), degree=2
-            )
-
     def __calc_sf_mean(self, scalar_function):
         """
         Calculate the mean of a scalar function.
@@ -1221,170 +1077,6 @@ class Solver:
         mean = np.mean(v)
         return mean
 
-    def __calc_field_errors(self, field_, field_e_, v_field, name_):
-        r"""
-        Calculate both :math:`L_2` and :math:`l_\infty` errors.
-
-        Works for scalars, vectors and tensors.
-        The difference is written to a file.
-        The exact solution is written to a file.
-        Relative errors are based per field component and the maximum value of
-        the analytical solution. If the analytical solution is uniformly zero,
-        then the absolute erorrs is used.
-        (equivalent to setting the maximum to 1)
-
-        Parameters
-        ----------
-        field_ : DOLFIN function
-            calculated field
-        field_e_ : DOLFIN function
-            exact solution of field
-        v_field : DOLFIN fspace
-            function space for error calculation
-        name_ : string
-            name of the field, used to write difference
-
-        Returns
-        -------
-        dict
-            Dict with an error list for "L_2" and a list for "l_inf"
-
-        Raises
-        ------
-        Nothing
-
-        See Also
-        --------
-        calculate_errors: Function to return all field errors
-
-        Notes
-        -----
-        For other norm types, see DOLFIN documentation [6]_ and search for
-        norms.
-
-        References
-        ----------
-        .. [6] `DOLFIN documentation <https://fenicsproject.org/docs/dolfin/>`_
-
-        """
-        field_e_i = df.interpolate(field_e_, v_field)
-        field_i = df.interpolate(field_, v_field)
-
-        difference = df.project(field_e_i - field_i, v_field)
-        self.__write_xdmf("difference_{}".format(name_), difference, False)
-
-        dofs = len(field_e_i.split()) or 1
-
-        if dofs == 1:
-            # scalar
-            errs_f_L2 = [df.errornorm(field_e_i, field_i, "L2")]
-            errs_v_linf = [
-                np.max(
-                    np.abs(
-                        field_e_i.compute_vertex_values()
-                        - field_i.compute_vertex_values()
-                    )
-                )
-            ]
-        else:
-            # vector or tensor
-            errs_f_L2 = [df.errornorm(
-                field_e_i.split()[i], field_i.split()[i], "L2"
-            ) for i in range(dofs)]
-            errs_v_linf = [
-                np.max(
-                    np.abs(
-                        field_e_i.split()[i].compute_vertex_values()
-                        - field_i.split()[i].compute_vertex_values()
-                    )
-                )
-                for i in range(dofs)
-            ]
-
-        if self.relative_error:
-            if dofs == 1:
-                # scalar
-                max_esols = [
-                    np.max(np.abs(field_e_i.compute_vertex_values())) or 1
-                ]
-            else:
-                # vector or tensor
-                max_esols = [
-                    np.max(
-                        np.abs(field_e_i.split()[i].compute_vertex_values())
-                    )
-                    for i in range(dofs)
-                ]
-            errs_f_L2 = [x / y for x, y in zip(errs_f_L2, max_esols)]
-            errs_v_linf = [x / y for x, y in zip(errs_v_linf, max_esols)]
-
-        print("Error " + str(name_) + " L_2:", errs_f_L2)
-        print("Error " + str(name_) + " l_inf:", errs_v_linf)
-
-        self.__write_xdmf(name_ + "_e", field_e_i, False)
-
-        return [{
-            "L_2": errs_f_L2[i],
-            "l_inf": errs_v_linf[i],
-        } for i in range(dofs)]
-
-    def calculate_errors(self):
-        """
-        Calculate and return the errors of numerical to exact solution.
-
-        This includes all calculated fields.
-
-        .. note::
-
-            Usage of `np.max()` does not work in parallel.
-            So convergence studies have to be performed in serial for now.
-            Final fields should be right, so MPI can be used for production
-            simulations.
-
-        Returns:
-            dict -- Errors
-
-        """
-        print("Calculate errors..")
-
-        self.__load_exact_solution()
-
-        if self.mode == "heat" or self.mode == "r13":
-            se = self.__calc_field_errors(
-                self.sol["theta"], self.esol["theta"],
-                self.fspaces["theta"], "theta"
-            )
-            ve = self.__calc_field_errors(
-                self.sol["s"], self.esol["s"],
-                self.fspaces["s"], "s"
-            )
-            ers = self.errors
-            ers["theta"] = se[0]
-            ers["sx"] = ve[0]
-            ers["sy"] = ve[1]
-        if self.mode == "stress" or self.mode == "r13":
-            se = self.__calc_field_errors(
-                self.sol["p"], self.esol["p"],
-                self.fspaces["p"], "p"
-            )
-            ve = self.__calc_field_errors(
-                self.sol["u"], self.esol["u"],
-                self.fspaces["u"], "u"
-            )
-            te = self.__calc_field_errors(
-                self.sol["sigma"], self.esol["sigma"],
-                self.fspaces["sigma"], "sigma"
-            )
-            ers = self.errors
-            ers["p"] = se[0]
-            ers["ux"] = ve[0]
-            ers["uy"] = ve[1]
-            ers["sigmaxx"] = te[0]
-            ers["sigmaxy"] = te[1]
-            ers["sigmayy"] = te[2]
-
-        return self.errors
-
     def write_content_to_file(self, filename, content):
         """Write content to a file in the output folder."""
         path = self.output_folder + filename + "_" + str(self.time)
@@ -1409,8 +1101,6 @@ class Solver:
         if self.write_vecs:
             self.__write_vecs()
         self.__write_parameters()
-        if self.write_systemmatrix:
-            self.__write_discrete_system()
 
     def __write_solutions(self):
         """Write all solutions fields."""
@@ -1458,83 +1148,6 @@ class Solver:
         # Body force
         f_body = df.interpolate(self.body_force, V_v)
         self.__write_xdmf("f_body", f_body, False)
-
-    def __write_discrete_system(self):
-        r"""
-        Write the discrete system matrix and the RHS vector.
-
-        Can be used to analyze e.g. condition number.
-        Include writing of :math:`\mathbf{A}` and :math:`\mathbf{b}`
-        of :math:`\mathbf{A} \mathbf{x} = \mathbf{b}`.
-
-        File-ending is `.mat`.
-
-        Import the matrices/vectors e.g. into Matlab with:
-
-        .. code-block:: matlab
-
-            % Input into MATLAB
-            A = table2array(readtable("A_0.mat","FileType","text"));
-            b = table2array(readtable("b_0.mat","FileType","text"));
-
-        Julia:
-
-        .. code-block:: julia
-
-            using DelimitedFiles
-            A = readdlm("A_0.mat", ' ', Float64, '\n')
-
-        Example
-        -------
-        >>> # Construct LHS
-        >>> from dolfin import *
-        >>> mesh = IntervalMesh(2 ,0, 1)
-        >>> V = FunctionSpace(mesh, "Lagrange", 1)
-        >>> u = TrialFunction(V)
-        >>> v = TestFunction(V)
-        >>> a = inner(grad(u),grad(v))*dx
-        >>> L = df.Constant(1)*v*dx
-        >>> lhs = assemble(a)
-        >>> print(lhs.array())
-        [[ 2. -2.  0.]
-         [-2.  4. -2.]
-         [ 0. -2.  2.]]
-        >>> rhs = assemble(L)
-        >>> print(rhs.get_local())
-        [ 0.25  0.5   0.25]
-        >>> # Assign LHS to solver
-        >>> from fenicsR13.input import Input
-        >>> from fenicsR13.meshes import H5Mesh
-        >>> params = Input(
-        ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
-        ... ) # doctest: +ELLIPSIS
-        Input:...
-        >>> msh = H5Mesh("tests/mesh/ring0.h5")
-        >>> solver = Solver(params.dict, msh, "0") # "0" means time=0
-        >>> solver.form_lhs = a
-        >>> solver.form_rhs = L
-        >>> solver.output_folder = "./"
-        >>> solver._Solver__write_discrete_system()
-        Write ./A_0.mat
-        Write ./b_0.mat
-        >>> print(open("A_0.mat","r").read())
-        2.0000...00000e+00 -2.0000...00000e+00 0.000...000000e+00
-        -2.0000...00000e+00 4.0000...00000e+00 -2.0000...00000e+00
-        0.0000...00000e+00 -2.0000...00000e+00 2.000...000000e+00
-        <BLANKLINE>
-        >>> print(open("b_0.mat","r").read())
-        2.500000000000000000e-01
-        5.000000000000000000e-01
-        2.500000000000000000e-01
-        <BLANKLINE>
-        """
-        file_ending = ".mat"
-        A_name = self.output_folder + "A_{}".format(self.time) + file_ending
-        b_name = self.output_folder + "b_{}".format(self.time) + file_ending
-        print("Write {}".format(A_name))
-        np.savetxt(A_name, df.assemble(self.form_lhs).array())
-        print("Write {}".format(b_name))
-        np.savetxt(b_name, df.assemble(self.form_rhs))
 
     def __write_xdmf(self, name, field, write_pdf):
         """

@@ -135,22 +135,6 @@ class Input:
             p_w: 0
             epsilon_w: 0
 
-        # Convergence Study
-        # =================
-        # - enable: Enable convergence study on given meshes
-        # - exact_solution: Path to exact solution in cpp-format to compare
-        # - plot: Show errors in matplotlib window. PDF output is default
-        # - write_systemmatrix: Writes out systemmatrix (LHS)
-        # - rescale_pressure: Rescale numerical pressure result for zero mean
-        # - relative_errors: Use relative errors. If esol=0, use absolute.
-        convergence_study:
-          enable: True
-          exact_solution: esols/1_coeffs_sources_rot_noinflow.cpp
-          plot: False
-          write_systemmatrix: False
-          rescale_pressure: True
-          relative_error: True
-
         # Postprocessing
         # ==============
         # - write_pdfs: Write all solution fields as PDF plot
@@ -341,36 +325,6 @@ class Input:
                                 },
                             },
                         },
-                    },
-                }
-            },
-            "convergence_study": {
-                "type": "dict",
-                "required": True,
-                "schema": {
-                    "enable": {
-                        "type": "boolean",
-                        "required": True
-                    },
-                    "exact_solution": {
-                        "type": "string",
-                        "required": True
-                    },
-                    "plot": {
-                        "type": "boolean",
-                        "required": True
-                    },
-                    "write_systemmatrix": {
-                        "type": "boolean",
-                        "required": True
-                    },
-                    "rescale_pressure": {
-                        "type": "boolean",
-                        "required": True
-                    },
-                    "relative_error": {
-                        "type": "boolean",
-                        "required": True
                     },
                 }
             },
