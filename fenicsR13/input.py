@@ -121,33 +121,6 @@ class Input:
             p_w: 0
             epsilon_w: 0
 
-        # Postprocessing
-        # ==============
-        # - write_pdfs: Write all solution fields as PDF plot
-        # - write_vecs: Write all solution fields as vectors
-        # - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
-        # - line_integrals: List of line integral dicts:
-        #   - name: Name for output
-        #   - expr: Expression to evaluate
-        #   - start: Start point
-        #   - end: End point
-        #   - res: Sampling resolution of line
-        postprocessing:
-        write_pdfs: True
-        write_vecs: True
-        massflow: []
-        line_integrals:
-          - name: "avg(abs(uy(x,y=0.5)))"
-            expr: abs(uy)/8
-            start: [0, 0.5]
-            end: [8, 0.5]
-            res: 10000
-          - name: "avg(abs(uy(x,y=4.5)))"
-            expr: abs(uy)/8
-            start: [0, 4.5]
-            end: [8, 4.5]
-            res: 10000
-
     Further input examples can be found in the ``tests`` or ``examples``
     folders.
 
@@ -256,63 +229,6 @@ class Input:
                 "type": "list",
                 "required": True,
                 "schema": {"anyof": [{"type": "string"}, {"type": "float"}]}
-            },
-            "postprocessing": {
-                "type": "dict",
-                "required": True,
-                "schema": {
-                    "write_pdfs": {
-                        "type": "boolean",
-                        "required": True
-                    },
-                    "write_vecs": {
-                        "type": "boolean",
-                        "required": True
-                    },
-                    "massflow": {
-                        "type": "list",
-                        "required": True,
-                        "schema": {"type": "integer"}
-                    },
-                    "line_integrals": {
-                        "type": "list",
-                        "required": True,
-                        "schema": {
-                            "type": "dict",
-                            "schema": {
-                                "name": {
-                                    "type": "string",
-                                    "required": True,
-                                },
-                                "expr": {
-                                    "anyof": [
-                                        {"type": "string"}, {"type": "float"}
-                                    ],
-                                    "required": True,
-                                },
-                                "start": {
-                                    "type": "list",
-                                    "required": True,
-                                    "schema": {"anyof": [
-                                        {"type": "string"}, {"type": "float"}
-                                    ]}
-                                },
-                                "end": {
-                                    "type": "list",
-                                    "required": True,
-                                    "schema": {"anyof": [
-                                        {"type": "string"}, {"type": "float"}
-                                    ]}
-                                },
-                                "res": {
-                                    "type": "integer",
-                                    "required": True,
-                                    "min": 1
-                                },
-                            },
-                        },
-                    },
-                }
             },
             "output_folder": {
                 "type": "string",

@@ -81,11 +81,6 @@ class Solver:
         self.delta_p = self.params["stabilization"]["cip"]["delta_p"]
 
 
-        self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
-        self.write_vecs = self.params["postprocessing"]["write_vecs"]
-        self.massflow = self.params["postprocessing"]["massflow"]
-        self.line_integrals = self.params["postprocessing"]["line_integrals"]
-
         # Create region field expressions
         self.regs = copy.deepcopy(self.params["regs"])
         for reg_id in self.regs:
@@ -789,23 +784,6 @@ class Solver:
         df.solve(
             AA, sol.vector(), LL, "mumps", "none"
         )
-        # TODO: Test this
-        # # Create Krylov solver
-        # solver = df.PETScKrylovSolver("bicgstab", "amg")
-        # solver.set_operator(AA)
-
-        # # Create vector that spans the null space and normalize
-        # null_vec = df.Vector(sol.vector())
-        # w.dofmap().set(null_vec, 1.0)
-        # null_vec *= 1.0/null_vec.norm("l2")
-
-        # # Create null space basis object and attach to PETSc matrix
-        # null_space = df.VectorSpaceBasis([null_vec])
-        # df.as_backend_type(AA).set_nullspace(null_space)
-
-        # null_space.orthogonalize(LL);
-        # solver.solve(sol.vector(), LL)
-        # TODO: Add solver params to YML
         end_t = time_module.time()
         secs = end_t - start_t
         self.write_content_to_file("solve", secs)
@@ -830,17 +808,6 @@ class Solver:
         p_i.assign(p_i - mean_p_fct)
         self.sol["p"] = p_i
 
-        # Calculate mass flows
-        for bc_id in self.massflow:
-            if bc_id not in self.boundaries.array():
-                raise Exception("Massflow: {} is no boundary.".format(bc_id))
-            n = df.FacetNormal(self.mesh)
-            mass_flow_rate = df.assemble(
-                df.inner(self.sol["u"], n) * df.ds(bc_id)
-            )
-            print("mass flow rate of BC", bc_id, ":", mass_flow_rate)
-            self.write_content_to_file("massflow_" + str(bc_id), mass_flow_rate)
-
         if self.mode == "stress" or self.mode == "r13":
             vol = df.assemble(df.Constant(1) * df.dx)
             avgvel = df.assemble(
@@ -848,86 +815,6 @@ class Solver:
             ) / vol
             print("avg vel:", avgvel)
             self.write_content_to_file("avgvel", avgvel)
-
-        def __line_integral_average(u, A, B, n):
-            """
-            Integrate u over segment [A, B] partitioned into n elements.
-
-            See: https://fenicsproject.org/qa/13863/integrate-along-axes-lines/
-            """
-            assert u.value_rank() == 0
-            assert len(A) == len(B) > 1 and np.linalg.norm(A - B) > 0
-            assert n > 0
-
-            # Mesh line for integration
-            mesh_points = [A + t * (B - A) for t in np.linspace(0, 1, n + 1)]
-            tdim, gdim = 1, len(A)
-
-            # Create line mesh
-            mesh = df.Mesh(df.MPI.comm_world)
-            if self.rank == 0:
-                editor = df.MeshEditor()
-                editor.open(mesh, "interval", tdim, gdim)
-                editor.init_vertices(n + 1)
-                editor.init_cells(n)
-                for vi, v in enumerate(mesh_points):
-                    editor.add_vertex(vi, v)
-                for ci in range(n):
-                    editor.add_cell(ci, np.array([ci, ci + 1], dtype='uintp'))
-                editor.close()
-            df.MeshPartitioning.build_distributed_mesh(mesh)
-
-            # Setup function space
-            elm = u.function_space().ufl_element()
-            family = elm.family()
-            degree = elm.degree()
-            V = df.FunctionSpace(mesh, family, degree)
-            v = df.Function(V)
-
-            # Interpolate to line mesh
-            # df.interpolate does not work in parallel from different meshes
-            # -> https://fenicsproject.org/docs/dolfin/1.6.0/python/
-            #    programmers-reference/cpp/function/LagrangeInterpolator.html
-            # Use LagrangeInterpolator, which works in parallel
-            # -> https://fenicsproject.org/qa/7758/
-            #    function-interpolation-in-parallel/?show=12144#c12144
-            df.LagrangeInterpolator.interpolate(v, u)
-
-            custom_dx = df.Measure("dx", domain=mesh)
-
-            return df.assemble(v * custom_dx)
-
-        print("Start line_integrals")
-        start_t = time_module.time()
-        sys.stdout.flush()
-        for li in self.line_integrals:
-            name = li["name"]
-
-            # Interpolate in "best" Lagrange space
-            maxdeg = max([
-                self.params["elements"]["theta"]["degree"],
-                self.params["elements"]["s"]["degree"],
-                self.params["elements"]["p"]["degree"],
-                self.params["elements"]["u"]["degree"],
-                self.params["elements"]["sigma"]["degree"]
-            ])
-            expr = df.interpolate(
-                self.__createSolMacroScaExpr(li["expr"]),
-                df.FunctionSpace(self.mesh, "Lagrange", maxdeg)
-            )
-            start = np.array(li["start"])
-            end = np.array(li["end"])
-            res = li["res"]
-            result = __line_integral_average(
-                expr, start, end, res
-            )
-            self.write_content_to_file(
-                "line_integral_{}".format(name), result
-            )
-        end_t = time_module.time()
-        secs = end_t - start_t
-        print("Finish line_integrals: {}".format(str(secs)))
-        sys.stdout.flush()
 
     def __calc_sf_mean(self, scalar_function):
         """
@@ -976,8 +863,6 @@ class Solver:
         print("Write fields..")
 
         self.__write_solutions()
-        if self.write_vecs:
-            self.__write_vecs()
         self.__write_parameters()
 
     def __write_solutions(self):
@@ -985,14 +870,7 @@ class Solver:
         sols = self.sol
         for field in sols:
             if sols[field] is not None:
-                self.__write_xdmf(field, sols[field], self.write_pdfs)
-
-    def __write_vecs(self):
-        """Write all solutions to vectors."""
-        sols = self.sol
-        for field in sols:
-            if sols[field] is not None:
-                self.__write_vec(field, sols[field])
+                self.__write_xdmf(field, sols[field] )
 
     def __write_parameters(self):
         """
@@ -1017,17 +895,17 @@ class Solver:
 
         # Heat source
         f_heat = df.interpolate(self.heat_source, V_s)
-        self.__write_xdmf("f_heat", f_heat, False)
+        self.__write_xdmf("f_heat", f_heat )
 
         # Mass source
         f_mass = df.interpolate(self.mass_source, V_s)
-        self.__write_xdmf("f_mass", f_mass, False)
+        self.__write_xdmf("f_mass", f_mass )
 
         # Body force
         f_body = df.interpolate(self.body_force, V_v)
-        self.__write_xdmf("f_body", f_body, False)
+        self.__write_xdmf("f_body", f_body )
 
-    def __write_xdmf(self, name, field, write_pdf):
+    def __write_xdmf(self, name, field ):
         """
         Write a given field to a XDMF file in the output folder.
 
@@ -1069,93 +947,3 @@ class Solver:
 
             print("Write {}".format(fname_xdmf))
             file.write(field, self.time)
-
-        if write_pdf:
-            import matplotlib.pyplot as plt  # pylint: disable=C0415
-            plt.switch_backend('agg')
-            dimension = len(field.value_shape())
-
-            if dimension < 2:
-                # skip tensors
-                fname_pdf = (
-                    self.output_folder + name + "_" + str(self.time) + ".pdf"
-                )
-                plot = df.plot(field)
-                plt.colorbar(plot)
-                plt.xlabel("x")
-                plt.ylabel("y")
-                plt.title(field)
-                print("Write {}".format(fname_pdf))
-                plt.savefig(fname_pdf, dpi=150)
-                plt.close()
-
-            if dimension > 0:
-                # skip scalars
-                components = len(field.split())
-                indexMap = {
-                    1: {
-                        1: "x",
-                        2: "y"
-                    },
-                    2: {
-                        1: "xx",
-                        2: "xy",
-                        3: "yx",
-                        4: "yy",
-                    }
-                }
-                for i in range(components):
-                    fieldname = name + "_" + str(indexMap[dimension][i + 1])
-                    fname_pdf = (
-                        self.output_folder + fieldname
-                        + "_" + str(self.time) + ".pdf"
-                    )
-                    plot = df.plot(field.split()[i])
-                    plt.colorbar(plot)
-                    plt.xlabel("x")
-                    plt.ylabel("y")
-                    plt.title(fieldname)
-                    print("Write {}".format(fname_pdf))
-                    plt.savefig(fname_pdf, dpi=150)
-                    plt.close()
-
-    def __write_vec(self, name, field):
-        """
-        Write a given field to a vector.
-        """
-
-        dimension = len(field.value_shape())
-        if dimension == 0:
-            # scalar
-            fname_mat = (
-                self.output_folder + name + "_" + str(self.time)
-                + ".mat"
-            )
-            np.savetxt(
-                self.output_folder + name + "_" + str(self.time) + ".mat",
-                field.compute_vertex_values()
-            )
-            print("Write {}".format(fname_mat))
-        else:
-            # vector or tensor
-            components = len(field.split())
-            indexMap = {
-                1: {
-                    1: "x",
-                    2: "y"
-                },
-                2: {
-                    1: "xx",
-                    2: "xy",
-                    3: "yx",
-                    4: "yy",
-                }
-            }
-            for i in range(components):
-                fieldname = name + "_" + str(indexMap[dimension][i + 1])
-                fname_mat = (
-                    self.output_folder + fieldname + "_" + str(self.time)
-                    + ".mat"
-                )
-                np.savetxt(fname_mat, field.split()[i].compute_vertex_values())
-                print("Write {}".format(fname_mat))

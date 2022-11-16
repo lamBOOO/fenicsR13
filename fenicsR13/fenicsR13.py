@@ -11,7 +11,6 @@ Different meshes can be used to perform a convergence study with given
 exact solution.
 """
 
-import sys
 import gc
 import dolfin as df
 
