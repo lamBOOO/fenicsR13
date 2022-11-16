@@ -24,22 +24,6 @@ from fenicsR13.postprocessor import Postprocessor
 def print_information():
     r"""
     Print program name and information.
-
-    That is:
-
-    .. code-block:: text
-
-        -> Version: 1.4
-        -> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
-        -> Contact: Manuel Torrilhon <mt@mathcces.rwth-aachen.de>
-        -> Repository: <https://git.rwth-aachen.de/lamBOO/fenicsR13>
-        -> Documentation: <https://lamboo.pages.rwth-aachen.de/fenicsR13/>
-          __            _          ____  _ _____
-         / _| ___ _ __ (_) ___ ___|  _ \/ |___ /
-        | |_ / _ \ '_ \| |/ __/ __| |_) | | |_ \
-        |  _|  __/ | | | | (__\__ \  _ <| |___) |
-        |_|  \___|_| |_|_|\___|___/_| \_\_|____/
-
     """
     print(r"""-> Version: 1.4
 -> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
@@ -82,60 +66,23 @@ def main():
     df.parameters["ghost_mode"] = "shared_vertex"
 
     inputfile = "input.yml"
-
     input_file = Input(inputfile)
     params = input_file.dict
 
-    # Setup parameter study loop
-    if params["parameter_study"]["enable"]:
-        parameter_values = params["parameter_study"]["parameter_values"]
-        parameter_key = params["parameter_study"]["parameter_key"]
-    else:
-        parameter_values = [""]
-        parameter_key = [""]
-    initial_output_folder = params["output_folder"]
-    for parameter_value in parameter_values:
-        input_file.set_in_input(parameter_key, parameter_value)
-        params["output_folder"] = initial_output_folder + str(parameter_value)
-        print("Study", parameter_key, ":", parameter_value)
+    mesh_names = params["meshes"]
+    mesh_name = mesh_names[0]
+    print("Mesh: " + mesh_name)
 
-        # Ususal code:
-        mesh_names = params["meshes"]
+    current_mesh = H5Mesh(mesh_name)
+    solver = Solver(params, current_mesh, 0)
 
-        convergence_study = params["convergence_study"]["enable"]
-        show_plot = params["convergence_study"]["plot"]
+    solver.assemble()
+    solver.solve()
+    solver.write()
 
-        data = []
+    solver = None
+    gc.collect()
 
-        for p, mesh_name in enumerate(mesh_names):
-
-            print("Mesh: " + mesh_name)
-
-            mesh_name = mesh_names[p]
-
-            current_mesh = H5Mesh(mesh_name)
-            solver = Solver(params, current_mesh, p)
-
-            solver.assemble()
-            solver.solve()
-            solver.write()
-
-            if convergence_study:
-
-                errors = solver.calculate_errors()
-
-                data.append({
-                    "h": current_mesh.mesh.hmax(),
-                    **errors
-                })
-
-                if p == len(mesh_names) - 1:  # after last mesh
-                    postp = Postprocessor(data, params["output_folder"])
-                    postp.write_errors()
-                    postp.plot_errors(show_plot)
-
-            solver = None
-            gc.collect()
 
 
 if __name__ == '__main__':
