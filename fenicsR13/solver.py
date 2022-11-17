@@ -74,31 +74,25 @@ class Solver:
         self.rank = df.MPI.rank(self.comm)
 
         # CIP
-        self.use_cip = self.params["stabilization"]["cip"]["enable"]
         self.delta_theta = self.params["stabilization"]["cip"]["delta_theta"]
         self.delta_u = self.params["stabilization"]["cip"]["delta_u"]
         self.delta_p = self.params["stabilization"]["cip"]["delta_p"]
-
 
         # Create region field expressions
         self.regs = copy.deepcopy(self.params["regs"])
         for reg_id in self.regs:
             for field in self.regs[reg_id].keys():
-                self.regs[reg_id][field] = self.__createMacroScaExpr(
-                    self.regs[reg_id][field]
-                )
+                self.regs[reg_id][field] = df.Expression(str(self.regs[reg_id][field]),degree=2)
 
         # Create boundary field expressions
         self.bcs = copy.deepcopy(self.params["bcs"])
         for edge_id in self.bcs:
             for field in self.bcs[edge_id].keys():
-                self.bcs[edge_id][field] = self.__createMacroScaExpr(
-                    self.bcs[edge_id][field]
-                )
+                self.bcs[edge_id][field] = df.Expression(str(self.bcs[edge_id][field]),degree=2)
 
-        self.heat_source = self.__createMacroScaExpr(self.params["heat_source"])
-        self.mass_source = self.__createMacroScaExpr(self.params["mass_source"])
-        self.body_force = self.__createMacroVecExpr(self.params["body_force"])
+        self.heat_source = df.Expression(str(self.params["heat_source"]),degree=2)
+        self.mass_source = df.Expression(str(self.params["mass_source"]),degree=2)
+        self.body_force = df.Expression([str(i) for i in self.params["body_force"]],degree=2)
 
         self.output_folder = self.params["output_folder"] + "/"
         self.elems = {
@@ -127,72 +121,6 @@ class Solver:
             "u": None,
             "sigma": None,
         }
-
-    def __createMacroScaExpr(self, cpp_string):
-        """
-        Return a DOLFIN scalar expression with predefined macros.
-
-        These macros include:
-
-        ============================ ======= =================================
-        Name                         Macro   CPP Replacement
-        ============================ ======= =================================
-        Radius wrt. to :math:`(0,0)` ``R``   ``sqrt(pow(x[0],2)+pow(x[1],2))``
-        Angle wrt. :math:`(0,0)`     ``phi`` ``atan2(x[1],x[0])``
-        ============================ ======= =================================
-
-        The following expressions are therefore equal:
-
-        .. code-block:: python
-
-            # expr1 is equal to expr2
-            expr1 = self.__createMacroScaExpr("R*cos(phi)")
-            expr2 = dolfin.Expression(
-                "R*cos(phi)",
-                degree=2,
-                R=dolfin.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2),
-                phi=dolfin.Expression("atan2(x[1],x[0])", degree=2),
-            )
-        """
-        # TODO: Check for constants and then use df.Constant
-        R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
-        phi = df.Expression("atan2(x[1],x[0])", degree=2)
-        return df.Expression(
-            str(cpp_string),
-            degree=2,
-            phi=phi,
-            R=R
-        )
-
-    def __createMacroVecExpr(self, cpp_strings):
-        """
-        Return a DOLFIN vector expression with predefined macros.
-
-        These macros include:
-
-        ============================ ======= =================================
-        Name                         Macro   CPP Replacement
-        ============================ ======= =================================
-        Radius wrt. to :math:`(0,0)` ``R``   ``sqrt(pow(x[0],2)+pow(x[1],2))``
-        Angle wrt. :math:`(0,0)`     ``phi`` ``atan2(x[1],x[0])``
-        ============================ ======= =================================
-
-        See Also
-        --------
-        _Solver__createMacroScaExpr
-        """
-        R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
-        phi = df.Expression("atan2(x[1],x[0])", degree=2)
-        cpp_strings = [str(i) for i in cpp_strings]
-        if len(cpp_strings) == 2:
-            return df.Expression(
-                cpp_strings,  # strange that no cast to list is needed
-                degree=2,
-                phi=phi,
-                R=R
-            )
-        else:
-            raise Exception("Only 2d body force allowed")
 
     def __setup_function_spaces(self):
         """
@@ -447,9 +375,6 @@ class Solver:
         f_mass = self.mass_source
         f_body = self.body_force
 
-        # Decouple heat/stress switch
-        cpl = 1
-
         # Stabilization
         cip = 1
 
@@ -458,59 +383,38 @@ class Solver:
         n_vec = df.FacetNormal(mesh)
         t_vec = ufl.perp(n_vec)
 
-        def n(rank1):
-            return df.dot(rank1, n_vec)
+        def n(rank1): return df.dot(rank1, n_vec)
 
-        def t(rank1):
-            return df.dot(rank1, t_vec)
+        def t(rank1): return df.dot(rank1, t_vec)
 
-        def nn(rank2):
-            return df.dot(rank2 * n_vec, n_vec)
+        def nn(rank2): return df.dot(rank2 * n_vec, n_vec)
 
-        def tt(rank2):
-            return df.dot(rank2 * t_vec, t_vec)
+        def tt(rank2): return df.dot(rank2 * t_vec, t_vec)
 
-        def nt(rank2):
-            return df.dot(rank2 * n_vec, t_vec)
+        def nt(rank2): return df.dot(rank2 * n_vec, t_vec)
 
         # Sub functionals:
         # 1) Diagonals:
         def a(s, r):
-            # Notes:
-            # 4/5-24/75 = (60-24)/75 = 36/75 = 12/25
             return sum([(
-                # => 24/25*stf(grad)*grad
-                + 24 / 25 * regs[reg]["kn"] * df.inner(
-                    df.sym(df.grad(s)), df.sym(df.grad(r))
-                )
+                + 24 / 25 * regs[reg]["kn"] * df.inner(df.sym(df.grad(s)), df.sym(df.grad(r)))
                 - 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
-                # For Delta-term, works for R13 but fails for heat:
-                + 4 / 5 * cpl * regs[reg]["kn"] * df.div(s) * df.div(r)
+                + 4 / 5 * regs[reg]["kn"] * df.div(s) * df.div(r)
                 + 4 / 15 * (1 / regs[reg]["kn"]) * df.inner(s, r)
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + 1 / (2 * bcs[bc]["chi_tilde"]) * n(s) * n(r)
                 + 11 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
-                + cpl * 1 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
+                + 1 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
             ) * df.ds(bc) for bc in bcs.keys()])
 
         def d(si, ps):
-            # Notes:
-            # 21/20+3/40=45/40=9/8
-            return sum([(
-                + regs[reg]["kn"] * df.inner(
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(si))),
-                    to.stf3d3(to.grad3dOf2(to.gen3dTF2(ps)))
-                )
-                + (1 / (2 * regs[reg]["kn"])) * df.inner(
-                    to.gen3dTF2(si), to.gen3dTF2(ps)
-                )
+           return sum([(
+                + regs[reg]["kn"] * df.inner(to.stf3d3(to.grad3dOf2(to.gen3dTF2(si))),to.stf3d3(to.grad3dOf2(to.gen3dTF2(ps))))
+                + (1 / (2 * regs[reg]["kn"])) * df.inner(to.gen3dTF2(si), to.gen3dTF2(ps))
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + bcs[bc]["chi_tilde"] * 21 / 20 * nn(si) * nn(ps)
-                + bcs[bc]["chi_tilde"] * cpl * 3 / 40 * nn(si) * nn(ps)
-                + bcs[bc]["chi_tilde"] * (
-                    (tt(si) + (1 / 2) * nn(si)) *
-                    (tt(ps) + (1 / 2) * nn(ps))
-                )
+                + bcs[bc]["chi_tilde"] * 3 / 40 * nn(si) * nn(ps)
+                + bcs[bc]["chi_tilde"] * ( (tt(si) + (1 / 2) * nn(si)) * (tt(ps) + (1 / 2) * nn(ps)) )
                 + (1 / bcs[bc]["chi_tilde"]) * nt(si) * nt(ps)
                 + bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * nn(si) * nn(ps)
             ) * df.ds(bc) for bc in bcs.keys()])
@@ -527,12 +431,11 @@ class Solver:
             ) * df.dx(reg) for reg in regs.keys()])
 
         def c(r, si):
-            return cpl * (sum([(
+            return sum([(
                 2 / 5 * df.inner(si, df.grad(r))
             ) * df.dx(reg) for reg in regs.keys()]) - sum([(
-                3 / 20 * nn(si) * n(r)
-                + 1 / 5 * nt(si) * t(r)
-            ) * df.ds(bc) for bc in bcs.keys()]))
+                3 / 20 * nn(si) * n(r) + 1 / 5 * nt(si) * t(r)
+            ) * df.ds(bc) for bc in bcs.keys()])
 
         def e(u, ps):
             return sum([(
@@ -551,22 +454,13 @@ class Solver:
 
         # 3.1) CIP Stabilization:
         def j_theta(theta, kappa):
-            return (
-                + delta_theta * h_avg**3 *
-                df.jump(df.grad(theta), n_vec) * df.jump(df.grad(kappa), n_vec)
-            ) * df.dS
+            return ( delta_theta * h_avg**3 * df.jump(df.grad(theta), n_vec) * df.jump(df.grad(kappa), n_vec) ) * df.dS
 
         def j_u(u, v):
-            return (
-                + delta_u * h_avg**3 *
-                df.dot(df.jump(df.grad(u), n_vec), df.jump(df.grad(v), n_vec))
-            ) * df.dS
+            return ( delta_u * h_avg**3 * df.dot(df.jump(df.grad(u), n_vec), df.jump(df.grad(v), n_vec)) ) * df.dS
 
         def j_p(p, q):
-            return (
-                + delta_p * h_avg *
-                df.jump(df.grad(p), n_vec) * df.jump(df.grad(q), n_vec)
-            ) * df.dS
+            return ( delta_p * h_avg * df.jump(df.grad(p), n_vec) * df.jump(df.grad(q), n_vec) ) * df.dS
 
         # Setup all equations
         A = [None] * 5
@@ -578,32 +472,22 @@ class Solver:
         A[2] = c(s, psi)   + 0           + d(sigma, psi) - e(u, psi) + f(p, psi)
         A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)
         A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
+
         # 2) Right-hand sides, linear functional L[..]:
-        # TODO: Create subfunctionals l_1 to l_5 as in article
-        L[0] = - sum([(
-            bcs[bc]["theta_w"] * n(r)
-        ) * df.ds(bc) for bc in bcs.keys()])
+        L[0] = - sum([( bcs[bc]["theta_w"] * n(r) ) * df.ds(bc) for bc in bcs.keys()])
         # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
         L[1] = (f_heat - f_mass) * kappa * df.dx
         L[2] = - sum([(
             + bcs[bc]["u_t_w"] * nt(psi)
-            + (
-                + bcs[bc]["u_n_w"]
-                - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
-            ) * nn(psi)
+            + ( bcs[bc]["u_n_w"] - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"] ) * nn(psi)
         ) * df.ds(bc) for bc in bcs.keys()])
-        L[3] = + df.dot(f_body, v) * df.dx
-        L[4] = + (f_mass * q) * df.dx - sum([(
-            (
-                + bcs[bc]["u_n_w"]
-                - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
-            ) * q
+        L[3] = df.dot(f_body, v) * df.dx
+        L[4] = (f_mass * q) * df.dx - sum([(
+            ( bcs[bc]["u_n_w"] - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"] ) * q
         ) * df.ds(bc) for bc in bcs.keys()])
 
         # Combine all equations to compound weak form and add stabilization
-        self.form_lhs = sum(A) + (
-            cip * (j_theta(theta, kappa) + j_u(u, v) + j_p(p, q))
-        )
+        self.form_lhs = sum(A) + cip * (j_theta(theta, kappa) + j_u(u, v) + j_p(p, q))
         self.form_rhs = sum(L)
 
     def solve(self):
@@ -671,22 +555,18 @@ class Solver:
         sys.stdout.flush()
         start_t = time_module.time()
         sol = df.Function(w)
-        df.solve(
-            AA, sol.vector(), LL, "mumps", "none"
-        )
+        df.solve( AA, sol.vector(), LL, "mumps", "none" )
         end_t = time_module.time()
         secs = end_t - start_t
         print("Finished solve: {}".format(str(secs)))
         sys.stdout.flush()
 
-        (
-            self.sol["theta"], self.sol["s"],
-            self.sol["p"], self.sol["u"], self.sol["sigma"]
-        ) = sol.split()
+        ( self.sol["theta"],self.sol["s"],self.sol["p"],self.sol["u"],self.sol["sigma"] ) = sol.split()
 
         # Scale pressure to have zero mean
         p_i = df.interpolate(self.sol["p"], self.fspaces["p"])
-        mean_p_value = self.__calc_sf_mean(p_i)
+        v = p_i.compute_vertex_values()
+        mean_p_value = np.mean(v)
         mean_p_fct = df.Function(self.fspaces["p"])
         mean_p_fct.assign(df.Constant(mean_p_value))
         p_i.assign(p_i - mean_p_fct)
@@ -694,36 +574,8 @@ class Solver:
 
         # compute average velocity
         vol = df.assemble(df.Constant(1) * df.dx)
-        avgvel = df.assemble(
-            abs(df.inner(self.sol["u"], self.sol["u"])) * df.dx
-        ) / vol
+        avgvel = df.assemble( abs(df.inner(self.sol["u"], self.sol["u"])) * df.dx ) / vol
         print("avg vel:", avgvel)
-
-    def __calc_sf_mean(self, scalar_function):
-        """
-        Calculate the mean of a scalar function.
-
-        .. code-block:: python
-
-            np.set_printoptions(precision=16)
-            # Precision is not soo nice, only 9 digits:
-            print(mean)
-            # In solve() has m. prec. hmmm:
-            print(self.__calc_sf_mean(self.sol["p"]))
-
-        .. note::
-
-            The following does not work in parallel because the mean is
-            then only local. So convergence studies have to be performed in
-            serial:
-
-            .. code-block:: python
-
-                mean = np.mean(scalar_function.compute_vertex_values())
-        """
-        v = scalar_function.compute_vertex_values()
-        mean = np.mean(v)
-        return mean
 
     def write(self):
         """

@@ -19,7 +19,6 @@ meshes:
 #     - delta_p: Stabilization of grad(p)*grad(p_test) over edge
 stabilization:
   cip:
-    enable: True
     delta_theta: 1.0
     delta_u: 1.0
     delta_p: 0.1

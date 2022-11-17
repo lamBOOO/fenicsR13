@@ -44,7 +44,6 @@ class Input:
         # ====================
         # - stabilization: Must contain cip
         #   - cip: Collection of Continous Interior Penalty (CIP) parameters
-        #     - enable: Enable CIP stabilization
         #     - delta_theta: Stabilization of grad(T)*grad(T_test) over edge
         #     - delta_u: Stabilization of grad(u)*grad(u_test) over edge
         #     - delta_p: Stabilization of grad(p)*grad(p_test) over edge
@@ -215,10 +214,6 @@ class Input:
                         "type": "dict",
                         "required": True,
                         "schema": {
-                            "enable": {
-                                "type": "boolean",
-                                "required": True
-                            },
                             "delta_theta": {
                                 "type": "float",
                                 "required": True
