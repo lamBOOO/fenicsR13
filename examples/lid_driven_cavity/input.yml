@@ -53,7 +53,7 @@ regs:
 #     - u_t_w: Value for tangential velocity at wall
 #     - u_n_w: Value for normal velocity at wall
 #     - p_w: Value for pressure at wall
-#     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
+#     - eta_w: Inflow-model parameter <=> Weight of pressure prescription
 bcs:
   3000: # upper slip wall
     chi_tilde: 1.0
@@ -61,11 +61,11 @@ bcs:
     u_t_w: -1
     u_n_w: 0
     p_w: 0
-    epsilon_w: 0
+    eta_w: 0
   3100: # left bottom right noslip walls
     chi_tilde: 1.0
     theta_w: 1
     u_t_w: 0
     u_n_w: 0
     p_w: 0
-    epsilon_w: 0
+    eta_w: 0

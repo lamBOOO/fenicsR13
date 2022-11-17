@@ -81,7 +81,7 @@ class Input:
         #     - u_t_w: Value for tangential velocity at wall
         #     - u_n_w: Value for normal velocity at wall
         #     - p_w: Value for pressure at wall
-        #     - epsilon_w: Inflow-model parameter <=> Weight of pressure
+        #     - eta_w: Inflow-model parameter <=> Weight of pressure
         bcs:
           3000:
             chi_tilde: 1.0
@@ -89,28 +89,15 @@ class Input:
             u_t_w: -10
             u_n_w: 0
             p_w: 0
-            epsilon_w: 0
+            eta_w: 0
           3100:
             chi_tilde: 1.0
             theta_w: 0.5
             u_t_w: 0
             u_n_w: 0
             p_w: 0
-            epsilon_w: 0
+            eta_w: 0
 
-    Further input examples can be found in the ``tests`` or ``examples``
-    folders.
-
-    Examples
-    --------
-
-    >>> corrupt_input = Input("etc/doctest_data/corrupt_input.yml")
-    Traceback (most recent call last):
-    ...
-    Exception: Parsing error
-
-    >>> working_input = Input("tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml")
-    Input:...
 
     """
 
@@ -182,7 +169,7 @@ class Input:
                             "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True
                         },
-                        "epsilon_w": {
+                        "eta_w": {
                             "anyof": [{"type": "string"}, {"type": "float"}],
                             "required": True
                         },

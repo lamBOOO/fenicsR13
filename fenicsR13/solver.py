@@ -143,8 +143,7 @@ class Solver:
         self.elems["sigma"] = df.TensorElement(e, cell, deg, symmetry={(0, 1): (1, 0)})
 
         ## fspaces[var] seems only used when projecting pressure to mean-zero. 
-        for var in self.elems:
-            self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
+        for var in self.elems: self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
 
         # Bundle elements per mode into `mxd_elems` dict
         r13_elems = [self.elems["theta"], self.elems["s"], self.elems["p"], self.elems["u"], self.elems["sigma"]]
@@ -397,14 +396,12 @@ class Solver:
         # 1) Diagonals:
         def a(s, r):
             return sum([(
-                + 24 / 25 * regs[reg]["kn"] * df.inner(df.sym(df.grad(s)), df.sym(df.grad(r)))
-                - 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
+                + 24 / 25 * regs[reg]["kn"] * df.inner(to.stf3d2(df.grad(s)), to.stf3d2(df.grad(r)))
                 + 4 / 5 * regs[reg]["kn"] * df.div(s) * df.div(r)
                 + 4 / 15 * (1 / regs[reg]["kn"]) * df.inner(s, r)
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + 1 / (2 * bcs[bc]["chi_tilde"]) * n(s) * n(r)
-                + 11 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
-                + 1 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
+                + 12 / 25 * bcs[bc]["chi_tilde"] * t(s) * t(r)
             ) * df.ds(bc) for bc in bcs.keys()])
 
         def d(si, ps):
@@ -412,16 +409,15 @@ class Solver:
                 + regs[reg]["kn"] * df.inner(to.stf3d3(to.grad3dOf2(to.gen3dTF2(si))),to.stf3d3(to.grad3dOf2(to.gen3dTF2(ps))))
                 + (1 / (2 * regs[reg]["kn"])) * df.inner(to.gen3dTF2(si), to.gen3dTF2(ps))
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
-                + bcs[bc]["chi_tilde"] * 21 / 20 * nn(si) * nn(ps)
-                + bcs[bc]["chi_tilde"] * 3 / 40 * nn(si) * nn(ps)
+                + bcs[bc]["chi_tilde"] * 9 / 8 * nn(si) * nn(ps)
                 + bcs[bc]["chi_tilde"] * ( (tt(si) + (1 / 2) * nn(si)) * (tt(ps) + (1 / 2) * nn(ps)) )
                 + (1 / bcs[bc]["chi_tilde"]) * nt(si) * nt(ps)
-                + bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * nn(si) * nn(ps)
+                + bcs[bc]["eta_w"] * nn(si) * nn(ps)
             ) * df.ds(bc) for bc in bcs.keys()])
 
         def h(p, q):
             return sum([(
-                bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * q
+                bcs[bc]["eta_w"] * p * q
             ) * df.ds(bc) for bc in bcs.keys()])
 
         # 2) Offdiagonals:
@@ -444,7 +440,7 @@ class Solver:
 
         def f(p, ps):
             return sum([(
-                bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * nn(ps)
+                bcs[bc]["eta_w"] * p * nn(ps)
             ) * df.ds(bc) for bc in bcs.keys()])
 
         def g(p, v):
@@ -479,11 +475,11 @@ class Solver:
         L[1] = (f_heat - f_mass) * kappa * df.dx
         L[2] = - sum([(
             + bcs[bc]["u_t_w"] * nt(psi)
-            + ( bcs[bc]["u_n_w"] - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"] ) * nn(psi)
+            + ( bcs[bc]["u_n_w"] - bcs[bc]["eta_w"] * bcs[bc]["p_w"] ) * nn(psi)
         ) * df.ds(bc) for bc in bcs.keys()])
         L[3] = df.dot(f_body, v) * df.dx
         L[4] = (f_mass * q) * df.dx - sum([(
-            ( bcs[bc]["u_n_w"] - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"] ) * q
+            ( bcs[bc]["u_n_w"] - bcs[bc]["eta_w"] * bcs[bc]["p_w"] ) * q
         ) * df.ds(bc) for bc in bcs.keys()])
 
         # Combine all equations to compound weak form and add stabilization
