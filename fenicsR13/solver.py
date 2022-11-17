@@ -69,7 +69,6 @@ class Solver:
         self.boundaries = mesh.boundaries
         self.cell = self.mesh.ufl_cell()
         self.time = time
-        self.mode = params["mode"]
 
         self.comm = df.MPI.comm_world
         self.rank = df.MPI.rank(self.comm)
@@ -102,13 +101,6 @@ class Solver:
         self.body_force = self.__createMacroVecExpr(self.params["body_force"])
 
         self.output_folder = self.params["output_folder"] + "/"
-        self.var_ranks = {
-            "theta": 0,
-            "s": 1,
-            "p": 0,
-            "u": 1,
-            "sigma": 2,
-        }
         self.elems = {
             "theta": None,
             "s": None,
@@ -116,6 +108,7 @@ class Solver:
             "u": None,
             "sigma": None,
         }
+        ## fspaces[var] seems only used when projecting pressure to mean-zero. 
         self.fspaces = {
             "theta": None,
             "s": None,
@@ -123,16 +116,8 @@ class Solver:
             "u": None,
             "sigma": None,
         }
-        self.mxd_elems = {
-            "heat": None,
-            "stress": None,
-            "r13": None,
-        }
-        self.mxd_fspaces = {
-            "heat": None,
-            "stress": None,
-            "r13": None,
-        }
+        self.r13_elems = None
+        self.r13_fspaces = None
         self.form_lhs = None
         self.form_rhs = None
         self.sol = {
@@ -142,42 +127,6 @@ class Solver:
             "u": None,
             "sigma": None,
         }
-
-    def __createSolMacroScaExpr(self, cpp_string):
-        """
-        Return a DOLFIN scalar expression with predefined macros after solve.
-
-        These macros include:
-
-        ============================ =========== ===============================
-        Name                         Macro   CPP Replacement
-        ============================ =========== ===============================
-        ``theta``                    ``theta``   ``sol["theta"]``
-        ``sx``                       ``sx``      ``sol["s"].split()[0]``
-        ``sy``                       ``sy``      ``sol["s"].split()[1]``
-        ``p``                        ``p``       ``sol["p"]``
-        ``ux``                       ``ux``      ``sol["u"].split()[0]``
-        ``uy``                       ``uy``      ``sol["u"].split()[1]``
-        ``sigmaxx``                  ``sigmaxx`` ``sol["sigma"].split()[0]``
-        ``sigmaxy``                  ``sigmaxy`` ``sol["sigma"].split()[1]``
-        ``sigmayx``                  ``sigmayx`` ``sol["sigma"].split()[1]``
-        ``sigmayy``                  ``sigmayy`` ``sol["sigma"].split()[2]``
-        ============================ =========== ===============================
-        """
-        return df.Expression(
-            str(cpp_string),
-            degree=2,
-            theta=self.sol["theta"],
-            sx=self.sol["s"].split()[0],
-            sy=self.sol["s"].split()[1],
-            p=self.sol["p"],
-            ux=self.sol["u"].split()[0],
-            uy=self.sol["u"].split()[1],
-            sigmaxx=self.sol["sigma"].split()[0],
-            sigmaxy=self.sol["sigma"].split()[1],
-            sigmayx=self.sol["sigma"].split()[1],
-            sigmayy=self.sol["sigma"].split()[2]
-        )
 
     def __createMacroScaExpr(self, cpp_string):
         """
@@ -249,57 +198,30 @@ class Solver:
         """
         Set up function spaces for trial and test functions for assembling.
 
-        Depends on the ``mode``.
-        Function spaces depend on the choice of the element and its degree
-        (see the input file :class:`input.Input`).
-
-        The following DOLFIN functions are used:
-
-        ========= =================
-        field     DOLFIN Function
-        ========= =================
-        ``theta`` ``FiniteElement``
-        ``s``     ``VectorElement``
-        ``p``     ``FiniteElement``
-        ``u``     ``VectorElement``
-        ``sigma`` ``TensorElement``
-        ========= =================
         """
         # Setup elements for all fields
         cell = self.cell
         msh = self.mesh
+
+        e = "Lagrange"
+        deg = 1
+        # scalar variables
+        self.elems["theta"] = df.FiniteElement(e, cell, deg)
+        self.elems["p"] = df.FiniteElement(e, cell, deg)
+        # vector variables
+        self.elems["s"] = df.VectorElement(e, cell, deg)
+        self.elems["u"] = df.VectorElement(e, cell, deg)
+        # 2-tensor variables
+        self.elems["sigma"] = df.TensorElement(e, cell, deg, symmetry={(0, 1): (1, 0)})
+
+        ## fspaces[var] seems only used when projecting pressure to mean-zero. 
         for var in self.elems:
-            e = self.params["elements"][var]["shape"]
-            deg = self.params["elements"][var]["degree"]
-            if self.var_ranks[var] == 0:
-                self.elems[var] = df.FiniteElement(e, cell, deg)
-            elif self.var_ranks[var] == 1:
-                self.elems[var] = df.VectorElement(e, cell, deg)
-            elif self.var_ranks[var] == 2:
-                self.elems[var] = df.TensorElement(
-                    e, cell, deg, symmetry={(0, 1): (1, 0)}
-                )
             self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
 
         # Bundle elements per mode into `mxd_elems` dict
-        # 1) heat
-        heat_elems = [self.elems["theta"], self.elems["s"]]
-        self.mxd_elems["heat"] = df.MixedElement(heat_elems)
-        self.mxd_fspaces["heat"] = df.FunctionSpace(
-            msh, self.mxd_elems["heat"]
-        )
-        # 2) stress
-        stress_elems = [self.elems["p"], self.elems["u"], self.elems["sigma"]]
-        self.mxd_elems["stress"] = df.MixedElement(stress_elems)
-        self.mxd_fspaces["stress"] = df.FunctionSpace(
-            msh, self.mxd_elems["stress"]
-        )
-        # 3) r13
-        r13_elems = heat_elems + stress_elems
-        self.mxd_elems["r13"] = df.MixedElement(r13_elems)
-        self.mxd_fspaces["r13"] = df.FunctionSpace(
-            msh, self.mxd_elems["r13"]
-        )
+        r13_elems = [self.elems["theta"], self.elems["s"], self.elems["p"], self.elems["u"], self.elems["sigma"]]
+        self.r13_elems = df.MixedElement(r13_elems)
+        self.r13_fspaces = df.FunctionSpace(msh, self.r13_elems)
 
     def assemble(self):
         r"""
@@ -516,18 +438,9 @@ class Solver:
         # h_avg_new = (fa("+") + fa("-"))/2.0
 
         # Setup trial and test functions
-        w_heat = self.mxd_fspaces["heat"]
-        w_stress = self.mxd_fspaces["stress"]
-        w_r13 = self.mxd_fspaces["r13"]
-        if self.mode == "r13":
-            (theta, s, p, u, sigma) = df.TrialFunctions(w_r13)
-            (kappa, r, q, v, psi) = df.TestFunctions(w_r13)
-        else:
-            # Pure heat or pure stress: setup all functions..
-            (theta, s) = df.TrialFunctions(w_heat)
-            (kappa, r) = df.TestFunctions(w_heat)
-            (p, u, sigma) = df.TrialFunctions(w_stress)
-            (q, v, psi) = df.TestFunctions(w_stress)
+        w_r13 = self.r13_fspaces
+        (theta, s, p, u, sigma) = df.TrialFunctions(w_r13)
+        (kappa, r, q, v, psi) = df.TestFunctions(w_r13)
 
         # Setup source functions
         f_heat = self.heat_source
@@ -535,16 +448,10 @@ class Solver:
         f_body = self.body_force
 
         # Decouple heat/stress switch
-        if self.mode == "r13":
-            cpl = 1
-        else:
-            cpl = 0
+        cpl = 1
 
         # Stabilization
-        if self.use_cip:
-            cip = 1
-        else:
-            cip = 0
+        cip = 1
 
         # Setup normal/tangential projections
         # => tangential (tx,ty) = (-ny,nx) = perp(n) only for 2D
@@ -694,21 +601,10 @@ class Solver:
         ) * df.ds(bc) for bc in bcs.keys()])
 
         # Combine all equations to compound weak form and add stabilization
-        if self.mode == "heat":
-            self.form_lhs = sum(A[0:2]) + (
-                cip * (j_theta(theta, kappa))
-            )
-            self.form_rhs = sum(L[0:2])
-        elif self.mode == "stress":
-            self.form_lhs = sum(A[2:5]) + (
-                cip * (j_u(u, v) + j_p(p, q))
-            )
-            self.form_rhs = sum(L[2:5])
-        elif self.mode == "r13":
-            self.form_lhs = sum(A) + (
-                cip * (j_theta(theta, kappa) + j_u(u, v) + j_p(p, q))
-            )
-            self.form_rhs = sum(L)
+        self.form_lhs = sum(A) + (
+            cip * (j_theta(theta, kappa) + j_u(u, v) + j_p(p, q))
+        )
+        self.form_rhs = sum(L)
 
     def solve(self):
         """
@@ -759,12 +655,7 @@ class Solver:
 
         """
 
-        if self.mode == "heat":
-            w = self.mxd_fspaces["heat"]
-        elif self.mode == "stress":
-            w = self.mxd_fspaces["stress"]
-        elif self.mode == "r13":
-            w = self.mxd_fspaces["r13"]
+        w = self.r13_fspaces
 
         print("Start assemble")
         sys.stdout.flush()
@@ -773,7 +664,6 @@ class Solver:
         LL = df.assemble(self.form_rhs)
         end_t = time_module.time()
         secs = end_t - start_t
-        self.write_content_to_file("assemble", secs)
         print("Finish assemble: {}".format(str(secs)))
         sys.stdout.flush()
 
@@ -786,19 +676,13 @@ class Solver:
         )
         end_t = time_module.time()
         secs = end_t - start_t
-        self.write_content_to_file("solve", secs)
         print("Finished solve: {}".format(str(secs)))
         sys.stdout.flush()
 
-        if self.mode == "heat":
-            (self.sol["theta"], self.sol["s"]) = sol.split()
-        elif self.mode == "stress":
-            (self.sol["p"], self.sol["u"], self.sol["sigma"]) = sol.split()
-        elif self.mode == "r13":
-            (
-                self.sol["theta"], self.sol["s"],
-                self.sol["p"], self.sol["u"], self.sol["sigma"]
-            ) = sol.split()
+        (
+            self.sol["theta"], self.sol["s"],
+            self.sol["p"], self.sol["u"], self.sol["sigma"]
+        ) = sol.split()
 
         # Scale pressure to have zero mean
         p_i = df.interpolate(self.sol["p"], self.fspaces["p"])
@@ -808,13 +692,12 @@ class Solver:
         p_i.assign(p_i - mean_p_fct)
         self.sol["p"] = p_i
 
-        if self.mode == "stress" or self.mode == "r13":
-            vol = df.assemble(df.Constant(1) * df.dx)
-            avgvel = df.assemble(
-                abs(df.inner(self.sol["u"], self.sol["u"])) * df.dx
-            ) / vol
-            print("avg vel:", avgvel)
-            self.write_content_to_file("avgvel", avgvel)
+        # compute average velocity
+        vol = df.assemble(df.Constant(1) * df.dx)
+        avgvel = df.assemble(
+            abs(df.inner(self.sol["u"], self.sol["u"])) * df.dx
+        ) / vol
+        print("avg vel:", avgvel)
 
     def __calc_sf_mean(self, scalar_function):
         """
@@ -841,14 +724,6 @@ class Solver:
         v = scalar_function.compute_vertex_values()
         mean = np.mean(v)
         return mean
-
-    def write_content_to_file(self, filename, content):
-        """Write content to a file in the output folder."""
-        path = self.output_folder + filename + "_" + str(self.time)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, mode='w') as file:
-            print("Write: {}".format(path))
-            file.write(str(content))
 
     def write(self):
         """

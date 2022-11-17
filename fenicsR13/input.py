@@ -42,32 +42,12 @@ class Input:
 
         # Numerical Parameters
         # ====================
-        # - elements: Must contain the fields: theta, s, p, u, sigma
-        #   - fields: List of FEM parameters (shape, degree)
-        #     - shape: Element shape, e.g. Lagrange
-        #     - degree: Element degree, e.g. 2
         # - stabilization: Must contain cip
         #   - cip: Collection of Continous Interior Penalty (CIP) parameters
         #     - enable: Enable CIP stabilization
         #     - delta_theta: Stabilization of grad(T)*grad(T_test) over edge
         #     - delta_u: Stabilization of grad(u)*grad(u_test) over edge
         #     - delta_p: Stabilization of grad(p)*grad(p_test) over edge
-        elements:
-          theta:
-            shape: Lagrange
-            degree: 2
-          s:
-            shape: Lagrange
-            degree: 2
-          p:
-            shape: Lagrange
-            degree: 2
-          u:
-            shape: Lagrange
-            degree: 2
-          sigma:
-            shape: Lagrange
-            degree: 2
         stabilization:
           cip:
             enable: True
@@ -78,13 +58,11 @@ class Input:
         # Formulation Parameters
         # ======================
         # - nsd: Number of spatial dimensions == 2
-        # - mode: Formulation mode, one of heat, stress, r13
         # - kn: Knudsen numberkn
-        # - heat_source: Heat source function for mode==heat||r13
-        # - mass_source: Mass source function for mode==stress||r13
-        # - body_force: Body force for mode==stress||r13
+        # - heat_source: Heat source function
+        # - mass_source: Mass source function
+        # - body_force: Body force
         nsd: 2
-        mode: r13
         heat_source: 0
         mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(0.1,2))) * cos(phi)
         body_force: [0,0]
@@ -157,11 +135,6 @@ class Input:
                 "type": "integer",
                 "required": True,
                 "allowed": [2]
-            },
-            "mode": {
-                "type": "string",
-                "required": True,
-                "allowed": ["heat", "stress", "r13"]
             },
             "regs": {
                 "type": "dict",
@@ -262,88 +235,7 @@ class Input:
                     },
                 }
             },
-            "elements": {
-                "type": "dict",
-                "required": True,
-                "schema": {
-                    "theta": {
-                        "type": "dict",
-                        "required": True,
-                        "schema": {
-                            "shape": {
-                                "type": "string",
-                                "required": True
-                            },
-                            "degree": {
-                                "type": "integer",
-                                "required": True,
-                                "min": 0
-                            }
-                        }
-                    },
-                    "s": {
-                        "type": "dict",
-                        "required": True,
-                        "schema": {
-                            "shape": {
-                                "type": "string",
-                                "required": True
-                            },
-                            "degree": {
-                                "type": "integer",
-                                "required": True,
-                                "min": 0
-                            }
-                        }
-                    },
-                    "p": {
-                        "type": "dict",
-                        "required": True,
-                        "schema": {
-                            "shape": {
-                                "type": "string",
-                                "required": True
-                            },
-                            "degree": {
-                                "type": "integer",
-                                "required": True,
-                                "min": 0
-                            }
-                        }
-                    },
-                    "u": {
-                        "type": "dict",
-                        "required": True,
-                        "schema": {
-                            "shape": {
-                                "type": "string",
-                                "required": True
-                            },
-                            "degree": {
-                                "type": "integer",
-                                "required": True,
-                                "min": 0
-                            }
-                        }
-                    },
-                    "sigma": {
-                        "type": "dict",
-                        "required": True,
-                        "schema": {
-                            "shape": {
-                                "type": "string",
-                                "required": True
-                            },
-                            "degree": {
-                                "type": "integer",
-                                "required": True,
-                                "min": 0
-                            }
-                        }
-                    },
-                }
-            }
-        }
+         }
 
         if not val.validate(self.dict, input_schema):
             print("! Parsing Error: \n" + str(val.errors) + "\n")
