@@ -12,18 +12,6 @@ class H5Mesh:
     """
     Mesh class.
 
-    Raises
-    ------
-    Exception
-        File not found
-
-    Examples
-    --------
-    >>> mesh = H5Mesh("non_existing_mesh.h5")
-    Traceback (most recent call last):
-    ...
-    Exception: non_existing_mesh.h5 not found
-
     """
 
     def __init__(self, h5_file):

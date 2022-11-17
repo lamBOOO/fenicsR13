@@ -17,29 +17,16 @@ class Input:
 
     .. _YAML: https://en.wikipedia.org/wiki/YAML
 
-    An example input file could look like:
-
-    .. code-block:: yaml
+    Content:
 
         # General
         # =======
         # - output_folder: Used as output folder
-        output_folder: r13_1_coeffs_sources_rot_noinflow_p2p2p2p2p2_stab
 
         # Meshes
         # ======
         # - meshes: List of input meshes in h5 format to run simulations on
-        meshes:
-          - ../mesh/ring0.h5
-          - ../mesh/ring1.h5
-          - ../mesh/ring2.h5
-          - ../mesh/ring3.h5
-          - ../mesh/ring4.h5
-          # - ../mesh/ring5.h5
-          # - ../mesh/ring6.h5
-          # - ../mesh/ring7.h5
-          # - ../mesh/ring8.h5
-
+        
         # Numerical Parameters
         # ====================
         # - stabilization: Must contain cip
@@ -47,24 +34,13 @@ class Input:
         #     - delta_theta: Stabilization of grad(T)*grad(T_test) over edge
         #     - delta_u: Stabilization of grad(u)*grad(u_test) over edge
         #     - delta_p: Stabilization of grad(p)*grad(p_test) over edge
-        stabilization:
-          cip:
-            enable: True
-            delta_theta: 1.0
-            delta_u: 1.0
-            delta_p: 0.01
 
         # Formulation Parameters
         # ======================
         # - nsd: Number of spatial dimensions == 2
-        # - kn: Knudsen numberkn
         # - heat_source: Heat source function
         # - mass_source: Mass source function
         # - body_force: Body force
-        nsd: 2
-        heat_source: 0
-        mass_source: 1.0 * (1.0 - (5.0*pow(R,2))/(18.0*pow(0.1,2))) * cos(phi)
-        body_force: [0,0]
 
         # Region Parameters
         # =================
@@ -82,22 +58,6 @@ class Input:
         #     - u_n_w: Value for normal velocity at wall
         #     - p_w: Value for pressure at wall
         #     - eta_w: Inflow-model parameter <=> Weight of pressure
-        bcs:
-          3000:
-            chi_tilde: 1.0
-            theta_w: 1.0
-            u_t_w: -10
-            u_n_w: 0
-            p_w: 0
-            eta_w: 0
-          3100:
-            chi_tilde: 1.0
-            theta_w: 0.5
-            u_t_w: 0
-            u_n_w: 0
-            p_w: 0
-            eta_w: 0
-
 
     """
 
@@ -224,19 +184,3 @@ class Input:
             raise Exception("Parsing error")
 
         print("Input:\n" + dumps(self.dict, indent=1))
-
-    def get_from_input(self, map_list):
-        """
-        Get value of the input dict by using a list of stacked keys.
-
-        Source: https://stackoverflow.com/questions/14692690/..
-                ..access-nested-dictionary-items-via-a-list-of-keys/37704379
-        """
-        try:
-            return reduce(operator.getitem, map_list, self.dict)
-        except Exception:
-            raise Exception("Dict has no entry with the key:", map_list)
-
-    def set_in_input(self, map_list, value):
-        """Change value of the input dict by using a list of stacked keys."""
-        self.get_from_input(map_list[:-1])[map_list[-1]] = value

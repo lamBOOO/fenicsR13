@@ -9,7 +9,6 @@ For usage examples, see the :class:`solver.Solver` description.
 """
 
 import sys
-import os
 import copy
 import time as time_module
 import dolfin as df
@@ -22,16 +21,6 @@ class Solver:
     r"""
     Class to store the actual solver.
 
-    Possible order of methods in context of convergence study
-    (see main program):
-    "mesh=meshes[i=0]",
-    "__init__", "assemble()",
-    "solve()",
-    "write()",
-    "...",
-    "mesh=meshes[i+1]",
-    "__init__",
-    "..."
 
     Parameters
     ----------
@@ -52,18 +41,17 @@ class Solver:
     >>> # Example usage:
     >>> from fenicsR13.input import Input
     >>> from fenicsR13.meshes import H5Mesh
-    >>> params = Input(
-    ...     "tests/heat/inputs/heat_01_coeffs_p1p1_stab.yml"
-    ... ) # doctest: +ELLIPSIS
-    Input:...
-    >>> msh = H5Mesh("tests/mesh/ring0.h5")
-    >>> solver = Solver(params.dict, msh, "0") # "0" means time=0
+    >>> params = Input("input.yml") 
+    >>> msh = H5Mesh("mesh.h5")
+    >>> solver = Solver(params.dict, msh, "0") 
 
     """
 
     def __init__(self, params, mesh, time):
         """Initialize solver and setup variables from input parameters."""
-        self.params = params  #: Doctest
+
+        self.params = params  
+        
         self.mesh = mesh.mesh
         self.regions = mesh.subdomains
         self.boundaries = mesh.boundaries
@@ -122,34 +110,6 @@ class Solver:
             "sigma": None,
         }
 
-    def __setup_function_spaces(self):
-        """
-        Set up function spaces for trial and test functions for assembling.
-
-        """
-        # Setup elements for all fields
-        cell = self.cell
-        msh = self.mesh
-
-        e = "Lagrange"
-        deg = 1
-        # scalar variables
-        self.elems["theta"] = df.FiniteElement(e, cell, deg)
-        self.elems["p"] = df.FiniteElement(e, cell, deg)
-        # vector variables
-        self.elems["s"] = df.VectorElement(e, cell, deg)
-        self.elems["u"] = df.VectorElement(e, cell, deg)
-        # 2-tensor variables
-        self.elems["sigma"] = df.TensorElement(e, cell, deg, symmetry={(0, 1): (1, 0)})
-
-        ## fspaces[var] seems only used when projecting pressure to mean-zero. 
-        for var in self.elems: self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
-
-        # Bundle elements per mode into `mxd_elems` dict
-        r13_elems = [self.elems["theta"], self.elems["s"], self.elems["p"], self.elems["u"], self.elems["sigma"]]
-        self.r13_elems = df.MixedElement(r13_elems)
-        self.r13_fspaces = df.FunctionSpace(msh, self.r13_elems)
-
     def assemble(self):
         r"""
         Assemble the weak form of the system, depending on the mode. This
@@ -178,171 +138,32 @@ class Solver:
         .. [5] M. Torrilhon, N. Sarna (2017). Hierarchical Boltzmann
            Simulations and Model Error Estimation
 
-        Identities:
-
-        - :math:`\boldsymbol{x}_1 \in \mathbb{R}^3`,
-          :math:`\boldsymbol{x}_2 \in \mathbb{R}^{3 \times 3}`,
-          ...
-        - Test function :math:`\boldsymbol{\psi}` is assumed to be
-          symmetric and trace-less:
-
-        .. math::
-            \boldsymbol{\psi} : \boldsymbol{I} = 0 \\
-            (\boldsymbol{\psi})_{\text{sym}} = \boldsymbol{\psi}
-
-        - Trace of vector gradient is divergence of vector:
-
-        .. math::
-            \langle
-            \boldsymbol{I},\boldsymbol\nabla \boldsymbol{x}_1
-            \rangle
-            =
-            \boldsymbol{I} : \boldsymbol\nabla \boldsymbol{x}_1
-            =
-            \text{div}(\boldsymbol{x}_1)
-
-        - Inner product has orthogonality property with respect to the
-          additive symmetric/skewsymmetric tensor decomposition:
-
-        .. math::
-            \langle
-            (\boldsymbol{x}_2)_{\text{sym}}
-            ,
-            \boldsymbol{y}_2
-            \rangle
-            &=
-            \langle
-            (\boldsymbol{x}_2)_{\text{sym}}
-            ,
-            (\boldsymbol{y}_2)_{\text{sym}}
-            +
-            (\boldsymbol{y}_2)_{\text{skew}}
-            \rangle
-            \\
-            &=
-            \langle
-            (\boldsymbol{x}_2)_{\text{sym}}
-            ,
-            (\boldsymbol{y}_2)_{\text{sym}}
-            \rangle
-            +
-            \langle
-            (\boldsymbol{x}_2)_{\text{sym}}
-            ,
-            (\boldsymbol{y}_2)_{\text{skew}}
-            \rangle
-            \\
-            &=
-            \langle
-            (\boldsymbol{x}_2)_{\text{sym}}
-            ,
-            (\boldsymbol{y}_2)_{\text{sym}}
-            \rangle
-
-        - Inner product of STF tensor with arbitrary tensor:
-
-        .. math::
-
-            T_{i_{1} i_{2} \ldots i_{n} k_{1} \cdots k_{r}}
-            A_{i_{1} i_{2} \ldots i_{n} j_{1} \cdots j_{n}}
-            =
-            T_{i_{1} i_{2} \ldots i_{n} k_{1} \cdots k_{r}}
-            A_{\langle i_{1} i_{2} \ldots i_{n}\rangle j_{1} \cdots j_{n}}
-
-        Tricks of the trade:
-
-        .. math::
-            \langle
-            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{STF}}
-            ,
-            \boldsymbol\nabla \boldsymbol{r}
-            \rangle
-            &=
-            \langle
-            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
-            -
-            \frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})\boldsymbol{I}
-            ,
-            \boldsymbol\nabla \boldsymbol{r}
-            \rangle
-            \\
-            &=
-            \langle
-            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
-            ,
-            \boldsymbol\nabla \boldsymbol{r}
-            \rangle
-            -\frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})
-            \langle
-            \boldsymbol{I},(\boldsymbol\nabla \boldsymbol{r})
-            \rangle
-            \\
-            &=
-            \langle
-            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
-            ,
-            {(\boldsymbol\nabla \boldsymbol{r})}_{\text{sym}}
-            \rangle
-            -\frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})
-            \text{tr}(\boldsymbol\nabla \boldsymbol{r})
-            \\
-            &=
-            \langle
-            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
-            ,
-            {(\boldsymbol\nabla \boldsymbol{r})}_{\text{sym}}
-            \rangle
-            -\frac13\text{div}(\boldsymbol{s})
-            \text{div}(\boldsymbol{r})
-
-        .. math::
-            \langle
-            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{STF}}
-            ,
-            \boldsymbol{\psi}
-            \rangle
-            &=
-            \langle
-            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
-            -
-            \frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})\boldsymbol{I}
-            ,
-            \boldsymbol{\psi}
-            \rangle
-            \\
-            &=
-            \langle
-            {(\boldsymbol\nabla \boldsymbol{s})}_{\text{sym}}
-            ,
-            \boldsymbol{\psi}
-            \rangle
-            -\frac13\text{tr}(\boldsymbol\nabla \boldsymbol{s})
-            \langle
-            \boldsymbol{I},\boldsymbol{\psi}
-            \rangle
-            \\
-            &=
-            \langle
-            {\boldsymbol\nabla \boldsymbol{s}}
-            ,
-            {\boldsymbol{\psi}}
-            \rangle
-            -\frac13\text{div}(\boldsymbol{s})
-            \text{tr}(\boldsymbol{\psi})
-            \\
-            &=
-            \langle
-            {\boldsymbol\nabla \boldsymbol{s}}
-            ,
-            {\boldsymbol{\psi}}
-            \rangle
-
         """
-        # Setup required function spaces
-        self.__setup_function_spaces()
+
+        # Setup elements for all fields
+        cell = self.cell
+        mesh = self.mesh
+
+        e = "Lagrange"
+        deg = 1
+        # scalar variables
+        self.elems["theta"] = df.FiniteElement(e, cell, deg)
+        self.elems["p"] = df.FiniteElement(e, cell, deg)
+        # vector variables
+        self.elems["s"] = df.VectorElement(e, cell, deg)
+        self.elems["u"] = df.VectorElement(e, cell, deg)
+        # 2-tensor variables
+        self.elems["sigma"] = df.TensorElement(e, cell, deg, symmetry={(0, 1): (1, 0)})
+
+        ## fspaces[var] seems only used when projecting pressure to mean-zero. 
+        for var in self.elems: self.fspaces[var] = df.FunctionSpace(mesh, self.elems[var])
+
+        # Bundle elements per mode into `mxd_elems` dict
+        r13_elems = [self.elems["theta"], self.elems["s"], self.elems["p"], self.elems["u"], self.elems["sigma"]]
+        self.r13_elems = df.MixedElement(r13_elems)
+        self.r13_fspaces = df.FunctionSpace(mesh, self.r13_elems)
 
         # Get local variables
-        mesh = self.mesh
         regions = self.regions
         regs = self.regs
         boundaries = self.boundaries
@@ -585,29 +406,11 @@ class Solver:
         """
         print("Write fields..")
 
-        self.__write_solutions()
-        self.__write_parameters()
-
-    def __write_solutions(self):
-        """Write all solutions fields."""
         sols = self.sol
         for field in sols:
             if sols[field] is not None:
                 self.__write_xdmf(field, sols[field] )
 
-    def __write_parameters(self):
-        """
-        Write parameter functions for debug reasons.
-
-        This includes:
-
-        (#) Heat source as `f_mass`
-        (#) Mass Source as `f_heat`
-        (#) Body force as `f_body`
-
-        The parameter functions are internally interpolated into a :math:`P_1`
-        space before writing.
-        """
         # Interpolation setup
         el_str = "Lagrange"
         deg = 1
