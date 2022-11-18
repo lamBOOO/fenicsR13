@@ -1,30 +1,40 @@
+"""
+Program to solve linearized R13 equations.
+
+"""
+
 import dolfin as df
+from input import Input
+from meshes import H5Mesh
+from solver import Solver
 
-# Create mesh and define function space
-mesh = df.UnitSquareMesh(32, 32)
-V = df.FunctionSpace(mesh, "Lagrange", 1)
 
-# Define Dirichlet boundary (x = 0 or x = 1)
-def boundary(x):
-    eps = df.DOLFIN_EPS
-    return x[0] < eps or x[0] > 1.0 - eps
+def print_information():
+    print(r"""    Welcome to a simple Poisson Solver
+    -> Contact: Manuel Torrilhon <mt@acom.rwth-aachen.de>
+""")
 
-# Define boundary condition
-u0 = df.Constant(0.0)
-bc = df.DirichletBC(V, u0, boundary)
 
-# Define variational problem
-u = df.TrialFunction(V)
-v = df.TestFunction(V)
-f = df.Expression("10*exp(-(pow(x[0] - 0.5, 2) + pow(x[1] - 0.5, 2)) / 0.02)",degree=1)
-g = df.Expression("sin(5*x[0])",degree=1)
-a = df.inner(df.grad(u), df.grad(v))*df.dx
-L = f*v*df.dx + g*v*df.ds
 
-# Compute solution
-u = df.Function(V)
-df.solve(a == L, u, bc)
+# main program instructions
+############################
+print_information()
 
-# Save solution in VTK format
-file = df.File("poisson.pvd")
-file << u
+# Dolfin settings
+df.set_log_level(100)  # 1: all logs
+df.parameters["ghost_mode"] = "shared_vertex"
+
+inputfile = "input.yml"
+input_file = Input(inputfile)
+params = input_file.dict
+
+mesh_names = params["meshes"]
+mesh_name = mesh_names[0]
+print("Mesh: " + mesh_name)
+current_mesh = H5Mesh(mesh_name)
+
+solver = Solver(params, current_mesh, 0)
+
+solver.assemble()
+solver.solve()
+solver.write()
