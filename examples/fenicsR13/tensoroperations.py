@@ -1,0 +1,329 @@
+"""
+Module to gather all additional tensor operations not present in UFL.
+
+This especially includes all 3D operations and operations on tensors with rank
+above 2.
+
+.. [STR2005] Struchtrup, H. (2005). Macroscopic transport equations for
+    rarefied gas flows. In Macroscopic Transport Equations for Rarefied Gas
+    Flows. Springer, Berlin, Heidelberg.
+
+.. [TOR2018] Torrilhon, M. et al. (2018). “Kinetic Theory of Non-Equilibrium
+    Gas Flows:
+    Theory and Computations”. Lecture Notes. Indian Institute of Technology
+    Madras.
+"""
+
+import dolfin as df
+import ufl
+
+
+def stf3d2(rank2_2d):
+    r"""
+    Return the 3D symmetric and trace-free part of a 2D 2-tensor.
+
+    .. warning::
+
+            Return a 2-tensor with the same dimensions as the input tensor.
+
+    For the :math:`2 \times 2` case, return the 3D symmetric and
+    trace-free (dev(sym(.)))
+    :math:`B \in \mathbb{R}^{2 \times 2}`
+    of the 2D 2-tensor
+    :math:`A \in \mathbb{R}^{2 \times 2}`.
+
+    .. math::
+        A &= \begin{pmatrix}
+                a_{xx} & a_{xy} \\
+                a_{yx} & a_{yy}
+            \end{pmatrix}
+        \\
+        B &= (A)_\mathrm{dev} = \frac{1}{2} (A)_\mathrm{sym}
+            - \frac{1}{3} \mathrm{tr}(A) I_{2 \times 2}
+    """
+    dim = len(rank2_2d[:, 0])
+    symm = 1 / 2 * (rank2_2d + ufl.transpose(rank2_2d))
+
+    return symm - (1 / 3) * ufl.tr(symm) * ufl.Identity(dim)
+
+
+def sym3d3(rank3_3d):
+    r"""
+    Return the symmetric part of a 3D 3-tensor.
+
+    Returns the symmetric part :math:`A_{(i j k)}` of a 3D rank-3 tensor
+    :math:`A \in \mathbb{R}^{3 \times 3 \times 3}` [STR2005]_ [TOR2018]_.
+
+    .. math::
+        A_{(i j k)}=\frac{1}{6}\left(
+            A_{i j k}+A_{i k j}+A_{j i k}+A_{j k i}+A_{k i j}+A_{k j i}
+        \right)
+    """
+    i, j, k = ufl.indices(3)
+    symm_ijk = 1 / 6 * (
+        # All permutations
+        + rank3_3d[i, j, k] + rank3_3d[i, k, j] + rank3_3d[j, i, k]
+        + rank3_3d[j, k, i] + rank3_3d[k, i, j] + rank3_3d[k, j, i]
+    )
+    return ufl.as_tensor(symm_ijk, (i, j, k))
+
+
+def stf3d3(rank3_3d):
+    r"""
+    Return the symmetric and trace-free part of a 3D 3-tensor.
+
+    Return the symmetric and trace-free part of a 3D 3-tensor. (dev(sym(.)))
+
+    Returns the STF part :math:`A_{\langle i j k\rangle}` of a rank-3 tensor
+    :math:`A \in \mathbb{R}^{3 \times 3 \times 3}` [TOR2018]_.
+
+    .. math::
+        A_{\langle i j k\rangle}=A_{(i j k)}-\frac{1}{5}\left[A_{(i l l)}
+        \delta_{j k}+A_{(l j l)} \delta_{i k}+A_{(l l k)} \delta_{i j}\right]
+
+    A gradient :math:`\frac{\partial S_{\langle i j}}{\partial x_{k \rangle}}`
+    of a symmetric 2-tensor :math:`S \in \mathbb{R}^{3 \times 3}` has the
+    deviator [STR2005]_:
+
+    .. math::
+        \frac{\partial S_{\langle i j}}{\partial x_{k \rangle}}
+        =&
+        \frac{1}{3}\left(
+             \frac{\partial S_{i j}}{\partial x_{k}}
+            +\frac{\partial S_{i k}}{\partial x_{j}}
+            +\frac{\partial S_{j k}}{\partial x_{i}}
+        \right)
+        -\frac{1}{15}
+        \biggl[
+            \left(
+                 \frac{\partial S_{i r}}{\partial x_{r}}
+                +\frac{\partial S_{i r}}{\partial x_{r}}
+                +\frac{\partial S_{r r}}{\partial x_{i}}
+            \right) \delta_{j k}
+        \\
+        &+
+        \left(
+             \frac{\partial S_{j r}}{\partial x_{r}}
+            +\frac{\partial S_{j r}}{\partial x_{r}}
+            +\frac{\partial S_{r r}}{\partial x_{j}}
+        \right) \delta_{i k}
+        +\left(
+             \frac{\partial S_{k r}}{\partial x_{r}}
+            +\frac{\partial S_{k r}}{\partial x_{r}}
+            +\frac{\partial S_{r r}}{\partial x_{k}}
+        \right) \delta_{i j}
+        \biggr]
+    """
+    i, j, k, L = ufl.indices(4)
+    delta = df.Identity(3)
+
+    sym_ijk = sym3d3(rank3_3d)[i, j, k]
+    traces_ijk = 1 / 5 * (
+        + sym3d3(rank3_3d)[i, L, L] * delta[j, k]
+        + sym3d3(rank3_3d)[L, j, L] * delta[i, k]
+        + sym3d3(rank3_3d)[L, L, k] * delta[i, j]
+    )
+    tracefree_ijk = sym_ijk - traces_ijk
+    return ufl.as_tensor(tracefree_ijk, (i, j, k))
+
+
+def div3d3(rank3_3d):
+    r"""
+    Return the 3D divergence of a 3-tensor.
+
+    Return the 3D divergence of a 3-tensor as
+
+    .. math::
+
+        {(\mathrm{div}(m))}_{ij} = \frac{\partial m_{ijk}}{\partial x_k}
+
+    Compare with [SCH2009]_ (p. 92).
+
+    .. [SCH2009] Heinz Schade, Klaus Neemann (2009). “Tensoranalysis”.
+        2. überarbeitete Auflage.
+
+    """
+    i, j, k = ufl.indices(3)
+    div_ij = rank3_3d[i, j, 0].dx(0) + rank3_3d[i, j, 1].dx(1)
+    return ufl.as_tensor(div_ij, (i, j))
+
+
+def gen3dTF2(rank2_2d):
+    r"""
+    Generate a 3D tracefree 2-tensor from a 2D 2-tensor.
+
+    Returns the synthetic 3D version
+    :math:`A \in \mathbb{R}^{3 \times 3}`
+    of a 2D rank-2 tensor
+    :math:`B \in \mathbb{R}^{2 \times 2}`.
+
+    .. math::
+        B &= \begin{pmatrix}
+                b_{xx} & b_{xy} \\
+                b_{yx} & b_{yy}
+            \end{pmatrix}
+        \\
+        A &= \begin{pmatrix}
+                b_{xx} & b_{xy} & 0 \\
+                b_{yx} & b_{yy} & 0 \\
+                0      & 0      & -(b_{yx}+b_{yy})
+            \end{pmatrix}
+
+    Example
+    -------
+
+    >>> t2d = df.Expression((("1","2"),("3","4")), degree=1)
+    >>> t3d = gen3dTF2(t2d)
+    >>> print(
+    ...     t3d[0,0]==t2d[0,0] and
+    ...     t3d[0,1]==t2d[0,1] and
+    ...     t3d[0,2]==0 and
+    ...     t3d[1,0]==t2d[1,0] and
+    ...     t3d[1,1]==t2d[1,1] and
+    ...     t3d[1,2]==0 and
+    ...     t3d[2,0]==0 and
+    ...     t3d[2,1]==0 and
+    ...     t3d[2,2]==-t2d[0,0]-t2d[1,1]
+    ... )
+    True
+
+    """
+    return df.as_tensor([
+        [rank2_2d[0, 0], rank2_2d[0, 1], 0],
+        [rank2_2d[1, 0], rank2_2d[1, 1], 0],
+        [0, 0, -rank2_2d[0, 0] - rank2_2d[1, 1]]
+    ])
+
+
+def gen3d1(rank1_2d):
+    r"""
+    Return synthetic 3d version of 2d vector with zero last component.
+
+    Return synthetic 3d version of 2d vector
+    :math:`s_{\mathrm{in}} = (s_x, s_y)`
+    as
+    :math:`s_{\mathrm{out}} = (s_x, s_y, 0)`
+    .
+    """
+    return df.as_vector([rank1_2d[0], rank1_2d[1], 0])
+
+
+def gen3d2(rank2_2d):
+    r"""
+    Generate a 3D 2-tensor from a 2D 2-tensor (add zeros to last dimensions).
+
+    Returns the synthetic 3D version
+    :math:`A \in \mathbb{R}^{3 \times 3}`
+    of a 2D rank-2 tensor
+    :math:`B \in \mathbb{R}^{2 \times 2}`.
+    The 3D-components are set to zero.
+
+    .. math::
+        B &= \begin{pmatrix}
+                b_{xx} & b_{xy} \\
+                b_{yx} & b_{yy}
+            \end{pmatrix}
+        \\
+        A &= \begin{pmatrix}
+                b_{xx} & b_{xy} & 0 \\
+                b_{yx} & b_{yy} & 0 \\
+                0      & 0      & 0
+            \end{pmatrix}
+
+    Example
+    -------
+
+    >>> t2d = df.Expression((("1","2"),("3","4")), degree=1)
+    >>> t3d = gen3d2(t2d)
+    >>> print(
+    ...     t3d[0,0]==t2d[0,0] and
+    ...     t3d[0,1]==t2d[0,1] and
+    ...     t3d[0,2]==0 and
+    ...     t3d[1,0]==t2d[1,0] and
+    ...     t3d[1,1]==t2d[1,1] and
+    ...     t3d[1,2]==0 and
+    ...     t3d[2,0]==0 and
+    ...     t3d[2,1]==0 and
+    ...     t3d[2,2]==0
+    ... )
+    True
+
+    """
+    return df.as_tensor([
+        [rank2_2d[0, 0], rank2_2d[0, 1], 0],
+        [rank2_2d[1, 0], rank2_2d[1, 1], 0],
+        [0, 0, 0]
+    ])
+
+
+def grad3dOf2(rank2_3d):
+    r"""
+    Return 3D gradient of 3D 2-tensor.
+
+    Returns the 3D gradient (w.r.t. :math:`x,y,z`)
+    :math:`\frac{\partial A_{ij}}{\partial x_{k}}`
+    of a 3D :math:`z`-independent rank-2 tensor
+    :math:`A(x,y) \in \mathbb{R}^{3 \times 3}`
+    where
+
+    .. math::
+        A_{ij} = \begin{pmatrix}
+                    a_{xx}(x,y) & a_{xy}(x,y) & a_{xz}(x,y) \\
+                    a_{yx}(x,y) & a_{yy}(x,y) & a_{yz}(x,y) \\
+                    a_{zx}(x,y) & a_{zy}(x,y) & a_{zz}(x,y)
+                \end{pmatrix}
+
+    The function then returns the 3-tensor with components
+    :math:`\frac{\partial A_{ij}}{\partial x_{k}}`
+    where
+
+    .. math::
+        \frac{\partial A_{ij}}{\partial x_{1}}
+        =
+        \frac{\partial A_{ij}}{\partial x}
+        &= \begin{pmatrix}
+                \partial_x a_{xx}(x,y) &
+                \partial_x a_{xy}(x,y) &
+                \partial_x a_{xz}(x,y) \\
+                \partial_x a_{yx}(x,y) &
+                \partial_x a_{yy}(x,y) &
+                \partial_x a_{yz}(x,y) \\
+                \partial_x a_{zx}(x,y) &
+                \partial_x a_{zy}(x,y) &
+                \partial_x a_{zz}(x,y)
+            \end{pmatrix}
+        , \\
+        \frac{\partial A_{ij}}{\partial x_{2}}
+        =
+        \frac{\partial A_{ij}}{\partial y}
+        &= \begin{pmatrix}
+                \partial_y a_{xx}(x,y) &
+                \partial_y a_{xy}(x,y) &
+                \partial_y a_{xz}(x,y) \\
+                \partial_y a_{yx}(x,y) &
+                \partial_y a_{yy}(x,y) &
+                \partial_y a_{yz}(x,y) \\
+                \partial_y a_{zx}(x,y) &
+                \partial_y a_{zy}(x,y) &
+                \partial_y a_{zz}(x,y)
+            \end{pmatrix}
+        , \\
+        \frac{\partial A_{ij}}{\partial x_{3}}
+        =
+        0
+        &= \begin{pmatrix}
+                0 &
+                0 &
+                0 \\
+                0 &
+                0 &
+                0 \\
+                0 &
+                0 &
+                0
+            \end{pmatrix}
+    """
+    grad2d = df.grad(rank2_3d)
+    dim3 = df.as_tensor([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    grad3d = df.as_tensor([grad2d[:, :, 0], grad2d[:, :, 1], dim3[:, :]])
+    return grad3d
