@@ -61,9 +61,11 @@ class Solver:
             for field in self.bcs[edge_id].keys():
                 self.bcs[edge_id][field] = df.Expression(str(self.bcs[edge_id][field]),degree=2)
 
+        # read source terms
         self.heat_source = df.Expression(str(self.params["heat_source"]),degree=2)
         self.mass_source = df.Expression(str(self.params["mass_source"]),degree=2)
 
+        # initialization
         self.output_folder = self.params["output_folder"] + "/"
         self.elems = {
             "theta": None,
@@ -105,7 +107,7 @@ class Solver:
         boundaries = self.boundaries
         bcs = self.bcs
 
-        # Define custom measeasures for boundary edges and inner edges
+        # Define custom measures for boundary edges and inner edges
         df.dx = df.Measure("dx", domain=mesh, subdomain_data=regions)
         df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
     
@@ -143,8 +145,10 @@ class Solver:
         A[1] = 0                + a2(q, p) 
 
         # 2) Right-hand sides, linear functional L[..]:
-        L[0] = f_heat * kappa * df.dx + sum([( bcs[bc]["chi_tilde"]*bcs[bc]["theta_w"] * kappa ) * df.ds(bc) for bc in bcs.keys()])
-        L[1] = f_mass * q * df.dx + sum([( bcs[bc]["chi_tilde"]*bcs[bc]["p_w"] * q ) * df.ds(bc) for bc in bcs.keys()])
+        L[0] = f_heat * kappa * df.dx + (
+               + sum([( bcs[bc]["chi_tilde"]*bcs[bc]["theta_w"] * kappa ) * df.ds(bc) for bc in bcs.keys()]) )
+        L[1] = f_mass * q * df.dx + (
+               + sum([( bcs[bc]["chi_tilde"]*bcs[bc]["p_w"] * q ) * df.ds(bc) for bc in bcs.keys()]) )
 
         # Combine all equations to compound weak form and add stabilization
         self.form_lhs = sum(A)
@@ -262,26 +266,6 @@ class Solver:
             self.output_folder + name + "_" + str(self.time) + ".xdmf"
         )
         with df.XDMFFile(self.mesh.mpi_comm(), fname_xdmf) as file:
-            for degree in range(5):  # test until degree five
-                # Writing symmetric tensors crashes.
-                # Therefore project symmetric tensor in nonsymmetric space
-                # This is only a temporary fix, see:
-                # https://fenicsproject.discourse.group/t/...
-                # ...writing-symmetric-tensor-function-fails/1136
-                el_symm = df.TensorElement(
-                    df.FiniteElement(
-                        "Lagrange", df.triangle, degree + 1
-                    ), symmetry={(0, 1): (1, 0)}
-                )  # symmetric tensor element
-                el_sol = field.ufl_function_space().ufl_element()
-                if el_sol == el_symm:
-                    # Remove symmetry with projection
-                    field = df.project(
-                        field, df.TensorFunctionSpace(
-                            self.mesh, "Lagrange", degree + 1
-                        )
-                    )
-                    break
 
             field.rename(name, name)
 

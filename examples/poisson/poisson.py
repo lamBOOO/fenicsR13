@@ -1,5 +1,5 @@
 """
-Program to solve linearized R13 equations.
+Program to solve Poisson example.
 
 """
 
