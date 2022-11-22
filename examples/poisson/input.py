@@ -20,6 +20,9 @@ class Input:
         # General
         # =======
         # - output_folder: Used as output folder
+        # Geometry
+        # ======
+        # - geometry: geo-file with definition of domain geometry
 
         # Meshes
         # ======
@@ -58,6 +61,10 @@ class Input:
 
         val = Validator()
         input_schema = {
+            "geometry": {
+                "type": "string",
+                "required": True
+            },
             "meshes": {
                 "type": "list",
                 "required": True,

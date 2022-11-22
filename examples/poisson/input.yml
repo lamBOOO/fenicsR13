@@ -3,6 +3,11 @@
 # - output_folder: Used as output folder
 output_folder: results_poisson
 
+# Geometry
+# ======
+# - geometry: geo-file with definition of domain geometry
+geometry: lid.geo
+
 # Meshes
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on

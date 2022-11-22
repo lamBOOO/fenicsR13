@@ -146,9 +146,9 @@ class Solver:
 
         # 2) Right-hand sides, linear functional L[..]:
         L[0] = f_heat * kappa * df.dx + (
-               + sum([( bcs[bc]["chi_tilde"]*bcs[bc]["theta_w"] * kappa ) * df.ds(bc) for bc in bcs.keys()]) )
+               sum([( bcs[bc]["chi_tilde"]*bcs[bc]["theta_w"] * kappa ) * df.ds(bc) for bc in bcs.keys()]) )
         L[1] = f_mass * q * df.dx + (
-               + sum([( bcs[bc]["chi_tilde"]*bcs[bc]["p_w"] * q ) * df.ds(bc) for bc in bcs.keys()]) )
+               sum([( bcs[bc]["chi_tilde"]*bcs[bc]["p_w"] * q ) * df.ds(bc) for bc in bcs.keys()]) )
 
         # Combine all equations to compound weak form and add stabilization
         self.form_lhs = sum(A)
