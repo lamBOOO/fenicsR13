@@ -42,6 +42,8 @@ RUN pip install -r /fenicsR13/requirements.txt
 ADD . /fenicsR13
 RUN pip install --editable /fenicsR13/.
 
+RUN echo "hi"
+
 # Replace default FEniCS Docker WELCOME screen with custom WELCOME screen
 ADD WELCOME .
 RUN echo "Built: $(date)" >> WELCOME
