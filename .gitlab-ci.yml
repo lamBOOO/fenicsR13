@@ -95,6 +95,7 @@ test:pytest:
     - mkdir errors
     - for file in tests/*/*/errors.csv; do foldername=${file%/errors.csv}; casename=$(basename $foldername); cp ${file} errors/errors_${casename}.csv; done
   artifacts:
+    when: always
     paths:
       - ${APP_DIRECTORY}/convergence_plots
       - ${APP_DIRECTORY}/htmlcov
