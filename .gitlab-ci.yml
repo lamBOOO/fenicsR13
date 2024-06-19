@@ -98,6 +98,7 @@ test:pytest:
     when: always
     paths:
       - ${APP_DIRECTORY}/convergence_plots
+      - ${APP_DIRECTORY}/errors
       - ${APP_DIRECTORY}/htmlcov
     expire_in: 6 month
 
