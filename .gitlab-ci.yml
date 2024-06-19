@@ -90,6 +90,7 @@ test:pytest:
   script:
     - cd ${APP_DIRECTORY}
     - pytest -v --durations=10
+  after_script:
     - mkdir convergence_plots
     - cp tests/*/*/convergence_plot* convergence_plots/
     - mkdir errors
