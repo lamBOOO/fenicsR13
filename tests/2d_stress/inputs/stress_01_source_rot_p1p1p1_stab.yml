@@ -54,9 +54,9 @@ elements:
 stabilization:
   cip:
     enable: True
-    delta_theta: 1.0
-    delta_u: 1.0
-    delta_p: 0.01
+    delta_theta: 1.00000000001
+    delta_u: 1.00000000001
+    delta_p: 0.010000000001
   gls:
     enable: False
     tau_energy: 0.001
