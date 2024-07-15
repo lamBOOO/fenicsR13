@@ -444,12 +444,12 @@ class Input:
                         "required": True
                     },
                     "rescale_pressure": {
-                    "anyof": [
-                        {"type": "boolean", "allowed": [False]},
-                        {"type": "string", "allowed": [
-                            "zeromean", "zerominimum"
-                        ]}
-                    ],
+                        "anyof": [
+                            {"type": "boolean", "allowed": [False]},
+                            {"type": "string", "allowed": [
+                                "zeromean", "zerominimum"
+                            ]}
+                        ],
                         "required": True
                     },
                     "relative_error": {

@@ -1110,7 +1110,7 @@ class Solver:
             )
 
         if self.mode == "stress" or self.mode == "r13":
-            if self.rescale_p == False:
+            if self.rescale_p is False:
                 print("No pressure rescaling applied.")
             else:
                 p_i = df.interpolate(self.sol["p"], self.fspaces["p"])
