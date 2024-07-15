@@ -140,14 +140,14 @@ bcs:
 # - exact_solution: Path to exact solution in cpp-format to compare errors
 # - plot: Show errors in matplotlib window. PDF output is always per default.
 # - write_systemmatrix: Writes out systemmatrix (LHS) to use for analysis
-# - rescale_pressure: Rescale numerical pressure result to have zero mean
+# - rescale_pressure: Shift numerical pressure (False,zeromean,zerominimum)
 # - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
 convergence_study:
   enable: True
   exact_solution: esols/01_source_rot.cpp
   plot: False
   write_systemmatrix: False
-  rescale_pressure: True
+  rescale_pressure: zeromean
   relative_error: True
 
 # Postprocessing

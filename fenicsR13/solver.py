@@ -1110,13 +1110,21 @@ class Solver:
             )
 
         if self.mode == "stress" or self.mode == "r13":
-            if self.rescale_p:
-                # Scale pressure to have zero mean
+            if self.rescale_p == False:
+                print("No pressure rescaling applied.")
+            else:
                 p_i = df.interpolate(self.sol["p"], self.fspaces["p"])
-                mean_p_value = self.__calc_sf_mean(p_i)
-                mean_p_fct = df.Function(self.fspaces["p"])
-                mean_p_fct.assign(df.Constant(mean_p_value))
-                p_i.assign(p_i - mean_p_fct)
+                shift = 0.0
+                if self.rescale_p == "zeromean":
+                    shift = self.__calc_sf_mean(p_i)
+                elif self.rescale_p == "zerominimum":
+                    shift = self.__calc_sf_min(p_i)
+                else:
+                    raise RuntimeError("Wrong rescale_pressure option.")
+                print("Pressure rescaling with shift=", shift)
+                shift_function = df.Function(self.fspaces["p"])
+                shift_function.assign(df.Constant(shift))
+                p_i.assign(p_i - shift_function)
                 self.sol["p"] = p_i
 
         # Calculate mass flows
@@ -1375,9 +1383,24 @@ class Solver:
                 mean = np.mean(scalar_function.compute_vertex_values())
         """
         v = scalar_function.compute_vertex_values()
-        mean = np.mean(v)
-        print("The mean pressure value is", mean)
-        return mean
+        mean_val = np.mean(v)
+        print("Calculated mean value:", mean_val)
+        return mean_val
+
+    def __calc_sf_min(self, scalar_function):
+        """
+        Calculate the minimum of a scalar function.
+
+        .. note::
+
+            The following does not work in parallel because the operation
+            is performed locally. So convergence studies have to be performed in
+            serial.
+        """
+        v = scalar_function.compute_vertex_values()
+        min_val = np.min(v)
+        print("Calculated minimum value:", min_val)
+        return min_val
 
     def __calc_field_errors(self, field_, field_e_, v_field, name_):
         r"""
