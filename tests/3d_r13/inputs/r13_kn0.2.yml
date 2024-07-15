@@ -72,11 +72,15 @@ stabilization:
 # - heat_source: Heat source function for mode==heat||r13
 # - mass_source: Mass source function for mode==stress||r13
 # - body_force: Body force for mode==stress||r13
+# - f_s: Heatflux force for mode==heat||r13
+# - f_sigma: Stress force for mode==stress||r13
 nsd: 3
 mode: r13
 heat_source: 0
 mass_source: 0
 body_force: [0,0,0]
+f_s: [0,0,0]
+f_sigma: [[0,0,0],[0,0,0],[0,0,0]]
 
 # Solver Parameters
 # =================

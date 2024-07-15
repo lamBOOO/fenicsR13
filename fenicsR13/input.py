@@ -316,6 +316,23 @@ class Input:
                 "required": True,
                 "schema": {"anyof": [{"type": "string"}, {"type": "float"}]}
             },
+            "f_s": {
+                "type": "list",
+                "required": True,
+                "schema": {"anyof": [{"type": "string"}, {"type": "float"}]}
+            },
+            "f_sigma": {
+                "type": "list",
+                "schema": {
+                    "type": "list",
+                    "required": True,
+                    "schema": {
+                        "anyof": [{"type": "string"}, {"type": "float"}]
+                    },
+                    "minlength": 2,
+                    "maxlength": 3
+                }
+            },
             "solver": {
                 "type": "dict",
                 "required": True,
@@ -584,6 +601,15 @@ class Input:
         if not val.validate(self.dict, input_schema):
             print("! Parsing Error: \n" + str(val.errors) + "\n")
             raise Exception("Parsing error")
+
+        # Check if f_sigma is symmetric
+        assert all(
+            len(row) == len(self.dict["f_sigma"])
+            for row in self.dict["f_sigma"]
+        ), "f_sigma must be square"
+        for i in range(len(self.dict["f_sigma"])):
+            for j in range(len(self.dict["f_sigma"])):
+                assert self.dict["f_sigma"][i][j] == self.dict["f_sigma"][j][i]
 
         print("Input:\n" + dumps(self.dict, indent=None))
 

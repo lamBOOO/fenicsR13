@@ -117,6 +117,8 @@ class Solver:
         self.heat_source = self.__createMacroScaExpr(self.params["heat_source"])
         self.mass_source = self.__createMacroScaExpr(self.params["mass_source"])
         self.body_force = self.__createMacroVecExpr(self.params["body_force"])
+        self.f_s = self.__createMacroVecExpr(self.params["f_s"])
+        self.f_sigma = self.__createMacroTenExpr(self.params["f_sigma"])
 
         self.exact_solution = self.params["convergence_study"]["exact_solution"]
         self.write_systemmatrix = self.params["convergence_study"][
@@ -269,6 +271,37 @@ class Solver:
         phi = df.Expression("atan2(x[1],x[0])", degree=2)
         # TODO Handle R, phi for 3D case => raise error?
         cpp_strings = [str(i) for i in cpp_strings]
+        if len(cpp_strings) == 2:
+            return df.Expression(
+                cpp_strings,  # strange that no cast to list is needed
+                degree=2,
+                phi=phi,
+                R=R
+            )
+        else:
+            return df.Expression(cpp_strings, degree=2)
+
+    def __createMacroTenExpr(self, cpp_strings):
+        """
+        Return a DOLFIN tensor expression with predefined macros.
+
+        These macros include:
+
+        ============================ ======= =================================
+        Name                         Macro   CPP Replacement
+        ============================ ======= =================================
+        Radius wrt. to :math:`(0,0)` ``R``   ``sqrt(pow(x[0],2)+pow(x[1],2))``
+        Angle wrt. :math:`(0,0)`     ``phi`` ``atan2(x[1],x[0])``
+        ============================ ======= =================================
+
+        See Also
+        --------
+        _Solver__createMacroScaExpr
+        """
+        R = df.Expression("sqrt(pow(x[0],2)+pow(x[1],2))", degree=2)
+        phi = df.Expression("atan2(x[1],x[0])", degree=2)
+        # TODO Handle R, phi for 3D case => raise error?
+        cpp_strings = [[str(el) for el in firstdim] for firstdim in cpp_strings]
         if len(cpp_strings) == 2:
             return df.Expression(
                 cpp_strings,  # strange that no cast to list is needed
@@ -633,6 +666,8 @@ class Solver:
         f_heat = self.heat_source
         f_mass = self.mass_source
         f_body = self.body_force
+        f_sigma = self.f_sigma
+        f_s = self.f_s
 
         # Decouple heat/stress switch
         if self.mode == "r13":
@@ -724,6 +759,15 @@ class Solver:
                     to.stf3d3(to.grad3dOf2(to.gen3DTFdim2(si), nsd)),
                     to.stf3d3(to.grad3dOf2(to.gen3DTFdim2(ps), nsd))
                 )
+                # TODO: this one is equivalent to the above, document it!
+                # + regs[reg]["kn"] * df.inner(
+                #     to.sym3d3(to.grad3dOf2(to.gen3DTFdim2(si), nsd)),
+                #     to.sym3d3(to.grad3dOf2(to.gen3DTFdim2(ps), nsd))
+                # )
+                # - regs[reg]["kn"] * 4 / 15 * df.inner(
+                #     df.div(si),
+                #     df.div(ps)
+                # )
                 + (1 / (2 * regs[reg]["kn"])) * df.inner(
                     to.gen3DTFdim2(si), to.gen3DTFdim2(ps)
                 )
@@ -884,12 +928,14 @@ class Solver:
         A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)
         A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
         # 2) Right-hand sides, linear functional L[..]:
-        L[0] = - sum([(
+        L[0] = + df.dot(f_s, r) * df.dx - sum([(
             bcs[bc]["theta_w"] * n(r)
         ) * df.ds(bc) for bc in bcs.keys()])
         # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
         L[1] = (f_heat - f_mass) * kappa * df.dx
-        L[2] = - sum([(
+        L[2] = + df.inner(
+            to.gen3DTFdim2(f_sigma), to.gen3DTFdim2(psi)
+        ) * df.dx - sum([(
             + t1(v1[bc]) * nt1(psi)
             + t2(v1[bc]) * nt2(psi)
             + (
@@ -1572,8 +1618,10 @@ class Solver:
         deg = 1
         el_s = df.FiniteElement(el_str, degree=deg, cell=self.cell)
         el_v = df.VectorElement(el_str, degree=deg, cell=self.cell)
+        el_t = df.TensorElement(el_str, degree=deg, cell=self.cell)
         V_s = df.FunctionSpace(self.mesh, el_s)
         V_v = df.FunctionSpace(self.mesh, el_v)
+        V_t = df.FunctionSpace(self.mesh, el_t)
 
         # Heat source
         f_heat = df.interpolate(self.heat_source, V_s)
@@ -1586,6 +1634,14 @@ class Solver:
         # Body force
         f_body = df.interpolate(self.body_force, V_v)
         self.__write_xdmf("f_body", f_body, False)
+
+        # Heatflux force
+        f_s = df.interpolate(self.f_s, V_v)
+        self.__write_xdmf("f_s", f_s, False)
+
+        # Stress force
+        f_sigma = df.interpolate(self.f_sigma, V_t)
+        self.__write_xdmf("f_sigma", f_sigma, False)
 
     def __write_discrete_system(self):
         r"""
