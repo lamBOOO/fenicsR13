@@ -1,11 +1,8 @@
 """
-Module to gather tests for convergence of decoupled stress system.
-
-This file is executed by ``pytest`` to have good CI.
+This file is executed by ``pytest``.
 """
 
 import subprocess
-import pytest
 
 
 class TestR13Convergence(object):
@@ -44,7 +41,7 @@ class TestR13Convergence(object):
 
         """
         print(subprocess.check_output([
-            "numdiff", "-s", "\"\n\r ,\"", "-a", "1E-2",
+            "numdiff", "-s", "\"\n\r ,\"", "-a", "1E-10",
             errorsfile, ref_errorsfile
         ], cwd=self.working_dir))
 
