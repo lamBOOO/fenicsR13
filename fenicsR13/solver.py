@@ -1464,6 +1464,7 @@ class Solver:
                     )
                 )
             ]
+            errs_f_H1 = [df.errornorm(field_e_i, field_i, "H1", degree_rise=1)]
         else:
             # vector or tensor
             errs_f_L2 = [df.errornorm(
@@ -1478,33 +1479,54 @@ class Solver:
                 )
                 for i in range(dofs)
             ]
+            errs_f_H1 = [df.errornorm(
+                field_e_i.split()[i], field_i.split()[i], "H1", degree_rise=1
+            ) for i in range(dofs)]
 
         if self.relative_error:
+            def wmsg(n):
+                return f"WARN: {name_} has zero {n}-norm, abs. error used"
             if dofs == 1:
                 # scalar
-                max_esols = [
-                    np.max(np.abs(field_e_i.compute_vertex_values())) or 1
+                norms_f_L2 = [
+                    df.norm(field_e_i, "L2") or any([1, print(wmsg("L2"))])
+                ]
+                norms_v_linf = [
+                    np.max(np.abs(field_e_i.compute_vertex_values()))
+                    or any([1, print(wmsg("linf"))])
+                ]
+                norms_f_H1 = [
+                    df.norm(field_e_i, "H1") or any([1, print(wmsg("H1"))])
                 ]
             else:
                 # vector or tensor
-                max_esols = [
+                norms_f_L2 = [df.norm(
+                    field_e_i.split()[i], "L2"
+                ) or any([1, print(wmsg("L2"))]) for i in range(dofs)]
+                norms_v_linf = [
                     np.max(
                         np.abs(field_e_i.split()[i].compute_vertex_values())
-                    )
+                    ) or any([1, print(wmsg("linf"))])
                     for i in range(dofs)
                 ]
-            errs_f_L2 = [x / y for x, y in zip(errs_f_L2, max_esols)]
-            errs_v_linf = [x / y for x, y in zip(errs_v_linf, max_esols)]
+                norms_f_H1 = [df.norm(
+                    field_e_i.split()[i], "H1"
+                ) or any([1, print(wmsg("H1"))]) for i in range(dofs)]
+            errs_f_L2 = [x / y for x, y in zip(errs_f_L2, norms_f_L2)]
+            errs_v_linf = [x / y for x, y in zip(errs_v_linf, norms_v_linf)]
+            errs_f_H1 = [x / y for x, y in zip(errs_f_H1, norms_f_H1)]
 
         print("Calculate errors..")
         print("Error " + str(name_) + " L_2:", errs_f_L2)
         print("Error " + str(name_) + " l_inf:", errs_v_linf)
+        print("Error " + str(name_) + " H_1:", errs_f_H1)
 
         self.__write_xdmf(name_ + "_e", field_e_i, False)
 
         return [{
             "L_2": errs_f_L2[i],
             "l_inf": errs_v_linf[i],
+            "H_1": errs_f_H1[i],
         } for i in range(dofs)]
 
     def calculate_errors(self):

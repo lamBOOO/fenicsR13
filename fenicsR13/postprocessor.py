@@ -194,8 +194,10 @@ class Postprocessor:
             # data of all runs
             for run in data:
                 writer.writerow(
-                    [run["h"]] + list(chain.from_iterable([
-                        [run[field]["L_2"], run[field]["l_inf"]]
-                        for field in [f for f in run if f != "h"]
-                    ]))
+                    [run["h"]] + list(
+                        chain.from_iterable([
+                            [run[field][etype] for etype in run[field]]
+                            for field in [f for f in run if f != "h"]
+                        ])
+                    )
                 )
