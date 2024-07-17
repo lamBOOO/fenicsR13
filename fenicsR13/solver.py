@@ -720,7 +720,7 @@ class Solver:
             return df.dot(rank2 * t_vec1, t_vec2)
 
         if self.mode == "heat" and nsd == 3:
-            incl_delta = 0
+            incl_delta = 1  # TODO: Fix or remove this.
             # To match the esols differences in 2D and 3D heat systems
             # Caused by Manuel not including Delta for 3D in Mathematica
             # and Lambert added Delta only for 2D case

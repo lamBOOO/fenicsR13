@@ -27,20 +27,20 @@
 
 (* ::Input:: *)
 (*Kn=1;*)
-(*dim=2;*)
-(*cpl=1; (*0 for heat or stress*)*)
-(*incldelta=1; (* 0 for heat*)*)
-(*psi[x_,y_,z_]:={0,0,x^2*(x-1)^2*y^2*(y-1)^2}*)
+(*dim=3;*)
+(*cpl=0; (*0 for heat or stress*)*)
+(*incldelta=0; (* 0 for heat*)*)
+(*psi[x_,y_,z_]:={0,0,x^2*(x-1)^2*y^2*(y-1)^2*If[dim==3,z^2*(z-1)^2,1]}*)
 (*u[x_,y_,z_]:=Curl[psi[x,y,z],{x,y,z}]*)
-(*pp[x_,y_,z_]:=-x^2*(x-1)^2*y^2*(y-1)^2*)
+(*pp[x_,y_,z_]:=-x^2*(x-1)^2*y^2*(y-1)^2*If[dim==3,z^2*(z-1)^2,1]*)
 (*p[x_,y_,z_]:=pp[x,y,z]-pp[1/2,1/2,1/2]*)
 (*sigma[x_,y_,z_]:=TraceFreeSym2[{*)
-(*{x^2*(x-1)^2*y^2*(y-1)^2,x^2*(x-1)^2*y^2*(y-1)^2,0},*)
-(*{x^2*(x-1)^2*y^2*(y-1)^2,x^2*(x-1)^2*y^2*(y-1)^2,0},*)
-(*{0,0,-2*(x^2*(x-1)^2*y^2*(y-1)^2)}*)
+(*{x^2*(x-1)^2*y^2*(y-1)^2*If[dim==3,z^2*(z-1)^2,1],x^2*(x-1)^2*y^2*(y-1)^2*If[dim==3,z^2*(z-1)^2,1],0},*)
+(*{x^2*(x-1)^2*y^2*(y-1)^2*If[dim==3,z^2*(z-1)^2,1],x^2*(x-1)^2*y^2*(y-1)^2*If[dim==3,z^2*(z-1)^2,1],0},*)
+(*{0,0,-2*(x^2*(x-1)^2*y^2*(y-1)^2*If[dim==3,z^2*(z-1)^2,1])}*)
 (*}]*)
-(*s[x_,y_,z_]:={x^2*(x-1)^2*y^2*(y-1)^2,x^2*(x-1)^2*y^2*(y-1)^2,0}*)
-(*T[x_,y_,z_]:=-x^2*(x-1)^2*y^2*(y-1)^2*)
+(*s[x_,y_,z_]:={x^2*(x-1)^2*y^2*(y-1)^2*If[dim==3,z^2*(z-1)^2,1],x^2*(x-1)^2*y^2*(y-1)^2*If[dim==3,z^2*(z-1)^2,1],If[dim==3,1,0]*x^2*(x-1)^2*y^2*(y-1)^2*If[dim==3,z^2*(z-1)^2,1]}*)
+(*T[x_,y_,z_]:=-x^2*(x-1)^2*y^2*(y-1)^2*If[dim==3,z^2*(z-1)^2,1]*)
 (*m[x_,y_,z_]:=-2*Kn*TraceFreeSym3[Grad[sigma[x,y,z],{x,y,z}]]*)
 (*R[x_,y_,z_]:=-(24/5)*Kn*TraceFreeSym2[Grad[s[x,y,z],{x,y,z}]]*)
 (*Delta[x_,y_,z_]:=-12*Kn*Div[s[x,y,z],{x,y,z}]*)
@@ -50,7 +50,7 @@
 (*CPP Expressions for Fields*)
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Replacement Definitions*)
 
 
@@ -60,6 +60,7 @@
 (*"\[Tau]"->"tau",*)
 (*"x"->"x[0]",*)
 (*"y"->"x[1]",*)
+(*"z"->"x[2]",*)
 (*"\[Lambda]1"->"lambda_1",*)
 (*"\[Lambda]2"->"lambda_2",*)
 (*"\[Lambda]3"->"lambda_3",*)
@@ -145,14 +146,12 @@
 (*fs[x,y,z];*)
 (*fsigma[x,y,z];*)
 (**)
-
-
-(* ::Input:: *)
 (*"heat_source: "<>"\""<>StringReplace[ToString[CForm[Simplify[fT[x,y,z]]]],replacements]<>"\""*)
 (*"mass_source: "<>StringReplace[ToString[CForm[fp[x,y,z]]],replacements]*)
 (*"body_force: [\n"<>StringRiffle[Table["  \""<>StringReplace[ToString[CForm[Simplify[fu[x,y,z][[i]]]]],replacements]<>"\"",{i,1,dim}],",\n"]<>"\n]"*)
 (*"f_s: [\n"<>StringRiffle[Table["  \""<>StringReplace[ToString[CForm[Simplify[fs[x,y,z]][[i]]]],replacements]<>"\"",{i,1,dim}],",\n"]<>"\n]"*)
 (*"f_sigma: [\n"<>"  [\n    "<>StringRiffle[Table["\""<>StringReplace[ToString[CForm[Simplify[fsigma[x,y,z]][[i]][[j]]]],replacements]<>"\"",{i,1,dim},{j,1,dim}],"\n  ], [\n    ",",\n    "]<>"\n  ]\n]"*)
+(**)
 
 
 (* ::Section:: *)
@@ -177,4 +176,4 @@
 (*((1/2*m[x,y,z][[nn,nn,nn]]+m[x,y,z][[nn,tt,tt]])-chi*(1/2*sigma[x,y,z][[nn,nn]]+sigma[x,y,z][[tt,tt]]))/.{x->xbc,y->ybc}*)
 
 
-
+\[AliasDelimiter]
