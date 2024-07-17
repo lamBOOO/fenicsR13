@@ -932,7 +932,7 @@ class Solver:
             bcs[bc]["theta_w"] * n(r)
         ) * df.ds(bc) for bc in bcs.keys()])
         # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
-        L[1] = (f_heat - f_mass) * kappa * df.dx
+        L[1] = (f_heat - cpl * f_mass) * kappa * df.dx
         L[2] = + df.inner(
             to.gen3DTFdim2(f_sigma), to.gen3DTFdim2(psi)
         ) * df.dx - sum([(
