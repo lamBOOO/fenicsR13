@@ -200,7 +200,7 @@ bcs:
 # - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
 convergence_study:
   enable: True
-  exact_solution: man_sol.cpp
+  exact_solution: esols/2d_r13.cpp
   plot: False # to avoid error exit code due to $DISPLAY
   write_systemmatrix: False
   rescale_pressure: zerominimum

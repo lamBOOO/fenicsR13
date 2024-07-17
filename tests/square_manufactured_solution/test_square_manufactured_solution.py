@@ -50,7 +50,7 @@ class TestR13Convergence(object):
         Test the 2D R13 convergence of the manufactured solution.
         """
         name = "square_manufactured_solution_2d_r13"
-        self.run_solver("input.yml")
+        self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
