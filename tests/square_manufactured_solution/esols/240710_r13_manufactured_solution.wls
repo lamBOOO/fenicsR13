@@ -28,8 +28,8 @@
 (* ::Input:: *)
 (*Kn=1;*)
 (*dim=2;*)
-(*cpl=1;*)
-(*incldelta=1;*)
+(*cpl=1; (*0 for heat or stress*)*)
+(*incldelta=1; (* 0 for heat*)*)
 (*psi[x_,y_,z_]:={0,0,x^2*(x-1)^2*y^2*(y-1)^2}*)
 (*u[x_,y_,z_]:=Curl[psi[x,y,z],{x,y,z}]*)
 (*pp[x_,y_,z_]:=-x^2*(x-1)^2*y^2*(y-1)^2*)
@@ -127,7 +127,7 @@
 (*StringRiffle[Table[ToString[StringForm["values[``] = ",(i-1)*dim+(j-1)]]<>StringReplace[ToString[CForm[Simplify[sigma[x,y,z][[i,j]]]]],replacements]<>";  // stress tensor "<>ToString[{x,y,z}[[i]]]<>ToString[{x,y,z}[[j]]],{i,1,dim},{j,1,dim}],"\n","\n"]*)
 
 
-(* ::Section::Closed:: *)
+(* ::Section:: *)
 (*Balance Laws*)
 
 
@@ -138,7 +138,7 @@
 (*fT[x_,y_,z_]:=cpl*Div[u[x,y,z],{x,y,z}]+Div[s[x,y,z],{x,y,z}]*)
 (*fu[x_,y_,z_]:=Grad[p[x,y,z],{x,y,z}]+Div[sigma[x,y,z],{x,y,z}]*)
 (*fs[x_,y_,z_]:=factors*(5/2*Grad[T[x,y,z],{x,y,z}]+cpl*Div[sigma[x,y,z],{x,y,z}]+1/2*Div[R[x,y,z],{x,y,z}]+incldelta*1/6*Grad[Delta[x,y,z],{x,y,z}]+1/Kn*2/3*s[x,y,z])*)
-(*fsigma[x_,y_,z_]:=factorsigma*(4/5*TraceFreeSym2[Grad[s[x,y,z],{x,y,z}]]+2*TraceFreeSym2[Grad[u[x,y,z],{x,y,z}]]+Div3[m[x,y,z]]+1/Kn*sigma[x,y,z])*)
+(*fsigma[x_,y_,z_]:=factorsigma*(cpl*4/5*TraceFreeSym2[Grad[s[x,y,z],{x,y,z}]]+2*TraceFreeSym2[Grad[u[x,y,z],{x,y,z}]]+Div3[m[x,y,z]]+1/Kn*sigma[x,y,z])*)
 (*fp[x,y,z];*)
 (*fT[x,y,z];*)
 (*fu[x,y,z];*)
@@ -155,7 +155,7 @@
 (*"f_sigma: [\n"<>"  [\n    "<>StringRiffle[Table["\""<>StringReplace[ToString[CForm[Simplify[fsigma[x,y,z]][[i]][[j]]]],replacements]<>"\"",{i,1,dim},{j,1,dim}],"\n  ], [\n    ",",\n    "]<>"\n  ]\n]"*)
 
 
-(* ::Section::Closed:: *)
+(* ::Section:: *)
 (*BCs*)
 
 

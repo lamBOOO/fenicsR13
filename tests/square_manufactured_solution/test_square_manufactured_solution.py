@@ -45,6 +45,26 @@ class TestR13Convergence(object):
             errorsfile, ref_errorsfile
         ], cwd=self.working_dir))
 
+    def test_2d_heat(self):
+        r"""
+        Test the 2D Heat convergence of the manufactured solution.
+        """
+        name = "square_manufactured_solution_2d_heat"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
+
+    def test_2d_stress(self):
+        r"""
+        Test the 2D Stress convergence of the manufactured solution.
+        """
+        name = "square_manufactured_solution_2d_stress"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
+
     def test_2d_r13(self):
         r"""
         Test the 2D R13 convergence of the manufactured solution.
