@@ -16,7 +16,7 @@ class Temperature : public dolfin::Expression {
     void eval(Eigen::Ref<Eigen::VectorXd> values,
               Eigen::Ref<const Eigen::VectorXd> x) const override {
 
-        values[0] = -(std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2));
+        values[0] = -(std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2));  // temperature
     }
 };
 
@@ -26,8 +26,8 @@ class Heatflux : public dolfin::Expression {
     void eval(Eigen::Ref<Eigen::VectorXd> values,
               Eigen::Ref<const Eigen::VectorXd> x) const override {
 
-        values[0] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);
-        values[1] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);
+        values[0] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);  // heat flux x
+        values[1] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);  // heat flux y
     }
 };
 
@@ -37,7 +37,7 @@ class Pressure : public dolfin::Expression {
     void eval(Eigen::Ref<Eigen::VectorXd> values,
               Eigen::Ref<const Eigen::VectorXd> x) const override {
 
-        values[0] = 0.00390625 - std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);
+        values[0] = 0.00390625 - std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);  // pressure
     }
 };
 
@@ -47,8 +47,8 @@ class Velocity : public dolfin::Expression {
     void eval(Eigen::Ref<Eigen::VectorXd> values,
               Eigen::Ref<const Eigen::VectorXd> x) const override {
 
-        values[0] = 2*std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*x[1] + 2*std::pow(-1 + x[0],2)*std::pow(x[0],2)*(-1 + x[1])*std::pow(x[1],2);
-        values[1] = -2*std::pow(-1 + x[0],2)*x[0]*std::pow(-1 + x[1],2)*std::pow(x[1],2) - 2*(-1 + x[0])*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);
+        values[0] = 2*std::pow(-1 + x[0],2)*std::pow(x[0],2)*(-1 + x[1])*x[1]*(-1 + 2*x[1]);  // velocity x
+        values[1] = 2*(1 - 2*x[0])*(-1 + x[0])*x[0]*std::pow(-1 + x[1],2)*std::pow(x[1],2);  // velocity y
     }
 };
 
@@ -58,10 +58,10 @@ class Stress : public dolfin::Expression {
     void eval(Eigen::Ref<Eigen::VectorXd> values,
               Eigen::Ref<const Eigen::VectorXd> x) const override {
 
-        values[0] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);
-        values[1] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);
-        values[2] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);
-        values[3] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);
+        values[0] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);  // stress tensor xx
+        values[1] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);  // stress tensor xy
+        values[2] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);  // stress tensor yx
+        values[3] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2);  // stress tensor yy
     }
 };
 

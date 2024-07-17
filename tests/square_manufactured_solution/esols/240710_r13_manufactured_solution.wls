@@ -1,0 +1,180 @@
+#!/usr/bin/env wolframscript
+(* ::Package:: *)
+
+(* ::Section:: *)
+(*Operators*)
+
+
+(* ::Input:: *)
+(*TraceFreeSym2[mat_]:=1/2 (mat+Transpose[mat])-1/3 Tr[mat]IdentityMatrix[3];*)
+(*TraceFreeSym3[mat_]:=Block[{perm,sym1,trace},*)
+(*perm=Permutations[{1,2,3}];*)
+(*sym1=Expand[1/Length[perm] Sum[Transpose[mat,idx],{idx,perm}]];*)
+(*trace=Sum[sym1[[All,jj,jj]],{jj,1,3}];*)
+(*Expand[sym1-1/5 Table[trace[[ii]]KroneckerDelta[jj,kk]+trace[[jj]]KroneckerDelta[ii,kk]+trace[[kk]]KroneckerDelta[ii,jj],{ii,1,3},{jj,1,3},{kk,1,3}]]*)
+(*]*)
+(*xx={x,y,z};*)
+(*Div3[mat_]:=Sum[D[mat[[All,All,kk]],xx[[kk]]],{kk,1,3}]*)
+
+
+(* ::Subsection:: *)
+(*Guess solution*)
+
+
+(* ::Text:: *)
+(*Write you Ansatz here...*)
+
+
+(* ::Input:: *)
+(*Kn=1;*)
+(*dim=2;*)
+(*cpl=1;*)
+(*incldelta=1;*)
+(*psi[x_,y_,z_]:={0,0,x^2*(x-1)^2*y^2*(y-1)^2}*)
+(*u[x_,y_,z_]:=Curl[psi[x,y,z],{x,y,z}]*)
+(*pp[x_,y_,z_]:=-x^2*(x-1)^2*y^2*(y-1)^2*)
+(*p[x_,y_,z_]:=pp[x,y,z]-pp[1/2,1/2,1/2]*)
+(*sigma[x_,y_,z_]:=TraceFreeSym2[{*)
+(*{x^2*(x-1)^2*y^2*(y-1)^2,x^2*(x-1)^2*y^2*(y-1)^2,0},*)
+(*{x^2*(x-1)^2*y^2*(y-1)^2,x^2*(x-1)^2*y^2*(y-1)^2,0},*)
+(*{0,0,-2*(x^2*(x-1)^2*y^2*(y-1)^2)}*)
+(*}]*)
+(*s[x_,y_,z_]:={x^2*(x-1)^2*y^2*(y-1)^2,x^2*(x-1)^2*y^2*(y-1)^2,0}*)
+(*T[x_,y_,z_]:=-x^2*(x-1)^2*y^2*(y-1)^2*)
+(*m[x_,y_,z_]:=-2*Kn*TraceFreeSym3[Grad[sigma[x,y,z],{x,y,z}]]*)
+(*R[x_,y_,z_]:=-(24/5)*Kn*TraceFreeSym2[Grad[s[x,y,z],{x,y,z}]]*)
+(*Delta[x_,y_,z_]:=-12*Kn*Div[s[x,y,z],{x,y,z}]*)
+
+
+(* ::Subsection:: *)
+(*CPP Expressions for Fields*)
+
+
+(* ::Subsubsection::Closed:: *)
+(*Replacement Definitions*)
+
+
+(* ::Input:: *)
+(*replacements={*)
+(*"\[Phi]"->"phi",*)
+(*"\[Tau]"->"tau",*)
+(*"x"->"x[0]",*)
+(*"y"->"x[1]",*)
+(*"\[Lambda]1"->"lambda_1",*)
+(*"\[Lambda]2"->"lambda_2",*)
+(*"\[Lambda]3"->"lambda_3",*)
+(*"A1"->"A_1",*)
+(*"K0"->"CK_0",*)
+(*"K1"->"CK_1",*)
+(*"K2"->"CK_2",*)
+(*"K3"->"CK_3",*)
+(*"K4"->"CK_4",*)
+(*"K5"->"CK_5",*)
+(*"K6"->"CK_6",*)
+(*"K7"->"CK_7",*)
+(*"K8"->"CK_8",*)
+(*"K9"->"CK_9",*)
+(*"K10"->"CK_10",*)
+(*"C0"->"C_0",*)
+(*"C1"->"C_1",*)
+(*"C2"->"C_2",*)
+(*"C3"->"C_3",*)
+(*"C4"->"C_4",*)
+(*"C5"->"C_5",*)
+(*"C6"->"C_6",*)
+(*"C7"->"C_7",*)
+(*"C8"->"C_8",*)
+(*"C9"->"C_9",*)
+(*"C10"->"C_10",*)
+(*"C11"->"C_11",*)
+(*"C12"->"C_12",*)
+(*"C13"->"C_13",*)
+(*"C14"->"C_14",*)
+(*"C15"->"C_15",*)
+(*"C16"->"C_16",*)
+(*"C17"->"C_17",*)
+(*"C18"->"C_18",*)
+(*"C19"->"C_19",*)
+(*"C20"->"C_20",*)
+(*"C21"->"C_21",*)
+(*"C22"->"C_22",*)
+(*"C23"->"C_23",*)
+(*"BesselI(0,"->"I_0(",*)
+(*"BesselI(1,"->"I_1(",*)
+(*"BesselI(2,"->"I_2(",*)
+(*"BesselI(3,"->"I_3(",*)
+(*"BesselK(0,"->"K_0(",*)
+(*"BesselK(1,"->"K_1(",*)
+(*"BesselK(2,"->"K_2(",*)
+(*"BesselK(3,"->"K_3(",*)
+(*"Power"->"std::pow",*)
+(*"Sqrt"->"std::sqrt",*)
+(*"Log"->"std::log",*)
+(*"Cos"->"std::cos",*)
+(*"Sin"->"std::sin"*)
+(*};*)
+
+
+(* ::Subsubsection:: *)
+(*Final expressions*)
+
+
+(* ::Input:: *)
+(*"values[0] = "<>StringReplace[ToString[CForm[Simplify[T[x,y,z]]]],replacements]<>";  // temperature"*)
+(*StringRiffle[Table[ToString[StringForm["values[``] = ",i-1]]<>StringReplace[ToString[CForm[Simplify[s[x,y,z][[i]]]]],replacements]<>";  // heat flux "<>ToString[{x,y,z}[[i]]],{i,1,dim}],"\n"]*)
+(*StringJoin["values[0] = "<>StringReplace[ToString[CForm[Simplify[p[x,y,z]]]],replacements]<>";  // pressure"]*)
+(*StringRiffle[Table[ToString[StringForm["values[``] = ",i-1]]<>StringReplace[ToString[CForm[Simplify[u[x,y,z][[i]]]]],replacements]<>";  // velocity "<>ToString[{x,y,z}[[i]]],{i,1,dim}],"\n"]*)
+(*StringRiffle[Table[ToString[StringForm["values[``] = ",(i-1)*dim+(j-1)]]<>StringReplace[ToString[CForm[Simplify[sigma[x,y,z][[i,j]]]]],replacements]<>";  // stress tensor "<>ToString[{x,y,z}[[i]]]<>ToString[{x,y,z}[[j]]],{i,1,dim},{j,1,dim}],"\n","\n"]*)
+
+
+(* ::Section::Closed:: *)
+(*Balance Laws*)
+
+
+(* ::Input:: *)
+(*factors=2/5;*)
+(*factorsigma=1/2;*)
+(*fp[x_,y_,z_]:=Div[u[x,y,z],{x,y,z}]*)
+(*fT[x_,y_,z_]:=cpl*Div[u[x,y,z],{x,y,z}]+Div[s[x,y,z],{x,y,z}]*)
+(*fu[x_,y_,z_]:=Grad[p[x,y,z],{x,y,z}]+Div[sigma[x,y,z],{x,y,z}]*)
+(*fs[x_,y_,z_]:=factors*(5/2*Grad[T[x,y,z],{x,y,z}]+cpl*Div[sigma[x,y,z],{x,y,z}]+1/2*Div[R[x,y,z],{x,y,z}]+incldelta*1/6*Grad[Delta[x,y,z],{x,y,z}]+1/Kn*2/3*s[x,y,z])*)
+(*fsigma[x_,y_,z_]:=factorsigma*(4/5*TraceFreeSym2[Grad[s[x,y,z],{x,y,z}]]+2*TraceFreeSym2[Grad[u[x,y,z],{x,y,z}]]+Div3[m[x,y,z]]+1/Kn*sigma[x,y,z])*)
+(*fp[x,y,z];*)
+(*fT[x,y,z];*)
+(*fu[x,y,z];*)
+(*fs[x,y,z];*)
+(*fsigma[x,y,z];*)
+(**)
+
+
+(* ::Input:: *)
+(*"heat_source: "<>"\""<>StringReplace[ToString[CForm[Simplify[fT[x,y,z]]]],replacements]<>"\""*)
+(*"mass_source: "<>StringReplace[ToString[CForm[fp[x,y,z]]],replacements]*)
+(*"body_force: [\n"<>StringRiffle[Table["  \""<>StringReplace[ToString[CForm[Simplify[fu[x,y,z][[i]]]]],replacements]<>"\"",{i,1,dim}],",\n"]<>"\n]"*)
+(*"f_s: [\n"<>StringRiffle[Table["  \""<>StringReplace[ToString[CForm[Simplify[fs[x,y,z]][[i]]]],replacements]<>"\"",{i,1,dim}],",\n"]<>"\n]"*)
+(*"f_sigma: [\n"<>"  [\n    "<>StringRiffle[Table["\""<>StringReplace[ToString[CForm[Simplify[fsigma[x,y,z]][[i]][[j]]]],replacements]<>"\"",{i,1,dim},{j,1,dim}],"\n  ], [\n    ",",\n    "]<>"\n  ]\n]"*)
+
+
+(* ::Section::Closed:: *)
+(*BCs*)
+
+
+(* ::Text:: *)
+(*Warning : Check manually if (x, y ) in {0, 1}^2  have fulfilled BCs*)
+
+
+(* ::Input:: *)
+(*chi=1;*)
+(*nn=1;*)
+(*tt=2;*)
+(*xbc=1;*)
+(*ybc=y;*)
+(*u[x,y,z][[nn]]/.{x->xbc,y->ybc}*)
+(*(sigma[x,y,z][[nn,tt]]-chi(u[x,y,z][[tt]]+1/5*s[x,y,z][[tt]]+m[x,y,z][[nn,nn,tt]]))/.{x->xbc,y->ybc}*)
+(*(R[x,y,z][[nn,tt]]-chi(-cpl*(u[x,y,z][[tt]])+11/5*s[x,y,z][[tt]]-cpl*m[x,y,z][[nn,nn,tt]]))/.{x->xbc,y->ybc}*)
+(*(s[x,y,z][[nn]]-chi(2*T[x,y,z]+cpl*1/2sigma[x,y,z][[nn,nn]]+2/5*R[x,y,z][[nn,nn]]+2/15*incldelta*Delta[x,y,z]))/.{x->xbc,y->ybc}*)
+(*(m[x,y,z][[nn,nn,nn]]-chi(-2/5*T[x,y,z]+7/5sigma[x,y,z][[nn,nn]]-2/25*R[x,y,z][[nn,nn]]-2/75*Delta[x,y,z]))/.{x->xbc,y->ybc}*)
+(*((1/2*m[x,y,z][[nn,nn,nn]]+m[x,y,z][[nn,tt,tt]])-chi*(1/2*sigma[x,y,z][[nn,nn]]+sigma[x,y,z][[tt,tt]]))/.{x->xbc,y->ybc}*)
+
+
+
