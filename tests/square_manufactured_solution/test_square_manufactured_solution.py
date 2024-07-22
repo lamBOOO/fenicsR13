@@ -74,3 +74,13 @@ class TestR13Convergence(object):
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
+
+    def test_3d_heat(self):
+        r"""
+        Test the 2D Heat convergence of the manufactured solution.
+        """
+        name = "square_manufactured_solution_3d_heat"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
