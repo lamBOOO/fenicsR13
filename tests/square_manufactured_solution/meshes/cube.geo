@@ -50,18 +50,20 @@ Volume(26) = {25};
 Transfinite Line {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12} = 2^p+1 Using Progression 1;
 
 // Transfinite Surfaces
-Transfinite Surface {14} Alternate;
-Transfinite Surface {16} Alternate;
-Transfinite Surface {18} Alternate;
-Transfinite Surface {20} Alternate;
-Transfinite Surface {22} Alternate;
-Transfinite Surface {24} Alternate;
+// We need to manually orient the 2d surface to match 3d surface
+// The 3d alg isn't connectd to the 2d alg somehow:
+// https://gitlab.onelab.info/gmsh/gmsh/-/issues/2496
+// Solution:
+// https://fenicsproject.discourse.group/t/gmsh-transfinite-volume-fenics-i-0/1154/5
+Transfinite Surface {14};
+Transfinite Surface {16};
+Transfinite Surface {18};
+Transfinite Surface {20};
+Transfinite Surface {22} Right;
+Transfinite Surface {24} Right;
 // Recombine Surface {14,16,18,20,22,24};  // would make it hex
 
-// Transfinite Volume
-// Very important! Define the order, if left our, then the 2d faces will not match the 3d volume faces and dolfin-convert will fail since the mesh is inconsistent
-// The node ordering is done with trial and error.
-Transfinite Volume {26} = {5,6,7,8,1,2,3,4};
+Transfinite Volume {26} = {1,2,3,4,5,6,7,8};
 
 Physical Surface(4000) = 14;
 Physical Surface(4001) = 16;
@@ -70,3 +72,5 @@ Physical Surface(4003) = 20;
 Physical Surface(4004) = 22;
 Physical Surface(4005) = 24;
 Physical Volume(6000) = 26;
+
+Mesh.Algorithm = 3;
