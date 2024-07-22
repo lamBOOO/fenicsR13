@@ -616,7 +616,13 @@ class Input:
             for j in range(len(self.dict["f_sigma"])):
                 assert self.dict["f_sigma"][i][j] == self.dict["f_sigma"][j][i]
 
-        print("Input:\n" + dumps(self.dict, indent=None))
+        # Shorten large input, otherwise std/io will throw an error
+        input_dump = dumps(self.dict, indent=None)
+        MAX_WIDTH = 5000
+        dots_str = ""
+        if len(input_dump) > MAX_WIDTH:
+            dots_str = "..."
+        print("Input:\n" + input_dump[0:MAX_WIDTH] + dots_str)
 
     def get_from_input(self, map_list):
         """
