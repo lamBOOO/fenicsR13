@@ -1079,7 +1079,24 @@ class Solver:
         # df.as_backend_type(AA).set_nullspace(null_space)
 
         # null_space.orthogonalize(LL);
+
+        # TODO: Test this also
+        # See: https://fenicsproject.org/olddocs/dolfin/1.6.0/python/demo/...
+        # documented/stokes-iterative/python/documentation.html
+        # self.form_p = None  # add above...
+        # self.form_p = d(sigma, psi) + df.dot(u, v) * df.dx + (
+        #     df.inner(df.grad(p), df.grad(q)) * df.dx
+        # )  # add above...
+        # PP = df.assemble(self.form_p)
+        # solver.parameters['monitor_convergence'] = True
+        # solver.parameters['relative_tolerance'] = 1E-2
         # solver.solve(sol.vector(), LL)
+        # solver = df.PETScKrylovSolver(solver_name, "jacobi")
+        # solver.set_operators(AA, PP)
+        # solver.parameters['monitor_convergence'] = True
+        # solver.parameters['relative_tolerance'] = 1E-2
+        # solver.solve(sol.vector(), LL)
+
         # TODO: Add solver params to YML
         end_t = time_module.time()
         secs = end_t - start_t
@@ -1098,12 +1115,19 @@ class Solver:
             ) = sol.split()
         # Special treatment for sigma
         if self.mode == "stress" or self.mode == "r13":
+            print("Start sigma projection")
+            sys.stdout.flush()
+            start_t = time_module.time()
             self.sol["sigma"] = df.project(
                 to.gen3DTFdim3(self.sol["sigma"]), df.TensorFunctionSpace(
                     self.mesh, "Lagrange",
                     self.params["elements"]["sigma"]["degree"]
                 ), solver_type=solver_name, preconditioner_type=preconditioner
             )
+            end_t = time_module.time()
+            secs = end_t - start_t
+            print("Finished sigma projection: {}".format(str(secs)))
+            sys.stdout.flush()
 
         if self.mode == "stress" or self.mode == "r13":
             if self.rescale_p is False:
