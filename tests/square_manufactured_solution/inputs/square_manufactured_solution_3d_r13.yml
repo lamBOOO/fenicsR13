@@ -10,7 +10,7 @@ meshes:
   - meshes/cube1.h5
   - meshes/cube2.h5
   - meshes/cube3.h5
-  - meshes/cube4.h5
+  # - meshes/cube4.h5
 
 # Numerical Parameters
 # ====================

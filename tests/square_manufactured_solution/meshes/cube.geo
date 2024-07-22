@@ -1,5 +1,5 @@
 If(!Exists(p))
-  p = 0;
+  p = 2;
 EndIf
 
 Mesh.MshFileVersion = 2.0;
@@ -30,21 +30,43 @@ Line(12) = {4, 8};
 
 // Define the surfaces
 Line Loop(13) = {1, 2, 3, 4};
-Plane Surface(14) = {13};Physical Surface(4000) = 14;
+Plane Surface(14) = {13};
 Line Loop(15) = {5, 6, 7, 8};
-Plane Surface(16) = {15};Physical Surface(4001) = 16;
+Plane Surface(16) = {15};
 Line Loop(17) = {1, 10, -5, -9};
-Plane Surface(18) = {17};Physical Surface(4002) = 18;
+Plane Surface(18) = {17};
 Line Loop(19) = {2, 11, -6, -10};
-Plane Surface(20) = {19};Physical Surface(4003) = 20;
+Plane Surface(20) = {19};
 Line Loop(21) = {3, 12, -7, -11};
-Plane Surface(22) = {21};Physical Surface(4004) = 22;
+Plane Surface(22) = {21};
 Line Loop(23) = {4, 9, -8, -12};
-Plane Surface(24) = {23}; Physical Surface(4005) = 24;
+Plane Surface(24) = {23};
 
 // Define the volume
 Surface Loop(25) = {14, 16, 18, 20, 22, 24};
-Volume(26) = {25}; Physical Volume(6000) = 26;
+Volume(26) = {25};
 
-// Mesh refinements
-Mesh.CharacteristicLengthMax = 1/(2^p);
+// Transfinite Lines
+Transfinite Line {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12} = 2^p+1 Using Progression 1;
+
+// Transfinite Surfaces
+Transfinite Surface {14} Alternate;
+Transfinite Surface {16} Alternate;
+Transfinite Surface {18} Alternate;
+Transfinite Surface {20} Alternate;
+Transfinite Surface {22} Alternate;
+Transfinite Surface {24} Alternate;
+// Recombine Surface {14,16,18,20,22,24};  // would make it hex
+
+// Transfinite Volume
+// Very important! Define the order, if left our, then the 2d faces will not match the 3d volume faces and dolfin-convert will fail since the mesh is inconsistent
+// The node ordering is done with trial and error.
+Transfinite Volume {26} = {5,6,7,8,1,2,3,4};
+
+Physical Surface(4000) = 14;
+Physical Surface(4001) = 16;
+Physical Surface(4002) = 18;
+Physical Surface(4003) = 20;
+Physical Surface(4004) = 22;
+Physical Surface(4005) = 24;
+Physical Volume(6000) = 26;
