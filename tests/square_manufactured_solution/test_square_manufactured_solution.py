@@ -85,7 +85,7 @@ class TestR13Convergence(object):
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_3d_heat(self):
+    def test_3d_stress(self):
         r"""
         Test the 3D Stress convergence of the manufactured solution.
         """
