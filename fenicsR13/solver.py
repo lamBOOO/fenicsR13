@@ -719,12 +719,9 @@ class Solver:
         def t1t2(rank2):
             return df.dot(rank2 * t_vec1, t_vec2)
 
-        if self.mode == "heat" and nsd == 3:
-            incl_delta = 1  # TODO: Fix or remove this.
-            # To match the esols differences in 2D and 3D heat systems
-            # Caused by Manuel not including Delta for 3D in Mathematica
-            # and Lambert added Delta only for 2D case
-            # TODO: Fix this by including Delta also for 3D
+        if self.mode == "heat":
+            # Keep in mind: If f_heat = 0 => delta = 0 anyways...
+            incl_delta = 0  # TODO: Include (adapt Mathemathica scripts)
         else:
             incl_delta = 1
 
@@ -739,9 +736,8 @@ class Solver:
                 + 24 / 25 * regs[reg]["kn"] * df.inner(
                     df.sym(df.grad(s)), df.sym(df.grad(r))
                 )
-                - incl_delta * 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
-                # For Delta-term, works for R13 but fails for heat:
-                + 4 / 5 * cpl * regs[reg]["kn"] * df.div(s) * df.div(r)
+                - 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
+                + 4 / 5 * incl_delta * regs[reg]["kn"] * df.div(s) * df.div(r)
                 + 4 / 15 * (1 / regs[reg]["kn"]) * df.inner(s, r)
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + 1 / (2 * bcs[bc]["chi_tilde"]) * n(s) * n(r)
