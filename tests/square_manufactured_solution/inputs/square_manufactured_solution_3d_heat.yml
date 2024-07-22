@@ -7,10 +7,10 @@ output_folder: square_manufactured_solution_3d_heat
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  # - meshes/cube1.h5
   - meshes/cube2.h5
   - meshes/cube3.h5
   - meshes/cube4.h5
+  # - meshes/cube5.h5
 
 # Numerical Parameters
 # ====================
