@@ -87,8 +87,8 @@ f_sigma: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 # - solver_name: e.g. mumps for 2D, gmres for 3D
 # - preconditioner: e.g. icc, only for iterative solvers. Set to none otherwise
 solver:
-  solver_name: gmres
-  preconditioner: icc
+  solver_name: mumps
+  preconditioner: none
 
 # Region Parameters
 # =================
