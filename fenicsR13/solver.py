@@ -1409,16 +1409,11 @@ class Solver:
 
     def __calc_sf_min(self, scalar_function):
         """
-        Calculate the minimum of a scalar function.
-
-        .. note::
-
-            The following does not work in parallel because the operation
-            is performed locally. So convergence studies have to be performed in
-            serial.
+        Calculate the minimum of a scalar function (works in parallel).
         """
         v = scalar_function.compute_vertex_values()
         min_val = np.min(v)
+        min_val = df.MPI.min(self.comm, min_val)
         print("Calculated minimum value:", min_val)
         return min_val
 
@@ -1470,20 +1465,17 @@ class Solver:
         """
         field_e_i = df.interpolate(field_e_, v_field)
         field_i = df.interpolate(field_, v_field)
+        error = df.Function(v_field)
+        error.assign(field_e_i - field_i)
 
         dofs = len(field_e_i.split()) or 1
 
         if dofs == 1:
             # scalar
             errs_f_L2 = [df.errornorm(field_e_i, field_i, "L2", degree_rise=1)]
-            errs_v_linf = [
-                np.max(
-                    np.abs(
-                        field_e_i.compute_vertex_values()
-                        - field_i.compute_vertex_values()
-                    )
-                )
-            ]
+            errs_v_linf = [df.MPI.max(self.comm, np.max(np.abs(
+                error.compute_vertex_values()
+            )))]
             errs_f_H1 = [df.errornorm(field_e_i, field_i, "H1", degree_rise=1)]
         else:
             # vector or tensor
@@ -1491,12 +1483,9 @@ class Solver:
                 field_e_i.split()[i], field_i.split()[i], "L2", degree_rise=1
             ) for i in range(dofs)]
             errs_v_linf = [
-                np.max(
-                    np.abs(
-                        field_e_i.split()[i].compute_vertex_values()
-                        - field_i.split()[i].compute_vertex_values()
-                    )
-                )
+                df.MPI.max(self.comm, np.max(np.abs(
+                    error.split()[i].compute_vertex_values()
+                )))
                 for i in range(dofs)
             ]
             errs_f_H1 = [df.errornorm(
@@ -1512,7 +1501,9 @@ class Solver:
                     df.norm(field_e_i, "L2") or any([1, print(wmsg("L2"))])
                 ]
                 norms_v_linf = [
-                    np.max(np.abs(field_e_i.compute_vertex_values()))
+                    df.MPI.max(self.comm, np.max(
+                        np.abs(field_e_i.compute_vertex_values())
+                    ))
                     or any([1, print(wmsg("linf"))])
                 ]
                 norms_f_H1 = [
@@ -1524,9 +1515,9 @@ class Solver:
                     field_e_i.split()[i], "L2"
                 ) or any([1, print(wmsg("L2"))]) for i in range(dofs)]
                 norms_v_linf = [
-                    np.max(
+                    df.MPI.max(self.comm, np.max(
                         np.abs(field_e_i.split()[i].compute_vertex_values())
-                    ) or any([1, print(wmsg("linf"))])
+                    ) or any([1, print(wmsg("linf"))]))
                     for i in range(dofs)
                 ]
                 norms_f_H1 = [df.norm(
@@ -1566,6 +1557,10 @@ class Solver:
             dict -- Errors
 
         """
+        print("Start error calculation")
+        sys.stdout.flush()
+        start_t = time_module.time()
+
         cell = self.cell
         msh = self.mesh
         e = self.params["elements"]["sigma"]["shape"]
@@ -1620,6 +1615,11 @@ class Solver:
                 ers["sigmaxz"] = te[2]
                 ers["sigmayy"] = te[4]
                 ers["sigmayz"] = te[5]
+
+        end_t = time_module.time()
+        secs = end_t - start_t
+        print("Finished error calculation: {}".format(str(secs)))
+        sys.stdout.flush()
 
         return self.errors
 
