@@ -1,0 +1,234 @@
+# General
+# =======
+# - output_folder: Used as output folder
+output_folder: square_manufactured_solution_3d_stress
+
+# Meshes
+# ======
+# - meshes: List of input meshes in h5 format to run simulations on
+meshes:
+  - meshes/cube2.h5
+  - meshes/cube3.h5
+  # - meshes/cube4.h5
+  # - meshes/cube5.h5
+
+# Numerical Parameters
+# ====================
+# - elements: Must contain the fields: theta, s, p, u, sigma
+#   - fields: List of FEM parameters (shape, degree)
+#     - shape: Element shape, e.g. Lagrange
+#     - degree: Element degree, e.g. 2
+# - stabilization: Must contain cip and gls
+#   - cip: Collection of Continous Interior Penalty (CIP) parameters
+#     - enable: Enable CIP stabilization
+#     - delta_theta: Stabilization of grad(T)*grad(T_test) over edge
+#     - delta_u: Stabilization of grad(u)*grad(u_test) over edge
+#     - delta_p: Stabilization of grad(p)*grad(p_test) over edge
+#   - gls: Collection of Garlerkin Least Squares (GLS) parameters
+#     - enable: Enable GLS stabilization
+#     - tau_energy: Stabilization with energy eq. residual
+#     - tau_heatflux: Stabilization with heatflu_x_w eq. residual
+#     - tau_mass: Stabilization with mass eq. residual
+#     - tau_momentum: Stabilization with momentum eq. residual
+#     - tau_stress: Stabilization with stress eq. residual
+elements:
+  theta:
+    shape: Lagrange
+    degree: 1
+  s:
+    shape: Lagrange
+    degree: 2
+  p:
+    shape: Lagrange
+    degree: 1
+  u:
+    shape: Lagrange
+    degree: 1
+  sigma:
+    shape: Lagrange
+    degree: 2
+stabilization:
+  cip:
+    enable: False
+    delta_theta: 1.0
+    delta_u: 1.0
+    delta_p: 0.1
+  gls:
+    enable: False
+    tau_energy: 0.001
+    tau_heatflux: 0.001
+    tau_mass: 0.01
+    tau_momentum: 0.01
+    tau_stress: 0.01
+
+# Formulation Parameters
+# ======================
+# - nsd: Number of spatial dimensions == 2
+# - mode: Formulation mode, one of heat, stress, r13
+# - heat_source: Heat source function for mode==heat||r13
+# - mass_source: Mass source function for mode==stress||r13
+# - body_force: Body force for mode==stress||r13
+# - f_s: Heatflux force for mode==heat||r13
+# - f_sigma: Stress force for mode==stress||r13
+nsd: 3
+mode: stress
+heat_source: 0
+mass_source: 0
+body_force: [
+  "2*std::pow(-1 + x[0],2)*std::pow(x[0],2)*(-1 + x[1])*x[1]*(-1 + 2*x[1])*std::pow(-1 + x[2],2)*std::pow(x[2],2)",
+  "2*(-1 + x[0])*x[0]*(-1 + 2*x[0])*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2)",
+  "6*std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2)*(1 - 2*x[2])*(-1 + x[2])*x[2]"
+]
+f_s: [0, 0, 0]
+f_sigma: [
+  [
+    "(-36*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 8*x[0]*x[1]*(13 - 12*x[1] - 28*std::pow(x[1],2) + 27*std::pow(x[1],3))*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 3*std::pow(x[0],4)*(-4*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 24*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],2)*(-12 + 72*x[2] - 91*std::pow(x[2],2) + 38*std::pow(x[2],3) - 19*std::pow(x[2],4)) - 2*std::pow(x[1],3)*(-12 + 72*x[2] - 67*std::pow(x[2],2) - 10*std::pow(x[2],3) + 5*std::pow(x[2],4)) + std::pow(x[1],4)*(-12 + 72*x[2] - 67*std::pow(x[2],2) - 10*std::pow(x[2],3) + 5*std::pow(x[2],4))) - 3*std::pow(x[0],2)*(4*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 80*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],2)*(12 - 72*x[2] - 149*std::pow(x[2],2) + 442*std::pow(x[2],3) - 221*std::pow(x[2],4)) + 2*std::pow(x[1],3)*(-12 + 72*x[2] - 35*std::pow(x[2],2) - 74*std::pow(x[2],3) + 37*std::pow(x[2],4)) + std::pow(x[1],4)*(12 - 72*x[2] + 139*std::pow(x[2],2) - 134*std::pow(x[2],3) + 67*std::pow(x[2],4))) - 2*std::pow(x[0],3)*(-12*std::pow(-1 + x[2],2)*std::pow(x[2],2) - 32*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],3)*(72 - 432*x[2] + 194*std::pow(x[2],2) + 476*std::pow(x[2],3) - 238*std::pow(x[2],4)) + 3*std::pow(x[1],4)*(-12 + 72*x[2] - 67*std::pow(x[2],2) - 10*std::pow(x[2],3) + 5*std::pow(x[2],4)) + 3*std::pow(x[1],2)*(-12 + 72*x[2] + 13*std::pow(x[2],2) - 170*std::pow(x[2],3) + 85*std::pow(x[2],4))))/30.",
+    "(-62*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 12*x[0]*x[1]*(-4 + 43*x[1] - 70*std::pow(x[1],2) + 31*std::pow(x[1],3))*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[0],4)*(-2*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 12*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],2)*(-20 + 120*x[2] - 117*std::pow(x[2],2) - 6*std::pow(x[2],3) + 3*std::pow(x[2],4)) - 10*std::pow(x[1],3)*(-4 + 24*x[2] - 21*std::pow(x[2],2) - 6*std::pow(x[2],3) + 3*std::pow(x[2],4)) + 5*std::pow(x[1],4)*(-4 + 24*x[2] - 21*std::pow(x[2],2) - 6*std::pow(x[2],3) + 3*std::pow(x[2],4))) - 2*std::pow(x[0],3)*(-2*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 60*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],2)*(-20 + 120*x[2] - 261*std::pow(x[2],2) + 282*std::pow(x[2],3) - 141*std::pow(x[2],4)) + 5*std::pow(x[1],4)*(-4 + 24*x[2] - 21*std::pow(x[2],2) - 6*std::pow(x[2],3) + 3*std::pow(x[2],4)) + 2*std::pow(x[1],3)*(20 - 120*x[2] + 153*std::pow(x[2],2) - 66*std::pow(x[2],3) + 33*std::pow(x[2],4))) + std::pow(x[0],2)*(-2*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 156*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],2)*(-20 + 120*x[2] - 921*std::pow(x[2],2) + 1602*std::pow(x[2],3) - 801*std::pow(x[2],4)) + std::pow(x[1],4)*(-20 + 120*x[2] - 477*std::pow(x[2],2) + 714*std::pow(x[2],3) - 357*std::pow(x[2],4)) + 2*std::pow(x[1],3)*(20 - 120*x[2] + 621*std::pow(x[2],2) - 1002*std::pow(x[2],3) + 501*std::pow(x[2],4))))/30.",
+    "(2*(-1 + x[0])*x[0]*(-1 + x[1])*x[1]*(-2*(-1 + x[1])*x[1] + std::pow(x[0],2)*(-3 + 6*x[1]) + x[0]*(3 - 10*x[1] + 4*std::pow(x[1],2)))*x[2]*(1 - 3*x[2] + 2*std::pow(x[2],2)))/5."
+  ], [
+    "(-62*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 12*x[0]*x[1]*(-4 + 43*x[1] - 70*std::pow(x[1],2) + 31*std::pow(x[1],3))*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[0],4)*(-2*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 12*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],2)*(-20 + 120*x[2] - 117*std::pow(x[2],2) - 6*std::pow(x[2],3) + 3*std::pow(x[2],4)) - 10*std::pow(x[1],3)*(-4 + 24*x[2] - 21*std::pow(x[2],2) - 6*std::pow(x[2],3) + 3*std::pow(x[2],4)) + 5*std::pow(x[1],4)*(-4 + 24*x[2] - 21*std::pow(x[2],2) - 6*std::pow(x[2],3) + 3*std::pow(x[2],4))) - 2*std::pow(x[0],3)*(-2*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 60*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],2)*(-20 + 120*x[2] - 261*std::pow(x[2],2) + 282*std::pow(x[2],3) - 141*std::pow(x[2],4)) + 5*std::pow(x[1],4)*(-4 + 24*x[2] - 21*std::pow(x[2],2) - 6*std::pow(x[2],3) + 3*std::pow(x[2],4)) + 2*std::pow(x[1],3)*(20 - 120*x[2] + 153*std::pow(x[2],2) - 66*std::pow(x[2],3) + 33*std::pow(x[2],4))) + std::pow(x[0],2)*(-2*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 156*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],2)*(-20 + 120*x[2] - 921*std::pow(x[2],2) + 1602*std::pow(x[2],3) - 801*std::pow(x[2],4)) + std::pow(x[1],4)*(-20 + 120*x[2] - 477*std::pow(x[2],2) + 714*std::pow(x[2],3) - 357*std::pow(x[2],4)) + 2*std::pow(x[1],3)*(20 - 120*x[2] + 621*std::pow(x[2],2) - 1002*std::pow(x[2],3) + 501*std::pow(x[2],4))))/30.",
+    "(-12*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 8*x[0]*x[1]*(-17 + 60*x[1] - 52*std::pow(x[1],2) + 9*std::pow(x[1],3))*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 3*std::pow(x[0],4)*(-12*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 72*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],2)*(-12 + 72*x[2] - 139*std::pow(x[2],2) + 134*std::pow(x[2],3) - 67*std::pow(x[2],4)) - 2*std::pow(x[1],3)*(-12 + 72*x[2] - 67*std::pow(x[2],2) - 10*std::pow(x[2],3) + 5*std::pow(x[2],4)) + std::pow(x[1],4)*(-12 + 72*x[2] - 67*std::pow(x[2],2) - 10*std::pow(x[2],3) + 5*std::pow(x[2],4))) - 2*std::pow(x[0],3)*(-36*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 352*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 3*std::pow(x[1],4)*(-12 + 72*x[2] - 67*std::pow(x[2],2) - 10*std::pow(x[2],3) + 5*std::pow(x[2],4)) - 3*std::pow(x[1],2)*(12 - 72*x[2] + 275*std::pow(x[2],2) - 406*std::pow(x[2],3) + 203*std::pow(x[2],4)) + std::pow(x[1],3)*(72 - 432*x[2] + 674*std::pow(x[2],2) - 484*std::pow(x[2],3) + 242*std::pow(x[2],4))) - 3*std::pow(x[0],2)*(12*std::pow(-1 + x[2],2)*std::pow(x[2],2) - 208*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],4)*(12 - 72*x[2] + 91*std::pow(x[2],2) - 38*std::pow(x[2],3) + 19*std::pow(x[2],4)) - 2*std::pow(x[1],3)*(12 - 72*x[2] + 227*std::pow(x[2],2) - 310*std::pow(x[2],3) + 155*std::pow(x[2],4)) + std::pow(x[1],2)*(12 - 72*x[2] + 571*std::pow(x[2],2) - 998*std::pow(x[2],3) + 499*std::pow(x[2],4))))/30.",
+    "(2*(-1 + x[0])*x[0]*(-1 + x[1])*x[1]*(7*(-1 + x[1])*x[1] + std::pow(x[0],2)*(-2 + 4*x[1]) + x[0]*(2 + 10*x[1] - 14*std::pow(x[1],2)))*x[2]*(1 - 3*x[2] + 2*std::pow(x[2],2)))/5."
+  ], [
+    "(2*(-1 + x[0])*x[0]*(-1 + x[1])*x[1]*(-2*(-1 + x[1])*x[1] + std::pow(x[0],2)*(-3 + 6*x[1]) + x[0]*(3 - 10*x[1] + 4*std::pow(x[1],2)))*x[2]*(1 - 3*x[2] + 2*std::pow(x[2],2)))/5.",
+    "(2*(-1 + x[0])*x[0]*(-1 + x[1])*x[1]*(7*(-1 + x[1])*x[1] + std::pow(x[0],2)*(-2 + 4*x[1]) + x[0]*(2 + 10*x[1] - 14*std::pow(x[1],2)))*x[2]*(1 - 3*x[2] + 2*std::pow(x[2],2)))/5.",
+    "(24*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2) - 16*x[0]*x[1]*(-1 + 12*x[1] - 20*std::pow(x[1],2) + 9*std::pow(x[1],3))*std::pow(-1 + x[2],2)*std::pow(x[2],2) - 3*std::pow(x[0],4)*(-8*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 48*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],2)*(-12 + 72*x[2] - 115*std::pow(x[2],2) + 86*std::pow(x[2],3) - 43*std::pow(x[2],4)) - 2*std::pow(x[1],3)*(-12 + 72*x[2] - 67*std::pow(x[2],2) - 10*std::pow(x[2],3) + 5*std::pow(x[2],4)) + std::pow(x[1],4)*(-12 + 72*x[2] - 67*std::pow(x[2],2) - 10*std::pow(x[2],3) + 5*std::pow(x[2],4))) + 2*std::pow(x[0],3)*(-24*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 160*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + 2*std::pow(x[1],3)*(36 - 216*x[2] + 217*std::pow(x[2],2) - 2*std::pow(x[2],3) + std::pow(x[2],4)) + 3*std::pow(x[1],4)*(-12 + 72*x[2] - 67*std::pow(x[2],2) - 10*std::pow(x[2],3) + 5*std::pow(x[2],4)) - 3*std::pow(x[1],2)*(12 - 72*x[2] + 131*std::pow(x[2],2) - 118*std::pow(x[2],3) + 59*std::pow(x[2],4))) + 3*std::pow(x[0],2)*(8*std::pow(-1 + x[2],2)*std::pow(x[2],2) - 64*x[1]*std::pow(-1 + x[2],2)*std::pow(x[2],2) + std::pow(x[1],4)*(12 - 72*x[2] + 115*std::pow(x[2],2) - 86*std::pow(x[2],3) + 43*std::pow(x[2],4)) - 2*std::pow(x[1],3)*(12 - 72*x[2] + 131*std::pow(x[2],2) - 118*std::pow(x[2],3) + 59*std::pow(x[2],4)) + std::pow(x[1],2)*(12 - 72*x[2] + 211*std::pow(x[2],2) - 278*std::pow(x[2],3) + 139*std::pow(x[2],4))))/15."
+  ]
+]
+
+# Solver Parameters
+# =================
+# - solver_name: e.g. mumps for 2D, gmres for 3D
+# - preconditioner: e.g. icc, only for iterative solvers. Set to none otherwise
+solver:
+  solver_name: mumps
+  preconditioner: none
+
+# Region Parameters
+# =================
+# - regs: Dictionary of all mesh regions
+#   - reg_id: Must contain the following parameters:
+#     - kn: Knudsen number
+regs:
+  6000:
+    kn: 1.0
+
+# Boundary Conditions
+# ===================
+# - polar_coord_syst: true needs u_n_w,u_t_w; false needs u_x_w,u_y_w,u_z_w
+# - bcs: Dictionary of all boundary IDs from mesh
+#   - bc_id: must contain the following parameters
+#     - chi_tilde: Refaction coefficient in Maxwell accomodation model
+#     - theta_w: Value for temperature at wall
+#     - u_t_w: Value for tangential velocity at wall (for polar_coord_syst=true)
+#     - u_n_w: Value for normal velocity at wall (for polar_coord_syst=true)
+#     - u_x_w: Value for x-velocity at wall (for polar_coord_syst=false)
+#     - u_y_w: Value for y-velocity at wall (for polar_coord_syst=false)
+#     - u_z_w: Value for z-velocity at wall (for polar_coord_syst=false&&nsd=3)
+#     - p_w: Value for pressure at wall
+#     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
+polar_coord_syst: False
+bcs:
+  4000:
+    chi_tilde: 1
+    theta_w: 0
+    u_t_w: 0
+    u_n_w: 0
+    u_x_w: 0
+    u_y_w: 0
+    u_z_w: 0
+    p_w: 0
+    epsilon_w: 0
+  4001: # right
+    chi_tilde: 1
+    theta_w: 0
+    u_t_w: 0
+    u_n_w: 0
+    u_x_w: 0
+    u_y_w: 0
+    u_z_w: 0
+    p_w: 0
+    epsilon_w: 0
+  4002: # bot
+    chi_tilde: 1
+    theta_w: 0
+    u_t_w: 0
+    u_n_w: 0
+    u_x_w: 0
+    u_y_w: 0
+    u_z_w: 0
+    p_w: 0
+    epsilon_w: 0
+  4003:
+    chi_tilde: 1
+    theta_w: 0
+    u_t_w: 0
+    u_n_w: 0
+    u_x_w: 0
+    u_y_w: 0
+    u_z_w: 0
+    p_w: 0
+    epsilon_w: 0
+  4004:
+    chi_tilde: 1
+    theta_w: 0
+    u_t_w: 0
+    u_n_w: 0
+    u_x_w: 0
+    u_y_w: 0
+    u_z_w: 0
+    p_w: 0
+    epsilon_w: 0
+  4005:
+    chi_tilde: 1
+    theta_w: 0
+    u_t_w: 0
+    u_n_w: 0
+    u_x_w: 0
+    u_y_w: 0
+    u_z_w: 0
+    p_w: 0
+    epsilon_w: 0
+
+# Convergence Study
+# =================
+# - enable: Enable convergence study on given meshes
+# - exact_solution: Path to exact solution in cpp-format to compare errors
+# - plot: Show errors in matplotlib window. PDF output is always per default.
+# - write_systemmatrix: Writes out systemmatrix (LHS) to use for analysis
+# - rescale_pressure: Shift numerical pressure (False,zeromean,zerominimum)
+# - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
+convergence_study:
+  enable: True
+  exact_solution: esols/3d.cpp
+  plot: False # to avoid error exit code due to $DISPLAY
+  write_systemmatrix: False
+  rescale_pressure: zerominimum
+  relative_error: True
+
+# Postprocessing
+# ==============
+# - write_pdfs: Write all solution fields as PDF plot
+# - write_vecs: Write all solution fields as vectors
+# - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
+# - line_integrals: List of line integral dicts:
+#   - name: Name for output
+#   - expr: Expression to evaluate
+#   - start: Start point
+#   - end: End point
+#   - res: Sampling resolution of line
+postprocessing:
+  write_pdfs: False
+  write_vecs: False
+  massflow: []
+  line_integrals: []
+
+# Parameter Study
+# ==============
+# - enable: Repeat simulation with different p. values (study)
+# - parameter_key: Key as list, e.g. ["elemenets", "p", "degree"]
+# - parameter_values: List of value for parameter, e.g. [0.01,0.1,1,10]
+parameter_study:
+  enable: False
+  parameter_key: []
+  parameter_values: []

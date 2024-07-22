@@ -77,9 +77,19 @@ class TestR13Convergence(object):
 
     def test_3d_heat(self):
         r"""
-        Test the 2D Heat convergence of the manufactured solution.
+        Test the 3D Heat convergence of the manufactured solution.
         """
         name = "square_manufactured_solution_3d_heat"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
+
+    def test_3d_heat(self):
+        r"""
+        Test the 3D Stress convergence of the manufactured solution.
+        """
+        name = "square_manufactured_solution_3d_stress"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
