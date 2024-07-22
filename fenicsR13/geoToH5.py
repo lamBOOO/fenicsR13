@@ -18,6 +18,13 @@ Usage:
     Usage: python3 <path_to_geoToH5.py> <geo_file> <h5_file> \
             [<gmsh cli arguments>]
     E.g.: geoToH5 lid.geo lid5.h5 "-setnumber p 5"
+
+3D Meshes:
+Append "-3" to the gmsh CLI arguments like:
+
+.. code-block:: bash
+
+    geoToH5 mesh3d.geo mesh3d.h5 "-3"
 """
 
 import os
@@ -39,6 +46,8 @@ def geo_to_h5():
         print("""
 Usage: python3 <path_to_geoToH5.py> <geo_file> <h5_file> [<gmsh cli arguments>]
 E.g.: geoToH5 lid.geo lid5.h5 "-setnumber p 5"
+
+3D meshes: add "-3" to the gmsh CLI arguments
         """)
         return
 
@@ -49,7 +58,7 @@ E.g.: geoToH5 lid.geo lid5.h5 "-setnumber p 5"
 
     # Create msh-mesh with Gmsh
     os.system(
-        "{} {} -2 -o {}.msh {}".format(
+        "{} -2 {} -o {}.msh {}".format(
             GMSH_PATH, gmsh_arguments, tmp_name, geo_input_file
         )
     )
