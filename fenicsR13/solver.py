@@ -1144,6 +1144,11 @@ class Solver:
                 self.params["elements"]["sigma"]["degree"]
             )
             if self.nsd == 2:
+                sigmaxx, sigmaxy, sigmayy = self.sol["sigma"].split()
+                # strangely, the following is needed:
+                sigmaxx.set_allow_extrapolation(True)
+                sigmaxy.set_allow_extrapolation(True)
+                sigmayy.set_allow_extrapolation(True)
                 self.sol["sigma"] = df.interpolate(
                     df.Expression(
                         [
@@ -1151,12 +1156,20 @@ class Solver:
                             ["sigmaxy", "sigmayy"],
                         ],
                         degree=2,
-                        sigmaxx=self.sol["sigma"].split()[0],
-                        sigmaxy=self.sol["sigma"].split()[1],
-                        sigmayy=self.sol["sigma"].split()[2]
+                        sigmaxx=sigmaxx,
+                        sigmaxy=sigmaxy,
+                        sigmayy=sigmayy
                     ), sp
                 )
             elif self.nsd == 3:
+                sigmaxx, sigmaxy, sigmaxz, sigmayy, sigmayz = (
+                    self.sol["sigma"].split()
+                )
+                sigmaxx.set_allow_extrapolation(True)
+                sigmaxy.set_allow_extrapolation(True)
+                sigmaxz.set_allow_extrapolation(True)
+                sigmayy.set_allow_extrapolation(True)
+                sigmayz.set_allow_extrapolation(True)
                 self.sol["sigma"] = df.interpolate(
                     df.Expression(
                         [
@@ -1165,11 +1178,11 @@ class Solver:
                             ["sigmaxz", "sigmayz", "-sigmaxx-sigmayy"]
                         ],
                         degree=2,
-                        sigmaxx=self.sol["sigma"].split()[0],
-                        sigmaxy=self.sol["sigma"].split()[1],
-                        sigmaxz=self.sol["sigma"].split()[2],
-                        sigmayy=self.sol["sigma"].split()[3],
-                        sigmayz=self.sol["sigma"].split()[4]
+                        sigmaxx=sigmaxx,
+                        sigmaxy=sigmaxy,
+                        sigmaxz=sigmaxz,
+                        sigmayy=sigmayy,
+                        sigmayz=sigmayz
                     ), sp
                 )
             end_t = time_module.time()
