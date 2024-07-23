@@ -199,6 +199,9 @@ class Solver:
         ``sigmayy``                  ``sigmayy`` ``sol["sigma"].split()[2]``
         ============================ =========== ===============================
         """
+        if self.nsd == 3:  # TODO: Implement this with proper sigma mapping
+            raise Exception("__createSolMacroScaExpr not supported in 3D.")
+
         return df.Expression(
             str(cpp_string),
             degree=2,
