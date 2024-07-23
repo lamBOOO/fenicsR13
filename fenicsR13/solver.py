@@ -348,16 +348,23 @@ class Solver:
             elif self.var_ranks[var] == 2:
                 if self.nsd == 2:
                     self.elems[var] = df.TensorElement(
-                        e, cell, deg, symmetry={(0, 1): (1, 0)}
+                        e, cell, deg, symmetry={(1, 0): (0, 1)}
                     )
                 else:  # nsd==3 in this case
                     self.elems[var] = df.TensorElement(
                         e, cell, deg,
-                        symmetry={
-                            (0, 1): (1, 0),
+                        symmetry={  # the ordering influences sigma.split()
+                            (1, 0): (0, 1),
                             (2, 0): (0, 2),
-                            (1, 2): (2, 1),
-                            (0, 0): (2, 2)
+                            (2, 1): (1, 2),
+                            (2, 2): (0, 0)
+                            # (needed for sigma treatment below)
+                            # sigma.split()[i] map:
+                            # [
+                            #     [0, 1, 2]
+                            #     [1, 3, 4]
+                            #     [2, 4, ?not_important?]
+                            # ]
                         }
                     )
             self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
