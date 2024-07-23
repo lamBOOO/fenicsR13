@@ -34,7 +34,7 @@ def gen3DTFdim3(sigma):
         return df.as_tensor([
             [sigma[0, 0], sigma[0, 1], sigma[0, 2]],
             [sigma[1, 0], sigma[1, 1], sigma[1, 2]],
-            [sigma[2, 0], sigma[2, 1], -sigma[0, 0] - sigma[1, 1]]])
+            [sigma[2, 0], sigma[2, 1], - sigma[0, 0] - sigma[1, 1]]])
 
 
 def gen3DTFdim2(sigma):
@@ -47,7 +47,7 @@ def gen3DTFdim2(sigma):
     if n == 2:
         sigma1 = df.as_tensor([[sigma[0, 0], sigma[0, 1], 0],
                                [sigma[1, 0], sigma[1, 1], 0],
-                               [0, 0, -sigma[0, 0] - sigma[1, 1]]])
+                               [0, 0, - sigma[0, 0] - sigma[1, 1]]])
     else:
         sigma1 = sigma
     return sigma1
