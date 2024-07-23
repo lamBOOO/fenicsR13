@@ -1,4 +1,4 @@
-.. image:: media/logo_large.png
+.. image:: media/logo.svg
     :width: 200px
     :alt: logo
 
