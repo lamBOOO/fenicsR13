@@ -1128,12 +1128,50 @@ class Solver:
             print("Start sigma projection")
             sys.stdout.flush()
             start_t = time_module.time()
-            self.sol["sigma"] = df.project(
-                to.gen3DTFdim3(self.sol["sigma"]), df.TensorFunctionSpace(
-                    self.mesh, "Lagrange",
-                    self.params["elements"]["sigma"]["degree"]
-                ), solver_type=solver_name, preconditioner_type=preconditioner
+
+            # This can sometimes fail in parallel & is very expensive
+            # self.sol["sigma"] = df.project(
+            #     to.gen3DTFdim3(self.sol["sigma"]), df.TensorFunctionSpace(
+            #         self.mesh, "Lagrange",
+            #         self.params["elements"]["sigma"]["degree"]
+            #     ), solver_type=solver_name, preconditioner_type=preconditioner
+            # )
+            # -> See workaroud below...
+
+            # This is a workaround: Make sigma a proper STF tensor
+            sp = df.TensorFunctionSpace(
+                self.mesh, self.params["elements"]["sigma"]["shape"],
+                self.params["elements"]["sigma"]["degree"]
             )
+            if self.nsd == 2:
+                self.sol["sigma"] = df.interpolate(
+                    df.Expression(
+                        [
+                            ["sigmaxx", "sigmaxy"],
+                            ["sigmaxy", "sigmayy"],
+                        ],
+                        degree=2,
+                        sigmaxx=self.sol["sigma"].split()[0],
+                        sigmaxy=self.sol["sigma"].split()[1],
+                        sigmayy=self.sol["sigma"].split()[2]
+                    ), sp
+                )
+            elif self.nsd == 3:
+                self.sol["sigma"] = df.interpolate(
+                    df.Expression(
+                        [
+                            ["sigmaxx", "sigmaxy", "sigmaxz"],
+                            ["sigmaxy", "sigmayy", "sigmayz"],
+                            ["sigmaxz", "sigmayz", "-sigmaxx-sigmayy"]
+                        ],
+                        degree=2,
+                        sigmaxx=self.sol["sigma"].split()[0],
+                        sigmaxy=self.sol["sigma"].split()[1],
+                        sigmaxz=self.sol["sigma"].split()[2],
+                        sigmayy=self.sol["sigma"].split()[3],
+                        sigmayz=self.sol["sigma"].split()[4]
+                    ), sp
+                )
             end_t = time_module.time()
             secs = end_t - start_t
             print("Finished sigma projection: {}".format(str(secs)))
