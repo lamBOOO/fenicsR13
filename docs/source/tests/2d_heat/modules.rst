@@ -1,5 +1,5 @@
-heat
-====
+2d_heat
+=======
 
 .. toctree::
    :maxdepth: 4

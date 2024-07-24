@@ -8,7 +8,7 @@ import subprocess
 import pytest
 
 
-class TestHeatConvergence(object):
+class TestHeatConvergencee(object):
     """
     Class to bundle all stress convergence tests.
 

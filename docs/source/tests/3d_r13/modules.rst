@@ -1,7 +1,7 @@
-stress
+3d_r13
 ======
 
 .. toctree::
    :maxdepth: 4
 
-   test_stress_convergence
+   test_r13_convergence3D
