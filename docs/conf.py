@@ -60,7 +60,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_book_theme'
 
 today_fmt = '%b %d %y at %H:%M'  # for |today| directive in index.rst
 
@@ -74,12 +74,13 @@ html_favicon = "../media/logo_large.png"
 
 
 html_theme_options = {
-    'sidebar_collapse': False,
-    'description': "Release v{}".format(release),
-    "touch_icon": "../media/logo_large.png",
-    "fixed_sidebar": False,  # fails on mobile and with large sidebar
-    "note_bg": "#FFF59C",
-    "show_relbars": False,
+    # from old theme "alabaster":
+    # 'sidebar_collapse': False,
+    # 'description': "Release v{}".format(release),
+    # "touch_icon": "../media/logo_large.png",
+    # "fixed_sidebar": False,  # fails on mobile and with large sidebar
+    # "note_bg": "#FFF59C",
+    # "show_relbars": False,
 }
 
 # -- LaTeX
