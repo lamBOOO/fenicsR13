@@ -1702,7 +1702,10 @@ class Solver:
         (#) Parameter functions
         (#) System matrices if set in input file
         """
-        print("Write fields..")
+        if self.comm.size == 1:
+            print("Write fields..")
+        else:
+            print("Write fields.. (MPI bug: can fail too small meshes)")
 
         self.__write_solutions()
         if self.write_vecs:
@@ -1858,6 +1861,12 @@ class Solver:
                 The field to write.
             write_pdf
                 If true, write a simple PDF plot for all solution fields
+
+        *Problems*
+            For MPi execution, XDMFFile.write function fails if the mesh
+            is too small. I wasn't able to fix this in 2 days.
+            Possible reasons:
+            - Too much overlap in Schwarz-like decomposition
         """
         fname_xdmf = (
             self.output_folder + name + "_" + str(self.time) + ".xdmf"
