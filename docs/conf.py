@@ -16,6 +16,9 @@ sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../tests/2d_heat'))
 sys.path.insert(0, os.path.abspath('../tests/2d_stress'))
 sys.path.insert(0, os.path.abspath('../tests/2d_r13'))
+sys.path.insert(0, os.path.abspath('../tests/3d_heat'))
+sys.path.insert(0, os.path.abspath('../tests/3d_stress'))
+sys.path.insert(0, os.path.abspath('../tests/3d_r13'))
 sys.path.insert(0, os.path.abspath('../examples'))
 
 # -- Project information -----------------------------------------------------
@@ -33,14 +36,14 @@ release = '1.4'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-  'sphinx.ext.autodoc',
-  'sphinx.ext.coverage',
-  'sphinx.ext.autosummary',
-  'sphinx.ext.mathjax',
-  'sphinx.ext.viewcode',
-  'sphinx.ext.napoleon', # for numpy and Google docstrings
-  'sphinx.ext.imgconverter', # for svg usage in latex, but bad output
-  'sphinx.ext.graphviz',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.coverage',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',  # for numpy and Google docstrings
+    'sphinx.ext.imgconverter',  # for svg usage in latex, but bad output
+    'sphinx.ext.graphviz',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -59,7 +62,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 #
 html_theme = 'alabaster'
 
-today_fmt = '%b %d %y at %H:%M' # for |today| directive in index.rst
+today_fmt = '%b %d %y at %H:%M'  # for |today| directive in index.rst
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -72,9 +75,9 @@ html_favicon = "../media/logo_large.png"
 
 html_theme_options = {
     'sidebar_collapse': False,
-    'description': "Release v{}<br>Extended gas dynamics using FEniCS platform.".format(release),
+    'description': "Release v{}".format(release),
     "touch_icon": "../media/logo_large.png",
-    "fixed_sidebar": False, # fails on mobile and with large sidebar
+    "fixed_sidebar": False,  # fails on mobile and with large sidebar
     "note_bg": "#FFF59C",
     "show_relbars": False,
 }
@@ -82,11 +85,11 @@ html_theme_options = {
 # -- LaTeX
 latex_logo = "../media/logo_large.png"
 latex_elements = {
-    'extraclassoptions': 'openany', # skip empty pages
+    'extraclassoptions': 'openany',  # skip empty pages
     # 'printindex': '\\footnotesize\\raggedright\\printindex', # small index
     'preamble': r'''
       \usepackage[columns=1]{idxlayout}
-    ''' # for onecolumn index layout
+    '''  # for onecolumn index layout
 }
 
 # -- Autodoc
