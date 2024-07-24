@@ -16,7 +16,7 @@ Contents
 
 .. toctree::
     :glob:
-    :maxdepth: 2
+    :maxdepth: 3
 
     source/fenicsR13/modules.rst
     source/tests/2d_heat/modules.rst
