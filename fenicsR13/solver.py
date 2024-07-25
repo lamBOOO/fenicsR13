@@ -15,6 +15,7 @@ import time as time_module
 import dolfin as df
 import ufl
 import numpy as np
+from petsc4py import PETSc
 import fenicsR13.tensoroperations as to
 
 
@@ -88,8 +89,7 @@ class Solver:
         self.tau_momentum = self.params["stabilization"]["gls"]["tau_momentum"]
         self.tau_stress = self.params["stabilization"]["gls"]["tau_stress"]
 
-        self.solver_name = self.params["solver"]["solver_name"]
-        self.preconditioner = self.params["solver"]["preconditioner"]
+        self.petsc_options = self.params["petsc_options"]
 
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
         self.write_vecs = self.params["postprocessing"]["write_vecs"]
@@ -1037,10 +1037,6 @@ class Solver:
             sor              |  Successive over-relaxation
 
         """
-
-        solver_name = self.solver_name
-        preconditioner = self.preconditioner
-
         if self.mode == "heat":
             w = self.mxd_fspaces["heat"]
         elif self.mode == "stress":
@@ -1063,34 +1059,27 @@ class Solver:
         sys.stdout.flush()
         start_t = time_module.time()
         sol = df.Function(w)
-        # TODO: Add to input files
-        # df.parameters['krylov_solver']['monitor_convergence'] = True
-        # df.parameters['krylov_solver']['absolute_tolerance'] = 1E-10
-        # df.parameters['krylov_solver']['relative_tolerance'] = 1E-10
-        # df.parameters['krylov_solver']['maximum_iterations'] = 1000
-        # df.parameters['krylov_solver']['nonzero_initial_guess'] = False
+
+        # TODO: Implement nonzero init guess
+        # df.parameters['krylov_solver']['nonzero_initial_guess'] = True
         # w.dofmap().set(sol.vector(), 1.0)
         # w.dofmap().set(sol.split()[2].vector(), 0.0)
-        df.solve(
-            AA, sol.vector(), LL, solver_name, preconditioner
-        )
+        # df.solve(
+        #     AA, sol.vector(), LL, solver_name, preconditioner
+        # )
         # TODO: Test this
         # # Create Krylov solver
         # solver = df.PETScKrylovSolver("bicgstab", "amg")
         # solver.set_operator(AA)
-
         # # Create vector that spans the null space and normalize
         # null_vec = df.Vector(sol.vector())
         # w.dofmap().set(null_vec, 1.0)
         # null_vec *= 1.0/null_vec.norm("l2")
-
         # # Create null space basis object and attach to PETSc matrix
         # null_space = df.VectorSpaceBasis([null_vec])
         # df.as_backend_type(AA).set_nullspace(null_space)
-
         # null_space.orthogonalize(LL);
-
-        # TODO: Test this also
+        # TODO: Test this also (problem infered preconditioner)
         # See: https://fenicsproject.org/olddocs/dolfin/1.6.0/python/demo/...
         # documented/stokes-iterative/python/documentation.html
         # self.form_p = None  # add above...
@@ -1098,16 +1087,25 @@ class Solver:
         #     df.inner(df.grad(p), df.grad(q)) * df.dx
         # )  # add above...
         # PP = df.assemble(self.form_p)
-        # solver.parameters['monitor_convergence'] = True
         # solver.parameters['relative_tolerance'] = 1E-2
         # solver.solve(sol.vector(), LL)
         # solver = df.PETScKrylovSolver(solver_name, "jacobi")
         # solver.set_operators(AA, PP)
         # solver.parameters['monitor_convergence'] = True
         # solver.parameters['relative_tolerance'] = 1E-2
-        # solver.solve(sol.vector(), LL)
 
-        # TODO: Add solver params to YML
+        # Use PETSc solver with provided arguments
+        solver = df.PETScKrylovSolver()
+        opts = PETSc.Options()
+        if "log_view" in self.petsc_options.keys():
+            PETSc.Log().begin()
+        for key in self.petsc_options:
+            opts[key] = self.petsc_options[key]
+        print(opts.view())
+        solver.set_from_options()
+        solver.set_operator(AA)
+        solver.solve(sol.vector(), LL)
+
         end_t = time_module.time()
         secs = end_t - start_t
         self.write_content_to_file("solve", secs)
@@ -1704,8 +1702,10 @@ class Solver:
         """
         if self.comm.size == 1:
             print("Write fields..")
+            sys.stdout.flush()
         else:
             print("Write fields.. (MPI bug: can fail too small meshes)")
+            sys.stdout.flush()
 
         self.__write_solutions()
         if self.write_vecs:

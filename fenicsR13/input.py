@@ -333,20 +333,9 @@ class Input:
                     "maxlength": 3
                 }
             },
-            "solver": {
+            "petsc_options": {
                 "type": "dict",
-                "required": True,
-                "schema": {
-                    "solver_name": {
-                        "type": "string",
-                        "required": True,
-                    },
-                    "preconditioner": {
-                        "type": "string",
-                        "required": True,
-                    }
-
-                }
+                "required": True
             },
             "postprocessing": {
                 "type": "dict",

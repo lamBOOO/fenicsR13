@@ -92,13 +92,19 @@ f_sigma: [
   ]
 ]
 
-# Solver Parameters
-# =================
-# - solver_name: e.g. mumps for 2D, gmres for 3D
-# - preconditioner: e.g. icc, only for iterative solvers. Set to none otherwise
-solver:
-  solver_name: mumps
-  preconditioner: none
+# PETSc Options (dictionary)
+# ==========================
+# [#1 e.g. for mumps directy solver:]
+# - ksp_type: preonly  # preconditioner only, i.e. 1 application
+# - pc_type: lu  # use LU as preconditioner <=> direct solve
+# - pc_factor_mat_solver_type: mumps  # use mumps sparse solver
+# [#2 e.g. for gmres iterative solver with icc preconditioner:]
+# - ksp_type: gmres  # Generalized Minimal Residual Method
+# - pc_type: icc  # incomplete Cholesky
+petsc_options:
+  ksp_type: preonly
+  pc_type: lu
+  pc_factor_mat_solver_type: mumps
 
 # Region Parameters
 # =================
