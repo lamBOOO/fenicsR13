@@ -48,9 +48,9 @@ class Velocity : public dolfin::Expression {
     void eval(Eigen::Ref<Eigen::VectorXd> values,
               Eigen::Ref<const Eigen::VectorXd> x) const override {
 
-        values[0] = 2*std::pow(-1 + x[0],2)*std::pow(x[0],2)*(-1 + x[1])*x[1]*(-1 + 2*x[1])*std::pow(-1 + x[2],2)*std::pow(x[2],2);  // velocity x
-        values[1] = 2*(1 - 2*x[0])*(-1 + x[0])*x[0]*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2);  // velocity y
-        values[2] = 0;  // velocity z
+        values[0] = -2*std::pow(-1 + x[0],2)*std::pow(x[0],2)*(-1 + x[1])*x[1]*(-1 + x[2])*x[2]*(x[1] + (-1 + x[2])*x[2] - 2*x[1]*std::pow(x[2],2) + std::pow(x[1],2)*(-1 + 2*x[2]));  // velocity x
+        values[1] = 2*(-1 + x[0])*x[0]*std::pow(-1 + x[1],2)*std::pow(x[1],2)*(-1 + x[2])*x[2]*(x[0] + (-1 + x[2])*x[2] - 2*x[0]*std::pow(x[2],2) + std::pow(x[0],2)*(-1 + 2*x[2]));  // velocity y
+        values[2] = -2*(-1 + x[0])*x[0]*(-1 + x[1])*x[1]*(x[0] + (-1 + x[1])*x[1] - 2*x[0]*std::pow(x[1],2) + std::pow(x[0],2)*(-1 + 2*x[1]))*std::pow(-1 + x[2],2)*std::pow(x[2],2);  // velocity z
     }
 };
 
@@ -62,12 +62,12 @@ class Stress : public dolfin::Expression {
 
         values[0] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2);  // stress tensor xx
         values[1] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2);  // stress tensor xy
-        values[2] = 0;  // stress tensor xz
+        values[2] = -2*std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2);  // stress tensor xz
         values[3] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2);  // stress tensor yx
         values[4] = std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2);  // stress tensor yy
-        values[5] = 0;  // stress tensor yz
-        values[6] = 0;  // stress tensor zx
-        values[7] = 0;  // stress tensor zy
+        values[5] = -2*std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2);  // stress tensor yz
+        values[6] = -2*std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2);  // stress tensor zx
+        values[7] = -2*std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2);  // stress tensor zy
         values[8] = -2*std::pow(-1 + x[0],2)*std::pow(x[0],2)*std::pow(-1 + x[1],2)*std::pow(x[1],2)*std::pow(-1 + x[2],2)*std::pow(x[2],2);  // stress tensor zz
     }
 };

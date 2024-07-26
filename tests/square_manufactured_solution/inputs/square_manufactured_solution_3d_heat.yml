@@ -9,7 +9,7 @@ output_folder: square_manufactured_solution_3d_heat
 meshes:
   - meshes/cube2.h5
   - meshes/cube3.h5
-  - meshes/cube4.h5
+  # - meshes/cube4.h5
   # - meshes/cube5.h5
 
 # Numerical Parameters
@@ -92,8 +92,22 @@ f_sigma: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 # - ksp_type: gmres  # Generalized Minimal Residual Method
 # - pc_type: icc  # incomplete Cholesky
 petsc_options:
-  ksp_type: gmres
-  pc_type: icc
+  ksp_type: fgmres
+  ksp_rtol: 1E-7
+  ksp_max_it: 100000
+  ksp_view:
+  ksp_monitor_true_residual:
+  pc_type: fieldsplit
+  pc_fieldsplit_detect_saddle_point:
+  # option 1:
+  pc_fieldsplit_type: schur
+  pc_fieldsplit_schur_fact_type: full
+  pc_fieldsplit_schur_precondition: selfp
+  fieldsplit_0_ksp_type: preonly
+  fieldsplit_0_pc_type: gamg
+  fieldsplit_0_pc_gamg_type: classical
+  fieldsplit_1_ksp_type: preonly
+  fieldsplit_1_pc_type: jacobi
 
 # Region Parameters
 # =================
