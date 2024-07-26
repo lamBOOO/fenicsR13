@@ -993,6 +993,10 @@ class Solver:
         """
         Solve the previously assembled system.
 
+        Note that setting the mg levels for `gamg` doesn't work (see here_).
+
+        _here: https://lists.mcs.anl.gov/mailman/htdig/petsc-users/2019-April/038223.html  # noqa
+
         Some available solver options:
 
         .. code-block:: python
