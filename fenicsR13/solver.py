@@ -994,8 +994,10 @@ class Solver:
         Solve the previously assembled system.
 
         Note that setting the mg levels for `gamg` doesn't work (see here_).
+        Also see some note here2_.
 
         _here: https://lists.mcs.anl.gov/mailman/htdig/petsc-users/2019-April/038223.html  # noqa
+        _here2: https://www.firedrakeproject.org/demos/saddle_point_systems.py.html  # noqa
 
         Some available solver options:
 
