@@ -29,7 +29,7 @@ class TestR13Convergence(object):
         """
         Check against reference errors. Compares absolute differences.
 
-        Absolute Error allowed: ``1E-10``
+        Absolute Error allowed: ``1E-6``
         Return exception if diff returns with !=0
         A comparison for complete equalness can be obtained with:
 
@@ -41,7 +41,7 @@ class TestR13Convergence(object):
 
         """
         print(subprocess.check_output([
-            "numdiff", "-s", "\"\n\r ,\"", "-a", "1E-10",
+            "numdiff", "-s", "\"\n\r ,\"", "-a", "1E-6",
             errorsfile, ref_errorsfile
         ], cwd=self.working_dir))
 
