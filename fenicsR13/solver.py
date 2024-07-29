@@ -801,6 +801,13 @@ class Solver:
                 th * df.div(r)
             ) * df.dx(reg) for reg in regs.keys()])
 
+        # def b(th, r):  # form 2
+        #     return sum([(
+        #         - df.inner(r, df.grad(th))
+        #     ) * df.dx(reg) for reg in regs.keys()]) + sum([(
+        #         th * n(r)
+        #     ) * df.ds(bc) for bc in bcs.keys()])
+
         def c(r, si):
             return cpl * (sum([(
                 2 / 5 * df.inner(si, df.grad(r))
@@ -825,7 +832,7 @@ class Solver:
                 df.inner(v, df.grad(p))
             ) * df.dx(reg) for reg in regs.keys()])
 
-        # def g(p, v):
+        # def g(p, v):  # form 2
         #     return sum([(
         #         - df.div(v) * p
         #     ) * df.dx(reg) for reg in regs.keys()]) + sum([(
