@@ -1540,6 +1540,16 @@ class Solver:
         error = df.Function(v_field)
         error.assign(field_e_i - field_i)
 
+        err_f_L2_full = df.errornorm(
+            field_e_i, field_i, "L2", degree_rise=1
+        )
+        err_v_linf_full = df.MPI.max(self.comm, np.max(np.abs(
+            error.compute_vertex_values()
+        )))
+        err_f_H1_full = df.errornorm(
+            field_e_i, field_i, "H1", degree_rise=1
+        )
+
         dofs = len(field_e_i.split()) or 1
 
         if dofs == 1:
@@ -1567,6 +1577,17 @@ class Solver:
         if self.relative_error:
             def wmsg(n):
                 return f"WARN: {name_} has zero {n}-norm, abs. error used"
+            norm_f_L2_full = (
+                df.norm(field_e_i, "L2") or any([1, print(wmsg("L2"))])
+            )
+            norm_v_linf_full = (
+                df.MPI.max(self.comm, np.max(
+                    np.abs(field_e_i.compute_vertex_values())
+                )) or any([1, print(wmsg("linf"))])
+            )
+            norm_f_H1_full = (
+                df.norm(field_e_i, "H1") or any([1, print(wmsg("L2"))])
+            )
             if dofs == 1:
                 # scalar
                 norms_f_L2 = [
@@ -1595,22 +1616,36 @@ class Solver:
                 norms_f_H1 = [df.norm(
                     field_e_i.split()[i], "H1"
                 ) or any([1, print(wmsg("H1"))]) for i in range(dofs)]
+            err_f_L2_full = err_f_L2_full / norm_f_L2_full
+            err_v_linf_full = err_v_linf_full / norm_v_linf_full
+            err_f_H1_full = err_f_H1_full / norm_f_H1_full
             errs_f_L2 = [x / y for x, y in zip(errs_f_L2, norms_f_L2)]
             errs_v_linf = [x / y for x, y in zip(errs_v_linf, norms_v_linf)]
             errs_f_H1 = [x / y for x, y in zip(errs_f_H1, norms_f_H1)]
 
         print("Calculate errors..")
-        print("Error " + str(name_) + " L_2:", errs_f_L2)
-        print("Error " + str(name_) + " l_inf:", errs_v_linf)
-        print("Error " + str(name_) + " H_1:", errs_f_H1)
+        print("Full error " + str(name_) + " L_2:", err_f_L2_full)
+        print("Full error " + str(name_) + " l_inf:", err_v_linf_full)
+        print("Full error " + str(name_) + " H_1:", err_f_H1_full)
+        print("Component Error " + str(name_) + " L_2:", errs_f_L2)
+        print("Component Error " + str(name_) + " l_inf:", errs_v_linf)
+        print("Component Error " + str(name_) + " H_1:", errs_f_H1)
 
         self.__write_xdmf(name_ + "_e", field_e_i, False)
 
-        return [{
-            "L_2": errs_f_L2[i],
-            "l_inf": errs_v_linf[i],
-            "H_1": errs_f_H1[i],
-        } for i in range(dofs)]
+        return (
+            [{
+                "L_2": err_f_L2_full,
+                "l_inf": err_v_linf_full,
+                "H_1": err_f_H1_full,
+            }]
+            +
+            [{
+                "L_2": errs_f_L2[i],
+                "l_inf": errs_v_linf[i],
+                "H_1": errs_f_H1[i],
+            } for i in range(dofs)]
+        )
 
     def calculate_errors(self):
         """
@@ -1650,10 +1685,11 @@ class Solver:
             )
             ers = self.errors
             ers["theta"] = se[0]
-            ers["sx"] = ve[0]
-            ers["sy"] = ve[1]
+            ers["s"] = ve[0]
+            ers["sx"] = ve[1]
+            ers["sy"] = ve[2]
             if self.nsd > 2:
-                ers["sz"] = ve[2]
+                ers["sz"] = ve[3]
 
         if self.mode == "stress" or self.mode == "r13":
             se = self.__calc_field_errors(
@@ -1672,21 +1708,25 @@ class Solver:
             ers = self.errors
             if self.nsd == 2:
                 ers["p"] = se[0]
-                ers["ux"] = ve[0]
-                ers["uy"] = ve[1]
-                ers["sigmaxx"] = te[0]
-                ers["sigmaxy"] = te[1]
-                ers["sigmayy"] = te[3]
+                ers["u"] = ve[0]
+                ers["ux"] = ve[1]
+                ers["uy"] = ve[2]
+                ers["sigma"] = te[0]
+                ers["sigmaxx"] = te[1]
+                ers["sigmaxy"] = te[2]
+                ers["sigmayy"] = te[4]
             else:
                 ers["p"] = se[0]
-                ers["ux"] = ve[0]
-                ers["uy"] = ve[1]
-                ers["uz"] = ve[2]
-                ers["sigmaxx"] = te[0]
-                ers["sigmaxy"] = te[1]
-                ers["sigmaxz"] = te[2]
-                ers["sigmayy"] = te[4]
-                ers["sigmayz"] = te[5]
+                ers["u"] = ve[0]
+                ers["ux"] = ve[1]
+                ers["uy"] = ve[2]
+                ers["uz"] = ve[3]
+                ers["sigma"] = te[0]
+                ers["sigmaxx"] = te[1]
+                ers["sigmaxy"] = te[2]
+                ers["sigmaxz"] = te[3]
+                ers["sigmayy"] = te[5]
+                ers["sigmayz"] = te[6]
 
         end_t = time_module.time()
         secs = end_t - start_t
