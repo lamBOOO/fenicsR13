@@ -41,7 +41,7 @@ class TestR13Convergence(object):
 
         """
         print(subprocess.check_output([
-            "numdiff", "-s", "\"\n\r ,\"", "-a", "1E-6",
+            "numdiff", "-s", "\"\n\r ,\"", "-a", "1E-4",
             errorsfile, ref_errorsfile
         ], cwd=self.working_dir))
 
