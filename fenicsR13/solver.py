@@ -800,9 +800,7 @@ class Solver:
             return sum([(
                 th * df.div(r)
             ) * df.dx(reg) for reg in regs.keys()])
-
-        # def b(th, r):  # form 2
-        #     return sum([(
+        #     return sum([(  # form 2
         #         - df.inner(r, df.grad(th))
         #     ) * df.dx(reg) for reg in regs.keys()]) + sum([(
         #         th * n(r)
@@ -821,6 +819,11 @@ class Solver:
             return sum([(
                 df.dot(df.div(ps), u)
             ) * df.dx(reg) for reg in regs.keys()])
+            # return sum([(  # form 2
+            #     - df.inner(ps, df.grad(u))
+            # ) * df.dx(reg) for reg in regs.keys()]) + sum([(
+            #     df.dot(u, n(ps))
+            # ) * df.ds(bc) for bc in bcs.keys()])
 
         def f(p, ps):
             return sum([(
@@ -831,9 +834,7 @@ class Solver:
             return sum([(
                 df.inner(v, df.grad(p))
             ) * df.dx(reg) for reg in regs.keys()])
-
-        # def g(p, v):  # form 2
-        #     return sum([(
+        #     return sum([(  # form 2
         #         - df.div(v) * p
         #     ) * df.dx(reg) for reg in regs.keys()]) + sum([(
         #         p * n(v)
