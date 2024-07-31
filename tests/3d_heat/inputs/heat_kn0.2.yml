@@ -92,7 +92,6 @@ f_sigma: [[0,0,0],[0,0,0],[0,0,0]]
 # - ksp_type: gmres  # Generalized Minimal Residual Method
 # - pc_type: icc  # incomplete Cholesky
 petsc_options:
-petsc_options:
   ksp_type: gmres
   pc_type: icc
 
