@@ -1464,19 +1464,12 @@ class Solver:
             print(mean)
             # In solve() has m. prec. hmmm:
             print(self.__calc_sf_mean(self.sol["p"]))
-
-        .. note::
-
-            The following does not work in parallel because the mean is
-            then only local. So convergence studies have to be performed in
-            serial:
-
-            .. code-block:: python
-
-                mean = np.mean(scalar_function.compute_vertex_values())
         """
-        v = scalar_function.compute_vertex_values()
-        mean_val = np.mean(v)
+        mean_val = (
+            df.assemble(scalar_function * df.dx) / (
+                df.assemble(df.Constant(1.0) * df.dx)
+            )
+        )
         print("Calculated mean value:", mean_val)
         return mean_val
 
