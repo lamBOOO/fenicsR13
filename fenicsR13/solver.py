@@ -1531,6 +1531,12 @@ class Solver:
         For other norm types, see DOLFIN documentation [6]_ and search for
         norms.
 
+        The following is very slow, I don't know why:
+        .. code-block:: python
+            err_f_L2_full = df.errornorm(
+                field_e_i, field_i, "L2", degree_rise=1
+            )
+
         References
         ----------
         .. [6] `DOLFIN documentation <https://fenicsproject.org/docs/dolfin/>`_
@@ -1541,39 +1547,31 @@ class Solver:
         error = df.Function(v_field)
         error.assign(field_e_i - field_i)
 
-        err_f_L2_full = df.errornorm(
-            field_e_i, field_i, "L2", degree_rise=1
-        )
+        err_f_L2_full = df.norm(error, "L2")
         err_v_linf_full = df.MPI.max(self.comm, np.max(np.abs(
             error.compute_vertex_values()
         )))
-        err_f_H1_full = df.errornorm(
-            field_e_i, field_i, "H1", degree_rise=1
-        )
+        err_f_H1_full = df.norm(error, "H1")
 
         dofs = len(field_e_i.split()) or 1
 
         if dofs == 1:
             # scalar
-            errs_f_L2 = [df.errornorm(field_e_i, field_i, "L2", degree_rise=1)]
+            errs_f_L2 = [df.norm(error, "L2")]
             errs_v_linf = [df.MPI.max(self.comm, np.max(np.abs(
                 error.compute_vertex_values()
             )))]
-            errs_f_H1 = [df.errornorm(field_e_i, field_i, "H1", degree_rise=1)]
+            errs_f_H1 = [df.norm(error, "H1")]
         else:
             # vector or tensor
-            errs_f_L2 = [df.errornorm(
-                field_e_i.split()[i], field_i.split()[i], "L2", degree_rise=1
-            ) for i in range(dofs)]
+            errs_f_L2 = [df.norm(error.split()[i], "L2") for i in range(dofs)]
             errs_v_linf = [
                 df.MPI.max(self.comm, np.max(np.abs(
                     error.split()[i].compute_vertex_values()
                 )))
                 for i in range(dofs)
             ]
-            errs_f_H1 = [df.errornorm(
-                field_e_i.split()[i], field_i.split()[i], "H1", degree_rise=1
-            ) for i in range(dofs)]
+            errs_f_H1 = [df.norm(error.split()[i], "H1") for i in range(dofs)]
 
         if self.relative_error:
             def wmsg(n):
