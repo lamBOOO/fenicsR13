@@ -114,8 +114,8 @@ def main():
             mesh_name = mesh_names[p]
 
             current_mesh = H5Mesh(mesh_name)
+            print("hmax: " + str(current_mesh.hmax))
             solver = Solver(params, current_mesh, p)
-
             solver.assemble()
             solver.solve()
             solver.write()
@@ -125,7 +125,7 @@ def main():
                 errors = solver.calculate_errors()
 
                 data.append({
-                    "h": current_mesh.mesh.hmax(),
+                    "h": current_mesh.hmax,
                     **errors
                 })
 

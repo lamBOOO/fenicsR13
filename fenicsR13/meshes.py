@@ -52,3 +52,7 @@ class H5Mesh:
 
         self.boundaries = df.MeshFunction("size_t", self.mesh, dim - 1)
         hdf.read(self.boundaries, "/boundaries")
+
+        self.hmax = df.MPI.max(
+            self.mesh.mpi_comm(), self.mesh.hmax()
+        )
