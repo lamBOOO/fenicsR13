@@ -66,9 +66,6 @@ E.g.: geoToH5 lid.geo lid5.h5 "-setnumber p 5"
     # Convert msh-mesh to xml-mesh
     os.system("dolfin-convert {0}.msh {0}.xml".format(tmp_name))
 
-    # Delete msh-mesh
-    os.remove("{}.msh".format(tmp_name))
-
     # Read xml-mesh
     mesh = df.Mesh("{}.xml".format(tmp_name))
     subdomains = df.MeshFunction(
@@ -76,13 +73,16 @@ E.g.: geoToH5 lid.geo lid5.h5 "-setnumber p 5"
     boundaries = df.MeshFunction(
         "size_t", mesh, "{}_facet_region.xml".format(tmp_name))
 
-    # Delete xml-mesh
-    os.remove("{}.xml".format(tmp_name))
-    os.remove("{}_physical_region.xml".format(tmp_name))
-    os.remove("{}_facet_region.xml".format(tmp_name))
-
     # Write h5-mesh
     file = df.HDF5File(mesh.mpi_comm(), h5_output_file, "w")
     file.write(mesh, "/mesh")
     file.write(subdomains, "/subdomains")
     file.write(boundaries, "/boundaries")
+
+    # Delete msh-mesh
+    os.remove("{}.msh".format(tmp_name))
+
+    # Delete xml-mesh
+    os.remove("{}.xml".format(tmp_name))
+    os.remove("{}_physical_region.xml".format(tmp_name))
+    os.remove("{}_facet_region.xml".format(tmp_name))
