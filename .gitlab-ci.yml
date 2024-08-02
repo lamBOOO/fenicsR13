@@ -96,6 +96,7 @@ test:pytest:
     - mkdir errors
     - for file in tests/*/*/errors.csv; do foldername=${file%/errors.csv}; casename=$(basename $foldername); cp ${file} errors/errors_${casename}.csv; done
     # - for file in tests/*/*/errors.csv; do foldername=${file%/errors.csv}; casename=$(basename $foldername); echo $foldername; mkdir -p errors/$foldername; cp $file errors/$foldername; done  # to update referrors
+  coverage: '/TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     when: always
     paths:
