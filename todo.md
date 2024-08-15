@@ -8,3 +8,4 @@
 - r13 annulus tests do not converge nicely: esol correct? compatibility condition fulfilled? but bcs are strange compared to the 2d analoge. get Mathematica notebooks and redo.
 - Check r13_3d cases with exact solution from Adithya, why is there no velocity at the outer interface although it was set in Mathemtica?
   - Move also to the sphere tests and do i=6 or at least i=5.5 to further confirm
+- 240813: Add more source terms to BCs for manufactured solution. Manuel says it's physical if boundary has generalized distribution and not just Maxwellian
