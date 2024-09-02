@@ -1624,6 +1624,7 @@ class Solver:
         print("Component Error " + str(name_) + " H_1:", errs_f_H1)
 
         self.__write_xdmf(name_ + "_e", field_e_i, False)
+        self.__write_xdmf(name_ + "_error", error, False)
 
         return (
             [{
