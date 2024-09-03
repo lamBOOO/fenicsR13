@@ -154,7 +154,7 @@ convergence_study:
   exact_solution: esols/R13_Kn0.2_eps0.01_p0.027.cpp
   plot: False # to avoid error exit code due to $DISPLAY
   write_systemmatrix: False
-  rescale_pressure: zeromean
+  rescale_pressure: False
   relative_error: True
 
 # Postprocessing
