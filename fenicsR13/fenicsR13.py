@@ -132,7 +132,10 @@ def main():
                 if p == len(mesh_names) - 1:  # after last mesh
                     postp = Postprocessor(data, params["output_folder"])
                     postp.write_errors()
-                    postp.plot_errors(show_plot)
+                    if len(mesh_names) != 1:
+                        postp.plot_errors(show_plot)
+                    else:
+                        print("Skip convergence plot (only 1 mesh)")
 
             solver = None
             gc.collect()
