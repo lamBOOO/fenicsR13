@@ -37,7 +37,9 @@ Main Features
 Installation
 --------------------------------------------------------------------------------
 
-Download the repository as a `zip-file`_ and un-zip, or use `git`_ with
+1. Install `Git <https://git-scm.com/>`_ (if not shipped with you OS).
+2. Install `Git LFS <https://git-lfs.com/>`_ (needed to download the meshes from the repository).
+3. Clone and open the repository:
 
 .. code-block:: bash
 
@@ -45,11 +47,7 @@ Download the repository as a `zip-file`_ and un-zip, or use `git`_ with
     git clone git@git.rwth-aachen.de:lamBOO/fenicsR13.git
     cd fenicsR13
 
-
-.. _`FEniCS`: https://fenicsproject.org/
-.. _`zip-file`: https://git.rwth-aachen.de/lamBOO/fenicsR13/-/archive/master/fenicsR13-master.zip
-.. _`git`: https://git-scm.com/
-
+*Alternatively*: `download <https://git.rwth-aachen.de/lamBOO/fenicsR13/-/archive/master/fenicsR13-master.zip>`_ the repository, unpack and open it.
 
 Docker
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
