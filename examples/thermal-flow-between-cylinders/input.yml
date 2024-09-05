@@ -8,8 +8,10 @@ output_folder: thermal-flow-between-cylinders
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
   - mesh5.h5
-  - mesh6.h5
+  # - mesh6.h5
   # - mesh7.h5
+  # - mesh8.h5
+  # - mesh9.h5
 
 # Numerical Parameters
 # ====================
@@ -176,6 +178,6 @@ postprocessing:
 # - parameter_key: Key as list, e.g. ["elemenets", "p", "degree"]
 # - parameter_values: List of value for parameter, e.g. [0.01,0.1,1,10]
 parameter_study:
-  enable: False
-  parameter_key: []
-  parameter_values: []
+  enable: True
+  parameter_key: ["regs", 4000, "kn"]
+  parameter_values: [0.05,0.1,0.2,0.4]
