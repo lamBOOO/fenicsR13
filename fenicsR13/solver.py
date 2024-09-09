@@ -755,6 +755,16 @@ class Solver:
                 + cpl * 1 / 25 * bcs[bc]["chi_tilde"] * t1(s) * t1(r)
                 + 11 / 25 * bcs[bc]["chi_tilde"] * t2(s) * t2(r)
                 + cpl * 1 / 25 * bcs[bc]["chi_tilde"] * t2(s) * t2(r)
+                # + df.inner(
+                #     ufl.transpose(df.as_tensor(
+                #         [n_vec, t_vec1]
+                #     )) *
+                #     df.as_tensor(np.diag(
+                #         [1 / (2 * bcs[bc]["chi_tilde"]),(11+cpl)/25 * bcs[bc]["chi_tilde"]]
+                #     )) * df.as_tensor(
+                #         [n_vec, t_vec1]
+                #     ) * s, r
+                # )
             ) * df.ds(bc) for bc in bcs.keys()])
 
         def d(si, ps):
