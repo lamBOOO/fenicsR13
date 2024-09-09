@@ -760,7 +760,10 @@ class Solver:
                 #         [n_vec, t_vec1]
                 #     )) *
                 #     df.as_tensor(np.diag(
-                #         [1 / (2 * bcs[bc]["chi_tilde"]),(11+cpl)/25 * bcs[bc]["chi_tilde"]]
+                #         [
+                #             1 / (2 * bcs[bc]["chi_tilde"]),
+                #             (11+cpl)/25 * bcs[bc]["chi_tilde"]
+                #         ]
                 #     )) * df.as_tensor(
                 #         [n_vec, t_vec1]
                 #     ) * s, r
