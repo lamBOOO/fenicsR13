@@ -1,6 +1,7 @@
 variables:
   APP_DIRECTORY: .
   DOCS_DIRECTORY: ${APP_DIRECTORY}/docs
+  DOCS_LATEX_NAME: fenicsr13
 stages:
 - prepare
 - build
