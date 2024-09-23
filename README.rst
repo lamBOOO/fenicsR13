@@ -1,20 +1,23 @@
+fenicsR13
+===================================================================================================================
+
 .. image:: media/logo.svg
-    :width: 200px
+    :width: 160px
     :alt: logo
+    :align: left
 
 .. inclusion-marker
 
-fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations Using the FEniCS Computing Platform
-===================================================================================================================
+*fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations Using the FEniCS Computing Platform*
 
 |pipeline| |coverage| |version| |zenodo| |website|
 
-Paper / Documentation
-------------
+.. list-table::
+   :widths: 20 50
+   :header-rows: 0
 
-See the following paper for a detailed description of the solver!
-
-        **Lambert Theisen**, **Manuel Torrilhon**. 2021. *fenicsR13: A Tensorial Mixed Finite Element Solver for theLinear R13 Equations Using the FEniCS Computing Platform*. ACM Trans. Math. Softw. 47, 2, Article 17 (April 2021), 29 pages, `10.1145/3442378 <https://dx.doi.org/10.1145/3442378>`_. `Preprint @ arXiv (Free PDF) <https://dl.acm.org/doi/10.1145/3442378?cid=99659694875>`_.
+   * - 📙 Detailed explaination
+     - **Lambert Theisen**, **Manuel Torrilhon**. 2021. *fenicsR13: A Tensorial Mixed Finite Element Solver for theLinear R13 Equations Using the FEniCS Computing Platform*. ACM Trans. Math. Softw. 47, 2, Article 17 (April 2021), 29 pages, `10.1145/3442378 <https://dx.doi.org/10.1145/3442378>`_. `Preprint @ arXiv (Free PDF) <https://dl.acm.org/doi/10.1145/3442378?cid=99659694875>`_.
 
 Main Features
 --------------------------------------------------------------------------------
