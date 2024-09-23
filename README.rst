@@ -2,7 +2,7 @@ fenicsR13
 ===================================================================================================================
 
 .. image:: media/logo.svg
-    :width: 200px   
+    :width: 160px   
     :alt: logo
     :align: left
 
@@ -10,13 +10,13 @@ fenicsR13
 
 *fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations Using the FEniCS Computing Platform*
 
-|pipeline| |coverage| |version| |zenodo| |website|
+|pipeline| |coverage| |version| |docs_website| |zenodo|
 
 .. list-table::
    :widths: 20 50
    :header-rows: 0
 
-   * - 📙 Detailed explaination
+   * - Paper
      - **Lambert Theisen**, **Manuel Torrilhon**. 2021. *fenicsR13: A Tensorial Mixed Finite Element Solver for theLinear R13 Equations Using the FEniCS Computing Platform*. ACM Trans. Math. Softw. 47, 2, Article 17 (April 2021), 29 pages, `10.1145/3442378 <https://dx.doi.org/10.1145/3442378>`_. `Preprint @ arXiv (Free PDF) <https://dl.acm.org/doi/10.1145/3442378?cid=99659694875>`_.
 
 Main Features
@@ -425,6 +425,6 @@ Contact
     :target: https://doi.org/10.5281/zenodo.3673039
     :alt: Zenodo Link with DOI
 
-.. |website| image:: https://img.shields.io/badge/doc-https%3A%2F%2Flamboo.pages.rwth--aachen.de%2FfenicsR13%2F-blue.svg
+.. |docs_website| image:: https://img.shields.io/badge/docs-dev-blue.svg
     :target: https://lamboo.pages.rwth-aachen.de/fenicsR13/
     :alt: Documentation Website
