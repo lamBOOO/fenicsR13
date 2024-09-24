@@ -28,11 +28,13 @@ Main Features
 - Structured/Documented YAML_ input file format
 - Rarefied gas flow effects predictable: Knudsen paradox, Knudsen pump, ...
 - Interface for Gmsh_ meshes
+- Full exposure of the PETSc_ preconditioned iterative solver library
 
 .. _FEniCS: https://fenicsproject.org/
 .. _YAML: https://de.wikipedia.org/wiki/YAML
 .. _XDMF: http://www.xdmf.org/index.php/XDMF_Model_and_Format
 .. _Gmsh: http://gmsh.info/
+.. _PETSc: https://petsc.org/
 
 Installation
 --------------------------------------------------------------------------------
