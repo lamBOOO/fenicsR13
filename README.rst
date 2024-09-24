@@ -1,14 +1,11 @@
-fenicsR13
-===================================================================================================================
-
 .. image:: media/logo.svg
-    :width: 200px   
+    :width: 200px
     :alt: logo
     :align: left
 
 .. inclusion-marker
 
-*fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations Using the FEniCS Computing Platform*
+**fenicsR13**: *A Tensorial Mixed Finite Element Solver for the Linear R13 Equations Using the FEniCS Computing Platform*
 
 |pipeline| |coverage| |version| |docs_website| |zenodo|
 
