@@ -73,8 +73,8 @@ Make sure you installed Docker and it is running on your system. You can start t
     ## 1) FOR USERS:
     ## - Pulls and runs "fenicsr13_release" service
     ## - Uses preinstalled latest version of fenicsR13
-    docker-compose pull fenicsr13_release
-    docker-compose run --rm fenicsr13_release
+    docker compose pull fenicsr13_release
+    docker compose run --rm fenicsr13_release
 
     ## 2) FOR DEVELOPERS (uncommend the last 3 lines of this block):
     ## - Builds the "fenicsr13_debug"
@@ -82,8 +82,8 @@ Make sure you installed Docker and it is running on your system. You can start t
     ## - The "pip"-command install an editable version of fenicsR13
     ## - This allows a modification of the source files which can be directly
     ##   executed within the debug container
-    # docker-compose build fenicsr13_debug
-    # docker-compose run fenicsr13_debug
+    # docker compose build fenicsr13_debug
+    # docker compose run fenicsr13_debug
     # sudo pip install -e .
 
 When you run this for the first time, docker will pull (download and extract) the container image from our repository which is roughly 800MB and the download may require some patience. After the initial download the docker image will be stored (2-3 GB) on your system and any new run will start the container immediately.
@@ -195,14 +195,14 @@ FEniCS allows simple parallelization using MPI
 Building the Docker Image Locally
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The main folder of this repository contains a ``Dockerfile`` defining the used environment. Here, we used the optimized and official FEniCS Docker image and include ``Gmsh`` and install some requirements from the ``requirements.txt``. This can take a while, especially the ``Gmsh`` mirror can be quite slow. To avoid very long execution commands (``docker run <..> -v <volume share> <etc..>``), a ``docker-compose.yml`` is used to store all these parameters. ``docker-compose`` acts as an wrapper for the Docker execution.
+The main folder of this repository contains a ``Dockerfile`` defining the used environment. Here, we used the optimized and official FEniCS Docker image and include ``Gmsh`` and install some requirements from the ``requirements.txt``. This can take a while, especially the ``Gmsh`` mirror can be quite slow. To avoid very long execution commands (``docker run <..> -v <volume share> <etc..>``), a ``docker-compose.yml`` is used to store all these parameters. ``docker compose`` acts as an wrapper for the Docker execution.
 
 The ``fenics`` environment (also called *service* in the ``docker-compose.yml``) first has to be build and can be executed afterwards. The command to build the container is
 
 .. code-block:: bash
 
     # build fenics service
-    docker-compose build fenicsr13_release
+    docker compose build fenicsr13_release
 
 
 Interactive Docker Sessions
