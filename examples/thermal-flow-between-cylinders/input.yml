@@ -7,10 +7,10 @@ output_folder: thermal-flow-between-cylinders
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  - mesh5.h5
+  # - mesh5.h5
   # - mesh6.h5
   # - mesh7.h5
-  # - mesh8.h5
+  - mesh8.h5
   # - mesh9.h5
 
 # Numerical Parameters
