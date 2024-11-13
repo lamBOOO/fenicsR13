@@ -49,7 +49,7 @@ Installation
 .. code-block:: bash
 
     # Clone Repository and open main folder
-    git clone git@git.rwth-aachen.de:lamBOO/fenicsR13.git
+    git clone https://git.rwth-aachen.de/lamBOO/fenicsR13.git
     cd fenicsR13
 
 *Alternatively*: `download <https://git.rwth-aachen.de/lamBOO/fenicsR13/-/archive/master/fenicsR13-master.zip>`_ the repository, unpack and open it.
