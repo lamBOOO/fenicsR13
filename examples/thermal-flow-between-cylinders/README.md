@@ -3,7 +3,9 @@
 ## Execution
 
 - Use `mesh8.h5` for good results
-- Works with `mpirun -n 32` on `momentum @ ACoM`
+- Adaptive meshes have better results
+- Very sensitive to tau_p parameter with CIP, like thermal edge flow in Theisen2021
+- Works with `mpirun -n 120` on `momentum @ ACoM`
 
 ## Post-processing
 
