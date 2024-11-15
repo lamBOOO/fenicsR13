@@ -15,7 +15,7 @@ services:
           nocopy: true
     stdin_open: true
     tty: true
-    shm_size: "1024m" # MPI issue https://github.com/FEniCS/dolfinx/issues/994
+    shm_size: "4000m" # MPI issue https://github.com/FEniCS/dolfinx/issues/994
   fenicsr13_debug:
     build:
       context: .
@@ -34,7 +34,7 @@ services:
           nocopy: true
     stdin_open: true
     tty: true
-    shm_size: "1024m" # MPI issue https://github.com/FEniCS/dolfinx/issues/994
+    shm_size: "4000m" # MPI issue https://github.com/FEniCS/dolfinx/issues/994
 
 volumes:
   instant-cache:
