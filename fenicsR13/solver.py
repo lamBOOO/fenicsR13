@@ -738,7 +738,19 @@ class Solver:
         # Sub functionals:
         # 1) Diagonals:
 
+        def aaa(theta,kappa):
+            return sum([(
+                df.inner(df.grad(theta), df.grad(kappa))
+            ) * df.dx(reg) for reg in regs.keys()]) - sum([(
+                + theta * kappa
+                - df.div(df.grad(theta)) * kappa
+                + nn(df.grad(df.grad(theta))) * kappa
+            ) * df.ds(bc) for bc in bcs.keys()])
+
         def a(s, r):
+            return sum([(
+                df.inner(df.grad(s), df.grad(r))
+            ) * df.dx(reg) for reg in regs.keys()])
             # Notes:
             # 4/5-24/75 = (60-24)/75 = 36/75 = 12/25
             return sum([(
@@ -810,6 +822,9 @@ class Solver:
 
         # 2) Offdiagonals:
         def b(th, r):
+            return sum([(
+                0
+            ) * df.dx(reg) for reg in regs.keys()])
             return sum([(
                 th * df.div(r)
             ) * df.dx(reg) for reg in regs.keys()])
@@ -950,7 +965,7 @@ class Solver:
         # 1) Left-hand sides, bilinear form A[..]:
         # Changed inflow condition => minus before f(q, sigma)
         A[0] = a(s, r)     - b(theta, r) - c(r, sigma)   + 0         + 0
-        A[1] = b(kappa, s) + 0           + 0             + 0         + 0
+        A[1] = b(kappa, s) + aaa(theta,kappa)           + 0             + 0         + 0
         A[2] = c(s, psi)   + 0           + d(sigma, psi) - e(u, psi) + f(p, psi)
         A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)
         A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
@@ -959,7 +974,9 @@ class Solver:
             bcs[bc]["theta_w"] * n(r)
         ) * df.ds(bc) for bc in bcs.keys()])
         # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
-        L[1] = (f_heat - cpl * f_mass) * kappa * df.dx
+        L[1] = (4 + f_heat - cpl * f_mass) * kappa * df.dx - sum([(
+            + bcs[bc]["theta_w"] * kappa
+        ) * df.ds(bc) for bc in bcs.keys()])
         L[2] = + df.inner(
             to.gen3DTFdim2(f_sigma), to.gen3DTFdim2(psi)
         ) * df.dx - sum([(
