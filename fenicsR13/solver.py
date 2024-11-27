@@ -738,7 +738,7 @@ class Solver:
         # Sub functionals:
         # 1) Diagonals:
 
-        def aaa(theta,kappa):
+        def aaa(theta, kappa):
             return sum([(
                 df.inner(df.grad(theta), df.grad(kappa))
             ) * df.dx(reg) for reg in regs.keys()]) - sum([(
@@ -965,7 +965,7 @@ class Solver:
         # 1) Left-hand sides, bilinear form A[..]:
         # Changed inflow condition => minus before f(q, sigma)
         A[0] = a(s, r)     - b(theta, r) - c(r, sigma)   + 0         + 0
-        A[1] = b(kappa, s) + aaa(theta,kappa)           + 0             + 0         + 0
+        A[1] = b(kappa, s) + aaa(theta, kappa)           + 0             + 0 + 0
         A[2] = c(s, psi)   + 0           + d(sigma, psi) - e(u, psi) + f(p, psi)
         A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)
         A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
