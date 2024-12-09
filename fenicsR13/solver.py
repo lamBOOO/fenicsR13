@@ -730,8 +730,14 @@ class Solver:
             return df.dot(rank2 * t_vec1, t_vec2)
 
         if self.mode == "heat":
+            # Note that the heat system does not include the Δ variable from [1]
+            # Reason for this was, that I didn't have an exact solution for that
+            # The heat system historically was the first one implemented and is
+            # documented in [2].
             # Keep in mind: If f_heat = 0 => delta = 0 anyways...
-            incl_delta = 0  # TODO: Include (adapt Mathemathica scripts)
+            # [1]: fenicsR13 paper: https://dx.doi.org/10.1145/3442378
+            # [2]: M.Sc thesis: https://doi.org/10.18154/RWTH-2023-12262
+            incl_delta = 0  # TODO: Include (adapt Mathemathica scripts & esol)
         else:
             incl_delta = 1
 
@@ -740,7 +746,8 @@ class Solver:
 
         def a(s, r):
             # Notes:
-            # 4/5-24/75 = (60-24)/75 = 36/75 = 12/25
+            # - We expanded the stf(grad(s))-term, therefore the constants read:
+            #   4/5-24/75 = (60-24)/75 = 36/75 = 12/25
             return sum([(
                 # => 24/25*stf(grad)*grad
                 + 24 / 25 * regs[reg]["kn"] * df.inner(
