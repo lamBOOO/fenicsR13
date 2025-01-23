@@ -1,0 +1,28 @@
+abstract: '<p>fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13
+  Equations Using the FEniCS Computing Platform</p>
+
+
+  <p>The project can be accessed at <a href="https://git.rwth-aachen.de/lamBOO/fenicsR13">https://git.rwth-aachen.de/lamBOO/fenicsR13</a></p>'
+authors:
+- affiliation: RWTH Aachen University
+  family-names: Theisen
+  given-names: Lambert
+  orcid: 0000-0001-5460-5425
+- affiliation: RWTH Aachen University
+  family-names: Torrilhon
+  given-names: Manuel
+  orcid: 0000-0003-0008-2061
+cff-version: 1.2.0
+date-released: '2020-11-01'
+doi: 10.5281/zenodo.4172951
+keywords:
+- Tensorial Mixed Finite Element Method
+- R13 Equations
+- FEniCS Project
+- Continous Interior Penalty
+license:
+- gpl-2.0-only
+title: 'fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations
+  Using the FEniCS Computing Platform'
+type: software
+version: '1.4'
