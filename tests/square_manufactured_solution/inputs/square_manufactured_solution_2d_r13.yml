@@ -11,7 +11,7 @@ meshes:
   - meshes/square3.h5
   - meshes/square4.h5
   - meshes/square5.h5
-  - meshes/square6.h5
+  # - meshes/square6.h5
   # - meshes/square7.h5
   # - meshes/square8.h5
 

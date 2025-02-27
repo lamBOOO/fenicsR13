@@ -1,6 +1,26 @@
 Change log
 ----------
 
+1.5 (2025-02-27)
+~~~~~~~~~~~~~~~~
+
+- Add 3d implementation and test cases
+  - Tensor operations module updated
+- Make implementation now fully parallel, also for convergence study
+- Add full PETSc interface
+- Use Sphinx booktheme for docs
+- Improve `rescale_pressure` keyword
+- Update Docker setup to use DIND
+- Add `CITATION.cff`
+- Add paper and improve installation tutorial to README
+- Change test folder structure to use `2d_r13` instead of `r13`
+- Add some examples (Balton board, compatibility conditions, Crookes radiometer, discrete coercivity test, Fourier flow, thermal edge flow, thermal flow between cylinders, ...)
+- Add heat source and stress source terms
+- Skip convergence plot if only one mesh is used
+- Improve geoToH5 to work with 3D
+- Print hmax for simulation
+- Improve error calculation, add H1 error and L2, linf for tensorial structure, use "real" relative error
+
 1.4 (2020-11-01)
 ~~~~~~~~~~~~~~~~
 
