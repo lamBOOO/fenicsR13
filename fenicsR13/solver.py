@@ -93,7 +93,7 @@ class Solver:
 
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
         self.write_vecs = self.params["postprocessing"]["write_vecs"]
-        self.massflow = self.params["postprocessing"]["massflow"]
+        self.flows = self.params["postprocessing"]["flows"]
         self.line_integrals = self.params["postprocessing"]["line_integrals"]
 
         # Create region field expressions
@@ -1241,15 +1241,23 @@ class Solver:
                 self.sol["p"] = p_i
 
         # Calculate mass flows
-        for bc_id in self.massflow:
+        for bc_id in self.flows:
             if bc_id not in self.boundaries.array():
-                raise Exception("Massflow: {} is no boundary.".format(bc_id))
+                raise Exception(
+                    "Flow calculation: {} is no boundary.".format(bc_id)
+                )
             n = df.FacetNormal(self.mesh)
             mass_flow_rate = df.assemble(
                 df.inner(self.sol["u"], n) * df.ds(bc_id)
             )
             print("mass flow rate of BC", bc_id, ":", mass_flow_rate)
             self.write_content_to_file("massflow_" + str(bc_id), mass_flow_rate)
+            # TODO: Implement generically
+            heat_flow_rate = df.assemble(
+                df.inner(self.sol["s"], n) * df.ds(bc_id)
+            )
+            print("heat flow rate of BC", bc_id, ":", heat_flow_rate)
+            self.write_content_to_file("heatflow_" + str(bc_id), heat_flow_rate)
 
         if self.mode == "stress" or self.mode == "r13":
             vol = df.assemble(df.Constant(1) * df.dx)
