@@ -188,7 +188,7 @@ convergence_study:
 postprocessing:
   write_pdfs: False
   write_vecs: False
-  massflow: []
+  massflow: [3000]
   line_integrals: []
 
 # Parameter Study
