@@ -11,6 +11,10 @@ meshes:
   # - mesh6.h5
   # - mesh7.h5
   # - mesh8.h5
+  - mesh_adaptive0.h5
+  - mesh_adaptive1.h5
+  - mesh_adaptive2.h5
+  - mesh_adaptive3.h5
   - mesh_adaptive4.h5
   - mesh_adaptive5.h5
   - mesh_adaptive6.h5
