@@ -117,6 +117,7 @@ regs:
 #     - u_z_w: Value for z-velocity at wall (for polar_coord_syst=false&&nsd=3)
 #     - p_w: Value for pressure at wall
 #     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
+polar_coord_syst: true
 bcs:
   3000: # outer
     chi_tilde: 1.0
