@@ -1,0 +1,184 @@
+# General
+# =======
+# - output_folder: Used as output folder
+output_folder: incompatible-masssource
+
+# Meshes
+# ======
+# - meshes: List of input meshes in h5 format to run simulations on
+meshes:
+  # - ../../tests/2d_mesh/ring0.h5
+  # - ../../tests/2d_mesh/ring1.h5
+  # - ../../tests/2d_mesh/ring2.h5
+  # - ../../tests/2d_mesh/ring3.h5
+  - ../../tests/2d_mesh/ring4.h5
+
+# Numerical Parameters
+# ====================
+# - elements: Must contain the fields: theta, s, p, u, sigma
+#   - fields: List of FEM parameters (shape, degree)
+#     - shape: Element shape, e.g. Lagrange
+#     - degree: Element degree, e.g. 2
+# - stabilization: Must contain cip and gls
+#   - cip: Collection of Continous Interior Penalty (CIP) parameters
+#     - enable: Enable CIP stabilization
+#     - delta_theta: Stabilization of grad(T)*grad(T_test) over edge
+#     - delta_u: Stabilization of grad(u)*grad(u_test) over edge
+#     - delta_p: Stabilization of grad(p)*grad(p_test) over edge
+#   - gls: Collection of Garlerkin Least Squares (GLS) parameters
+#     - enable: Enable GLS stabilization
+#     - tau_energy: Stabilization with energy eq. residual
+#     - tau_heatflux: Stabilization with heatflu_x_w eq. residual
+#     - tau_mass: Stabilization with mass eq. residual
+#     - tau_momentum: Stabilization with momentum eq. residual
+#     - tau_stress: Stabilization with stress eq. residual
+elements:
+  theta:
+    shape: Lagrange
+    degree: 1
+  s:
+    shape: Lagrange
+    degree: 2
+  p:
+    shape: Lagrange
+    degree: 1
+  u:
+    shape: Lagrange
+    degree: 1
+  sigma:
+    shape: Lagrange
+    degree: 2
+stabilization:
+  cip:
+    enable: False
+    delta_theta: 1.0
+    delta_u: 1.0
+    delta_p: 0.01
+  gls:
+    enable: False
+    tau_energy: 0.0001
+    tau_heatflux: 0.0001
+    tau_mass: 0.005
+    tau_momentum: 0.005
+    tau_stress: 0.005
+
+# Formulation Parameters
+# ======================
+# - nsd: Number of spatial dimensions == 2
+# - mode: Formulation mode, one of heat, stress, r13
+# - heat_source: Heat source function for mode==heat||r13
+# - mass_source: Mass source function for mode==stress||r13
+# - body_force: Body force for mode==stress||r13
+# - f_s: Heatflux force for mode==heat||r13
+# - f_sigma: Stress force for mode==stress||r13
+nsd: 2
+mode: r13
+heat_source: 0
+# mass_source:  x[1]  # works
+mass_source:  x[1]*x[1]  # fails
+body_force: [0.0,0]
+f_s: [0,0]
+f_sigma: [[0,0],[0,0]]
+
+# PETSc Options (dictionary)
+# ==========================
+# [#1 e.g. for mumps directy solver:]
+# - ksp_type: preonly  # preconditioner only, i.e. 1 application
+# - pc_type: lu  # use LU as preconditioner <=> direct solve
+# - pc_factor_mat_solver_type: mumps  # use mumps sparse solver
+# [#2 e.g. for gmres iterative solver with icc preconditioner:]
+# - ksp_type: gmres  # Generalized Minimal Residual Method
+# - pc_type: icc  # incomplete Cholesky
+petsc_options:
+  ksp_type: preonly
+  pc_type: lu
+  pc_factor_mat_solver_type: mumps
+
+# Region Parameters
+# =================
+# - regs: Dictionary of all mesh regions
+#   - reg_id: Must contain the following parameters:
+#     - kn: Knudsen number
+regs:
+  4000:
+    kn: 1.0
+
+# Boundary Conditions
+# ===================
+# - polar_coord_syst: true needs u_n_w,u_t_w; false needs u_x_w,u_y_w,u_z_w
+# - bcs: Dictionary of all boundary IDs from mesh
+#   - bc_id: must contain the following parameters
+#     - chi_tilde: Refaction coefficient in Maxwell accomodation model
+#     - theta_w: Value for temperature at wall
+#     - u_t_w: Value for tangential velocity at wall (for polar_coord_syst=true)
+#     - u_n_w: Value for normal velocity at wall (for polar_coord_syst=true)
+#     - u_x_w: Value for x-velocity at wall (for polar_coord_syst=false)
+#     - u_y_w: Value for y-velocity at wall (for polar_coord_syst=false)
+#     - u_z_w: Value for z-velocity at wall (for polar_coord_syst=false&&nsd=3)
+#     - p_w: Value for pressure at wall
+#     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
+polar_coord_syst: True
+bcs:
+  3000:
+    chi_tilde: 1.0
+    theta_w: 1
+    u_t_w: 0
+    u_n_w: 0
+    u_x_w: 1E300
+    u_y_w: 1E300
+    u_z_w: 1E300
+    p_w: 0
+    epsilon_w: 0
+  3100:
+    chi_tilde: 1.0
+    theta_w: 2
+    u_t_w: 0
+    u_n_w: 0
+    u_x_w: 1E300
+    u_y_w: 1E300
+    u_z_w: 1E300
+    p_w: 0
+    epsilon_w: 0.0000000000
+
+# Convergence Study
+# =================
+# - enable: Enable convergence study on given meshes
+# - exact_solution: Path to exact solution in cpp-format to compare errors
+# - plot: Show errors in matplotlib window. PDF output is always per default.
+# - write_systemmatrix: Writes out systemmatrix (LHS) to use for analysis
+# - rescale_pressure: Shift numerical pressure (False,zeromean,zerominimum)
+# - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
+convergence_study:
+  enable: False
+  exact_solution: esols/1_coeffs_nosources_norot_inflow_positive.cpp
+  plot: False
+  write_systemmatrix: False
+  rescale_pressure: False
+  relative_error: True
+
+# Postprocessing
+# ==============
+# - write_pdfs: Write all solution fields as PDF plot
+# - write_vecs: Write all solution fields as vectors
+# - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
+# - line_integrals: List of line integral dicts:
+#   - name: Name for output
+#   - expr: Expression to evaluate
+#   - start: Start point
+#   - end: End point
+#   - res: Sampling resolution of line
+postprocessing:
+  write_pdfs: False
+  write_vecs: False
+  massflow: []
+  line_integrals: []
+
+# Parameter Study
+# ==============
+# - enable: Repeat simulation with different p. values (study)
+# - parameter_key: Key as list, e.g. ["elemenets", "p", "degree"]
+# - parameter_values: List of value for parameter, e.g. [0.01,0.1,1,10]
+parameter_study:
+  enable: True
+  parameter_key: ["bcs", 3100, "epsilon_w"]
+  parameter_values: ["0", "0.00000000001"]
