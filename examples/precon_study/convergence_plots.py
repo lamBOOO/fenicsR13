@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import re
 import matplotlib.pyplot as plt
 import os
