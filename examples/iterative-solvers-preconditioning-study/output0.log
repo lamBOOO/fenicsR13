@@ -1,0 +1,470 @@
+-> Version: 1.4
+-> Contact: Lambert Theisen <lambert.theisen@rwth-aachen.de>
+-> Contact: Manuel Torrilhon <mt@mathcces.rwth-aachen.de>
+-> Repository: <https://git.rwth-aachen.de/lamBOO/fenicsR13>
+-> Documentation: <https://lamboo.pages.rwth-aachen.de/fenicsR13/>
+  __            _          ____  _ _____
+ / _| ___ _ __ (_) ___ ___|  _ \/ |___ /
+| |_ / _ \ '_ \| |/ __/ __| |_) | | |_ \
+|  _|  __/ | | | | (__\__ \  _ <| |___) |
+|_|  \___|_| |_|_|\___|___/_| \_\_|____/
+
+Input:
+{"output_folder": "square_manufactured_solution_2d_r13", "meshes": ["../../tests/square_manufactured_solution/meshes/square2.h5"], "elements": {"theta": {"shape": "Lagrange", "degree": 1}, "s": {"shape": "Lagrange", "degree": 2}, "p": {"shape": "Lagrange", "degree": 1}, "u": {"shape": "Lagrange", "degree": 1}, "sigma": {"shape": "Lagrange", "degree": 2}}, "stabilization": {"cip": {"enable": false, "delta_theta": 1.0, "delta_u": 1.0, "delta_p": 0.1}, "gls": {"enable": false, "tau_energy": 0.001, "tau_heatflux": 0.001, "tau_mass": 0.01, "tau_momentum": 0.01, "tau_stress": 0.01}}, "nsd": 2, "mode": "r13", "heat_source": "2*(-1 + x[0])*x[0]*(-1 + x[1])*x[1]*(-((-1 + x[1])*x[1]) + std::pow(x[0],2)*(-1 + 2*x[1]) + x[0]*(1 - 4*x[1] + 2*std::pow(x[1],2)))", "mass_source": 0, "body_force": ["2*std::pow(-1 + x[0],2)*std::pow(x[0],2)*(-1 + x[1])*x[1]*(-1 + 2*x[1])", "2*(-1 + x[0])*x[0]*(-1 + 2*x[0])*std::pow(-1 + x[1],2)*std::pow(x[1],2)"], "f_s": ["(2*(-108*std::pow(-1 + x[1],2)*std::pow(x[1],2) + 9*x[0]*x[1]*(-16 + 115*x[1] - 166*std::pow(x[1],2) + 67*std::pow(x[1],3)) + std::pow(x[0],2)*(-36 + 678*x[1] - 2105*std::pow(x[1],2) + 1930*std::pow(x[1],3) - 503*std::pow(x[1],4)) + 2*std::pow(x[0],4)*(-18 + 123*x[1] - 148*std::pow(x[1],2) + 20*std::pow(x[1],3) + 5*std::pow(x[1],4)) - 2*std::pow(x[0],3)*(-36 + 390*x[1] - 683*std::pow(x[1],2) + 238*std::pow(x[1],3) + 55*std::pow(x[1],4))))/75.", "(2*(-36*std::pow(-1 + x[1],2)*std::pow(x[1],2) + 6*x[0]*x[1]*(-24 + 113*x[1] - 130*std::pow(x[1],2) + 41*std::pow(x[1],3)) + std::pow(x[0],2)*(-108 + 1035*x[1] - 2105*std::pow(x[1],2) + 1366*std::pow(x[1],3) - 296*std::pow(x[1],4)) + std::pow(x[0],4)*(-108 + 603*x[1] - 503*std::pow(x[1],2) - 110*std::pow(x[1],3) + 10*std::pow(x[1],4)) + 2*std::pow(x[0],3)*(108 - 747*x[1] + 965*std::pow(x[1],2) - 238*std::pow(x[1],3) + 20*std::pow(x[1],4))))/75."], "f_sigma": [["(-36*std::pow(-1 + x[1],2)*std::pow(x[1],2) + 8*x[0]*x[1]*(13 - 10*x[1] - 32*std::pow(x[1],2) + 29*std::pow(x[1],3)) + 2*std::pow(x[0],3)*(12 + 40*x[1] - 263*std::pow(x[1],2) + 222*std::pow(x[1],3) + std::pow(x[1],4)) + std::pow(x[0],4)*(-12 + 64*x[1] - 33*std::pow(x[1],2) - 46*std::pow(x[1],3) + 15*std::pow(x[1],4)) - std::pow(x[0],2)*(12 + 248*x[1] - 639*std::pow(x[1],2) + 142*std::pow(x[1],3) + 249*std::pow(x[1],4)))/30.", "(-62*std::pow(-1 + x[1],2)*std::pow(x[1],2) + 48*x[0]*x[1]*(-1 + 11*x[1] - 18*std::pow(x[1],2) + 8*std::pow(x[1],3)) + std::pow(x[0],2)*(-2 + 168*x[1] - 873*std::pow(x[1],2) + 1098*std::pow(x[1],3) - 393*std::pow(x[1],4)) - 2*std::pow(x[0],3)*(-2 + 72*x[1] - 189*std::pow(x[1],2) + 114*std::pow(x[1],3) + 3*std::pow(x[1],4)) + std::pow(x[0],4)*(-2 + 24*x[1] - 33*std::pow(x[1],2) - 6*std::pow(x[1],3) + 15*std::pow(x[1],4)))/30."], ["(-62*std::pow(-1 + x[1],2)*std::pow(x[1],2) + 48*x[0]*x[1]*(-1 + 11*x[1] - 18*std::pow(x[1],2) + 8*std::pow(x[1],3)) + std::pow(x[0],2)*(-2 + 168*x[1] - 873*std::pow(x[1],2) + 1098*std::pow(x[1],3) - 393*std::pow(x[1],4)) - 2*std::pow(x[0],3)*(-2 + 72*x[1] - 189*std::pow(x[1],2) + 114*std::pow(x[1],3) + 3*std::pow(x[1],4)) + std::pow(x[0],4)*(-2 + 24*x[1] - 33*std::pow(x[1],2) - 6*std::pow(x[1],3) + 15*std::pow(x[1],4)))/30.", "(-12*std::pow(-1 + x[1],2)*std::pow(x[1],2) + 8*x[0]*x[1]*(-17 + 59*x[1] - 50*std::pow(x[1],2) + 8*std::pow(x[1],3)) + std::pow(x[0],2)*(-36 + 640*x[1] - 1521*std::pow(x[1],2) + 914*std::pow(x[1],3) - 33*std::pow(x[1],4)) + std::pow(x[0],4)*(-36 + 232*x[1] - 249*std::pow(x[1],2) + 2*std::pow(x[1],3) + 15*std::pow(x[1],4)) - 2*std::pow(x[0],3)*(-36 + 368*x[1] - 649*std::pow(x[1],2) + 258*std::pow(x[1],3) + 23*std::pow(x[1],4)))/30."]], "petsc_options": {"ksp_type": "tfqmr", "ksp_rtol": "1E-7", "ksp_max_it": 100000, "ksp_view": null, "ksp_monitor_true_residual": null, "pc_type": "fieldsplit", "pc_fieldsplit_detect_saddle_point": null, "pc_fieldsplit_type": "schur", "pc_fieldsplit_schur_fact_type": "full", "pc_fieldsplit_schur_precondition": "selfp", "fieldsplit_0_ksp_type": "preonly", "fieldsplit_0_pc_type": "gamg", "fieldsplit_0_pc_gamg_type": "classical", "fieldsplit_1_ksp_type": "preonly", "fieldsplit_1_pc_type": "jacobi"}, "regs": {"4000": {"kn": 1.0}}, "polar_coord_syst": true, "bcs": {"3000": {"chi_tilde": 1, "theta_w": 0, "u_t_w": 0, "u_n_w": 0, "u_x_w": "1E300", "u_y_w": "1E300", "u_z_w": "1E300", "p_w": 0, "epsilon_w": 0}, "3100": {"chi_tilde": 1, "theta_w": 0, "u_t_w": 0, "u_n_w": 0, "u_x_w": "1E300", "u_y_w": "1E300", "u_z_w": "1E300", "p_w": 0, "epsilon_w": 0}, "3200": {"chi_tilde": 1, "theta_w": 0, "u_t_w": 0, "u_n_w": 0, "u_x_w": "1E300", "u_y_w": "1E300", "u_z_w": "1E300", "p_w": 0, "epsilon_w": 0}, "3300": {"chi_tilde": 1, "theta_w": 0, "u_t_w": 0, "u_n_w": 0, "u_x_w": "1E300", "u_y_w": "1E300", "u_z_w": "1E300", "p_w": 0, "epsilon_w": 0}}, "convergence_study": {"enable": false, "exact_solution": "esols/2d.cpp", "plot": false, "write_systemmatrix": false, "rescale_pressure": "zerominimum", "relative_error": true}, "postprocessing": {"write_pdfs": true, "write_vecs": false, "massflow": [], ...
+Study [''] :
+Mesh: ../../tests/square_manufactured_solution/meshes/square2.h5
+hmax: 0.35355339059415386
+Start assemble
+Write: square_manufactured_solution_2d_r13/assemble_0
+Finish assemble: 0.04075431823730469
+Start solve
+#PETSc Option Table entries:
+-fieldsplit_0_ksp_type preonly
+-fieldsplit_0_pc_gamg_type classical
+-fieldsplit_0_pc_type gamg
+-fieldsplit_1_ksp_type preonly
+-fieldsplit_1_pc_type jacobi
+-ksp_max_it 100000
+-ksp_monitor_true_residual
+-ksp_rtol 1E-7
+-ksp_type tfqmr
+-ksp_view
+-pc_fieldsplit_detect_saddle_point
+-pc_fieldsplit_schur_fact_type full
+-pc_fieldsplit_schur_precondition selfp
+-pc_fieldsplit_type schur
+-pc_type fieldsplit
+#End of PETSc Option Table entries
+  0 KSP preconditioned resid norm 2.597936549356e+03 true resid norm 8.762040455505e-01 ||r(i)||/||b|| 1.000000000000e+00
+  1 KSP preconditioned resid norm 3.138176654460e+01 true resid norm 2.100496921902e-01 ||r(i)||/||b|| 2.397269143608e-01
+  1 KSP preconditioned resid norm 5.361334633851e-01 true resid norm 2.097108587386e-01 ||r(i)||/||b|| 2.393402082580e-01
+  2 KSP preconditioned resid norm 2.543998613011e-01 true resid norm 2.081298817160e-01 ||r(i)||/||b|| 2.375358602519e-01
+  2 KSP preconditioned resid norm 2.783132920014e-01 true resid norm 2.064716284746e-01 ||r(i)||/||b|| 2.356433179271e-01
+  3 KSP preconditioned resid norm 1.965068378762e-01 true resid norm 2.064604440488e-01 ||r(i)||/||b|| 2.356305532910e-01
+  3 KSP preconditioned resid norm 2.778996175501e-01 true resid norm 2.064603698329e-01 ||r(i)||/||b|| 2.356304685893e-01
+  4 KSP preconditioned resid norm 1.965026225546e-01 true resid norm 2.064602661653e-01 ||r(i)||/||b|| 2.356303502748e-01
+  4 KSP preconditioned resid norm 2.778938023328e-01 true resid norm 2.064601347804e-01 ||r(i)||/||b|| 2.356302003271e-01
+  5 KSP preconditioned resid norm 1.964919982122e-01 true resid norm 2.064424004711e-01 ||r(i)||/||b|| 2.356099603962e-01
+  5 KSP preconditioned resid norm 2.778302230125e-01 true resid norm 2.063659129740e-01 ||r(i)||/||b|| 2.355226662351e-01
+  6 KSP preconditioned resid norm 1.959910700760e-01 true resid norm 2.053908775122e-01 ||r(i)||/||b|| 2.344098712568e-01
+  6 KSP preconditioned resid norm 2.691406001518e-01 true resid norm 1.936708854468e-01 ||r(i)||/||b|| 2.210340005051e-01
+  7 KSP preconditioned resid norm 1.901971585814e-01 true resid norm 1.934410721355e-01 ||r(i)||/||b|| 2.207717176357e-01
+  7 KSP preconditioned resid norm 2.689760207776e-01 true resid norm 1.934363684178e-01 ||r(i)||/||b|| 2.207663493454e-01
+  8 KSP preconditioned resid norm 1.899951516498e-01 true resid norm 1.930341080441e-01 ||r(i)||/||b|| 2.203072549418e-01
+  8 KSP preconditioned resid norm 2.478274381726e-01 true resid norm 1.643058726268e-01 ||r(i)||/||b|| 1.875201027218e-01
+  9 KSP preconditioned resid norm 1.382483961888e-01 true resid norm 1.022812571301e-01 ||r(i)||/||b|| 1.167322356585e-01
+  9 KSP preconditioned resid norm 1.228011701383e-01 true resid norm 4.208354145618e-02 ||r(i)||/||b|| 4.802938501584e-02
+ 10 KSP preconditioned resid norm 6.367281620952e-02 true resid norm 2.445889871241e-02 ||r(i)||/||b|| 2.791461513630e-02
+ 10 KSP preconditioned resid norm 6.996420588024e-02 true resid norm 1.584483722546e-02 ||r(i)||/||b|| 1.808350156100e-02
+ 11 KSP preconditioned resid norm 4.192485028247e-02 true resid norm 1.229229532479e-02 ||r(i)||/||b|| 1.402903283455e-02
+ 11 KSP preconditioned resid norm 5.242464511125e-02 true resid norm 1.040648112425e-02 ||r(i)||/||b|| 1.187677821975e-02
+ 12 KSP preconditioned resid norm 2.557582807223e-02 true resid norm 4.673756600151e-03 ||r(i)||/||b|| 5.334096120516e-03
+ 12 KSP preconditioned resid norm 1.894899633350e-02 true resid norm 1.298396161742e-03 ||r(i)||/||b|| 1.481842235647e-03
+ 13 KSP preconditioned resid norm 9.645671678906e-03 true resid norm 7.052302342772e-04 ||r(i)||/||b|| 8.048698677648e-04
+ 13 KSP preconditioned resid norm 1.072635107477e-02 true resid norm 4.821924311477e-04 ||r(i)||/||b|| 5.503197954819e-04
+ 14 KSP preconditioned resid norm 7.221533759782e-03 true resid norm 4.629380489532e-04 ||r(i)||/||b|| 5.283450256868e-04
+ 14 KSP preconditioned resid norm 1.008626318937e-02 true resid norm 4.651518740851e-04 ||r(i)||/||b|| 5.308716348061e-04
+ 15 KSP preconditioned resid norm 6.893007432721e-03 true resid norm 4.347662961574e-04 ||r(i)||/||b|| 4.961929796663e-04
+ 15 KSP preconditioned resid norm 8.940340222805e-03 true resid norm 3.799533788207e-04 ||r(i)||/||b|| 4.336357276027e-04
+ 16 KSP preconditioned resid norm 5.176984533294e-03 true resid norm 2.623248373031e-04 ||r(i)||/||b|| 2.993878408062e-04
+ 16 KSP preconditioned resid norm 5.153487045636e-03 true resid norm 2.301710921600e-04 ||r(i)||/||b|| 2.626911999880e-04
+ 17 KSP preconditioned resid norm 2.629322418257e-03 true resid norm 2.613113703314e-04 ||r(i)||/||b|| 2.982311844580e-04
+ 17 KSP preconditioned resid norm 2.715606845581e-03 true resid norm 2.824106963290e-04 ||r(i)||/||b|| 3.223115640280e-04
+ 18 KSP preconditioned resid norm 1.581241148057e-03 true resid norm 2.934077159039e-04 ||r(i)||/||b|| 3.348623159113e-04
+ 18 KSP preconditioned resid norm 1.940891054623e-03 true resid norm 2.996640826405e-04 ||r(i)||/||b|| 3.420026238891e-04
+ 19 KSP preconditioned resid norm 1.223556213431e-03 true resid norm 3.018272429475e-04 ||r(i)||/||b|| 3.444714099190e-04
+ 19 KSP preconditioned resid norm 1.570028084810e-03 true resid norm 3.016706299082e-04 ||r(i)||/||b|| 3.442926695444e-04
+ 20 KSP preconditioned resid norm 1.108053524615e-03 true resid norm 3.065694030288e-04 ||r(i)||/||b|| 3.498835740209e-04
+ 20 KSP preconditioned resid norm 1.566959295579e-03 true resid norm 3.071285000576e-04 ||r(i)||/||b|| 3.505216640088e-04
+ 21 KSP preconditioned resid norm 1.107869009970e-03 true resid norm 3.079834134140e-04 ||r(i)||/||b|| 3.514973652290e-04
+ 21 KSP preconditioned resid norm 1.566173407965e-03 true resid norm 3.092383692776e-04 ||r(i)||/||b|| 3.529296296313e-04
+ 22 KSP preconditioned resid norm 1.101342047765e-03 true resid norm 2.988989472581e-04 ||r(i)||/||b|| 3.411293850742e-04
+ 22 KSP preconditioned resid norm 1.444521397946e-03 true resid norm 2.889416847160e-04 ||r(i)||/||b|| 3.297652940354e-04
+ 23 KSP preconditioned resid norm 8.816833278962e-04 true resid norm 2.441429298033e-04 ||r(i)||/||b|| 2.786370720874e-04
+ 23 KSP preconditioned resid norm 9.785605156751e-04 true resid norm 1.723785845532e-04 ||r(i)||/||b|| 1.967333812581e-04
+ 24 KSP preconditioned resid norm 6.704381238356e-04 true resid norm 1.663600857573e-04 ||r(i)||/||b|| 1.898645487910e-04
+ 24 KSP preconditioned resid norm 9.432560404928e-04 true resid norm 1.655758788686e-04 ||r(i)||/||b|| 1.889695439200e-04
+ 25 KSP preconditioned resid norm 6.625396884530e-04 true resid norm 1.645552408235e-04 ||r(i)||/||b|| 1.878047033213e-04
+ 25 KSP preconditioned resid norm 9.289348478461e-04 true resid norm 1.632383461716e-04 ||r(i)||/||b|| 1.863017490053e-04
+ 26 KSP preconditioned resid norm 6.553386644926e-04 true resid norm 1.625779140159e-04 ||r(i)||/||b|| 1.855480065876e-04
+ 26 KSP preconditioned resid norm 9.262089531634e-04 true resid norm 1.625174838498e-04 ||r(i)||/||b|| 1.854790384444e-04
+ 27 KSP preconditioned resid norm 6.465010900215e-04 true resid norm 1.599558428739e-04 ||r(i)||/||b|| 1.825554717377e-04
+ 27 KSP preconditioned resid norm 7.376246698502e-04 true resid norm 1.287579458181e-04 ||r(i)||/||b|| 1.469497276028e-04
+ 28 KSP preconditioned resid norm 4.476689321220e-04 true resid norm 1.161660852343e-04 ||r(i)||/||b|| 1.325788049304e-04
+ 28 KSP preconditioned resid norm 5.618685748843e-04 true resid norm 1.098999823643e-04 ||r(i)||/||b|| 1.254273852334e-04
+ 29 KSP preconditioned resid norm 3.822786981536e-04 true resid norm 1.085796052601e-04 ||r(i)||/||b|| 1.239204564410e-04
+ 29 KSP preconditioned resid norm 5.332109770279e-04 true resid norm 1.082790557460e-04 ||r(i)||/||b|| 1.235774432860e-04
+ 30 KSP preconditioned resid norm 3.730638812924e-04 true resid norm 1.080972071699e-04 ||r(i)||/||b|| 1.233699019297e-04
+ 30 KSP preconditioned resid norm 5.232966132685e-04 true resid norm 1.079955112176e-04 ||r(i)||/||b|| 1.232538376946e-04
+ 31 KSP preconditioned resid norm 3.698932950263e-04 true resid norm 1.079699866908e-04 ||r(i)||/||b|| 1.232247068923e-04
+ 31 KSP preconditioned resid norm 5.230997405858e-04 true resid norm 1.079694136873e-04 ||r(i)||/||b|| 1.232240529311e-04
+ 32 KSP preconditioned resid norm 3.698713434802e-04 true resid norm 1.079655697347e-04 ||r(i)||/||b|| 1.232196658792e-04
+ 32 KSP preconditioned resid norm 5.230157050531e-04 true resid norm 1.079741868124e-04 ||r(i)||/||b|| 1.232295004351e-04
+ 33 KSP preconditioned resid norm 3.698279122739e-04 true resid norm 1.079742173609e-04 ||r(i)||/||b|| 1.232295352997e-04
+ 33 KSP preconditioned resid norm 5.230156492312e-04 true resid norm 1.079742526288e-04 ||r(i)||/||b|| 1.232295755504e-04
+ 34 KSP preconditioned resid norm 3.698278225277e-04 true resid norm 1.079728185112e-04 ||r(i)||/||b|| 1.232279388112e-04
+ 34 KSP preconditioned resid norm 5.226983126992e-04 true resid norm 1.078221288779e-04 ||r(i)||/||b|| 1.230559587410e-04
+ 35 KSP preconditioned resid norm 3.693715134555e-04 true resid norm 1.077122878943e-04 ||r(i)||/||b|| 1.229305986902e-04
+ 35 KSP preconditioned resid norm 5.220308434055e-04 true resid norm 1.076463861743e-04 ||r(i)||/||b|| 1.228553859355e-04
+ 36 KSP preconditioned resid norm 3.690763693298e-04 true resid norm 1.076351257326e-04 ||r(i)||/||b|| 1.228425345434e-04
+ 36 KSP preconditioned resid norm 5.219348459333e-04 true resid norm 1.076399451221e-04 ||r(i)||/||b|| 1.228480348485e-04
+ 37 KSP preconditioned resid norm 3.685463226316e-04 true resid norm 1.075035674997e-04 ||r(i)||/||b|| 1.226923888854e-04
+ 37 KSP preconditioned resid norm 4.937336838921e-04 true resid norm 1.048615444896e-04 ||r(i)||/||b|| 1.196770832343e-04
+ 38 KSP preconditioned resid norm 3.323903939455e-04 true resid norm 1.028213014432e-04 ||r(i)||/||b|| 1.173485810359e-04
+ 38 KSP preconditioned resid norm 4.494051593910e-04 true resid norm 1.012093600765e-04 ||r(i)||/||b|| 1.155088938364e-04
+ 39 KSP preconditioned resid norm 2.789816449601e-04 true resid norm 9.666277862319e-05 ||r(i)||/||b|| 1.103199410161e-04
+ 39 KSP preconditioned resid norm 2.946414488653e-04 true resid norm 9.126107408015e-05 ||r(i)||/||b|| 1.041550476097e-04
+ 40 KSP preconditioned resid norm 1.751609563785e-04 true resid norm 8.969093825413e-05 ||r(i)||/||b|| 1.023630725167e-04
+KSP Object: 1 MPI processes
+  type: tfqmr
+  maximum iterations=100000, initial guess is zero
+  tolerances:  relative=1e-07, absolute=1e-50, divergence=10000.
+  left preconditioning
+  using PRECONDITIONED norm type for convergence test
+PC Object: 1 MPI processes
+  type: fieldsplit
+    FieldSplit with Schur preconditioner, blocksize = 1, factorization FULL
+    Preconditioner for the Schur complement formed from Sp, an assembled approximation to S, which uses A00's diagonal's inverse
+    Split info:
+    Split number 0 Defined by IS
+    Split number 1 Defined by IS
+    KSP solver for A00 block
+      KSP Object: (fieldsplit_0_) 1 MPI processes
+        type: preonly
+        maximum iterations=10000, initial guess is zero
+        tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+        left preconditioning
+        using NONE norm type for convergence test
+      PC Object: (fieldsplit_0_) 1 MPI processes
+        type: gamg
+          type is MULTIPLICATIVE, levels=3 cycles=v
+            Cycles per PCApply=1
+            Using externally compute Galerkin coarse grid matrices
+            GAMG specific options
+              Threshold for dropping small values in graph on each level =         0.
+              Threshold scaling factor for each level not specified = 1.
+              Complexity:    grid = 1.1952
+        Coarse grid solver -- level -------------------------------
+          KSP Object: (fieldsplit_0_mg_coarse_) 1 MPI processes
+            type: preonly
+            maximum iterations=10000, initial guess is zero
+            tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+            left preconditioning
+            using NONE norm type for convergence test
+          PC Object: (fieldsplit_0_mg_coarse_) 1 MPI processes
+            type: bjacobi
+              number of blocks = 1
+              Local solve is same for all blocks, in the following KSP and PC objects:
+              KSP Object: (fieldsplit_0_mg_coarse_sub_) 1 MPI processes
+                type: preonly
+                maximum iterations=1, initial guess is zero
+                tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+                left preconditioning
+                using NONE norm type for convergence test
+              PC Object: (fieldsplit_0_mg_coarse_sub_) 1 MPI processes
+                type: lu
+                  out-of-place factorization
+                  tolerance for zero pivot 2.22045e-14
+                  using diagonal shift on blocks to prevent zero pivot [INBLOCKS]
+                  matrix ordering: nd
+                  factor fill ratio given 5., needed 1.
+                    Factored matrix follows:
+                      Mat Object: 1 MPI processes
+                        type: seqaij
+                        rows=23, cols=23
+                        package used to perform factorization: petsc
+                        total: nonzeros=529, allocated nonzeros=529
+                        total number of mallocs used during MatSetValues calls =0
+                          using I-node routines: found 5 nodes, limit used is 5
+                linear system matrix = precond matrix:
+                Mat Object: 1 MPI processes
+                  type: seqaij
+                  rows=23, cols=23
+                  total: nonzeros=529, allocated nonzeros=529
+                  total number of mallocs used during MatSetValues calls =0
+                    using I-node routines: found 5 nodes, limit used is 5
+            linear system matrix = precond matrix:
+            Mat Object: 1 MPI processes
+              type: seqaij
+              rows=23, cols=23
+              total: nonzeros=529, allocated nonzeros=529
+              total number of mallocs used during MatSetValues calls =0
+                using I-node routines: found 5 nodes, limit used is 5
+        Down solver (pre-smoother) on level 1 -------------------------------
+          KSP Object: (fieldsplit_0_mg_levels_1_) 1 MPI processes
+            type: chebyshev
+              eigenvalue estimates used:  min = 0.0999315, max = 1.09925
+              eigenvalues estimate via gmres min -1.43874, max 0.999315
+              eigenvalues estimated using gmres with translations  [0. 0.1; 0. 1.1]
+              KSP Object: (fieldsplit_0_mg_levels_1_esteig_) 1 MPI processes
+                type: gmres
+                  restart=30, using Classical (unmodified) Gram-Schmidt Orthogonalization with no iterative refinement
+                  happy breakdown tolerance 1e-30
+                maximum iterations=10, initial guess is zero
+                tolerances:  relative=1e-12, absolute=1e-50, divergence=10000.
+                left preconditioning
+                using PRECONDITIONED norm type for convergence test
+              estimating eigenvalues using noisy right hand side
+            maximum iterations=2, nonzero initial guess
+            tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+            left preconditioning
+            using NONE norm type for convergence test
+          PC Object: (fieldsplit_0_mg_levels_1_) 1 MPI processes
+            type: sor
+              type = local_symmetric, iterations = 1, local iterations = 1, omega = 1.
+            linear system matrix = precond matrix:
+            Mat Object: 1 MPI processes
+              type: seqaij
+              rows=72, cols=72
+              total: nonzeros=4080, allocated nonzeros=4080
+              total number of mallocs used during MatSetValues calls =0
+                not using I-node routines
+        Up solver (post-smoother) same as down solver (pre-smoother)
+        Down solver (pre-smoother) on level 2 -------------------------------
+          KSP Object: (fieldsplit_0_mg_levels_2_) 1 MPI processes
+            type: chebyshev
+              eigenvalue estimates used:  min = 0.0999267, max = 1.09919
+              eigenvalues estimate via gmres min -0.31091, max 0.999267
+              eigenvalues estimated using gmres with translations  [0. 0.1; 0. 1.1]
+              KSP Object: (fieldsplit_0_mg_levels_2_esteig_) 1 MPI processes
+                type: gmres
+                  restart=30, using Classical (unmodified) Gram-Schmidt Orthogonalization with no iterative refinement
+                  happy breakdown tolerance 1e-30
+                maximum iterations=10, initial guess is zero
+                tolerances:  relative=1e-12, absolute=1e-50, divergence=10000.
+                left preconditioning
+                using PRECONDITIONED norm type for convergence test
+              estimating eigenvalues using noisy right hand side
+            maximum iterations=2, nonzero initial guess
+            tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+            left preconditioning
+            using NONE norm type for convergence test
+          PC Object: (fieldsplit_0_mg_levels_2_) 1 MPI processes
+            type: sor
+              type = local_symmetric, iterations = 1, local iterations = 1, omega = 1.
+            linear system matrix = precond matrix:
+            Mat Object: (fieldsplit_0_) 1 MPI processes
+              type: seqaij
+              rows=430, cols=430
+              total: nonzeros=23612, allocated nonzeros=23612
+              total number of mallocs used during MatSetValues calls =0
+                using I-node routines: found 268 nodes, limit used is 5
+        Up solver (post-smoother) same as down solver (pre-smoother)
+        linear system matrix = precond matrix:
+        Mat Object: (fieldsplit_0_) 1 MPI processes
+          type: seqaij
+          rows=430, cols=430
+          total: nonzeros=23612, allocated nonzeros=23612
+          total number of mallocs used during MatSetValues calls =0
+            using I-node routines: found 268 nodes, limit used is 5
+    KSP solver for S = A11 - A10 inv(A00) A01
+      KSP Object: (fieldsplit_1_) 1 MPI processes
+        type: preonly
+        maximum iterations=10000, initial guess is zero
+        tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+        left preconditioning
+        using NONE norm type for convergence test
+      PC Object: (fieldsplit_1_) 1 MPI processes
+        type: jacobi
+        linear system matrix followed by preconditioner matrix:
+        Mat Object: (fieldsplit_1_) 1 MPI processes
+          type: schurcomplement
+          rows=75, cols=75
+            Schur complement A11 - A10 inv(A00) A01
+            A11
+              Mat Object: (fieldsplit_1_) 1 MPI processes
+                type: seqaij
+                rows=75, cols=75
+                total: nonzeros=1233, allocated nonzeros=1233
+                total number of mallocs used during MatSetValues calls =0
+                  using I-node routines: found 29 nodes, limit used is 5
+            A10
+              Mat Object: 1 MPI processes
+                type: seqaij
+                rows=75, cols=430
+                total: nonzeros=5586, allocated nonzeros=5586
+                total number of mallocs used during MatSetValues calls =0
+                  using I-node routines: found 29 nodes, limit used is 5
+            KSP of A00
+              KSP Object: (fieldsplit_0_) 1 MPI processes
+                type: preonly
+                maximum iterations=10000, initial guess is zero
+                tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+                left preconditioning
+                using NONE norm type for convergence test
+              PC Object: (fieldsplit_0_) 1 MPI processes
+                type: gamg
+                  type is MULTIPLICATIVE, levels=3 cycles=v
+                    Cycles per PCApply=1
+                    Using externally compute Galerkin coarse grid matrices
+                    GAMG specific options
+                      Threshold for dropping small values in graph on each level =                 0.
+                      Threshold scaling factor for each level not specified = 1.
+                      Complexity:    grid = 1.1952
+                Coarse grid solver -- level -------------------------------
+                  KSP Object: (fieldsplit_0_mg_coarse_) 1 MPI processes
+                    type: preonly
+                    maximum iterations=10000, initial guess is zero
+                    tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+                    left preconditioning
+                    using NONE norm type for convergence test
+                  PC Object: (fieldsplit_0_mg_coarse_) 1 MPI processes
+                    type: bjacobi
+                      number of blocks = 1
+                      Local solve is same for all blocks, in the following KSP and PC objects:
+                      KSP Object: (fieldsplit_0_mg_coarse_sub_) 1 MPI processes
+                        type: preonly
+                        maximum iterations=1, initial guess is zero
+                        tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+                        left preconditioning
+                        using NONE norm type for convergence test
+                      PC Object: (fieldsplit_0_mg_coarse_sub_) 1 MPI processes
+                        type: lu
+                          out-of-place factorization
+                          tolerance for zero pivot 2.22045e-14
+                          using diagonal shift on blocks to prevent zero pivot [INBLOCKS]
+                          matrix ordering: nd
+                          factor fill ratio given 5., needed 1.
+                            Factored matrix follows:
+                              Mat Object: 1 MPI processes
+                                type: seqaij
+                                rows=23, cols=23
+                                package used to perform factorization: petsc
+                                total: nonzeros=529, allocated nonzeros=529
+                                total number of mallocs used during MatSetValues calls =0
+                                  using I-node routines: found 5 nodes, limit used is 5
+                        linear system matrix = precond matrix:
+                        Mat Object: 1 MPI processes
+                          type: seqaij
+                          rows=23, cols=23
+                          total: nonzeros=529, allocated nonzeros=529
+                          total number of mallocs used during MatSetValues calls =0
+                            using I-node routines: found 5 nodes, limit used is 5
+                    linear system matrix = precond matrix:
+                    Mat Object: 1 MPI processes
+                      type: seqaij
+                      rows=23, cols=23
+                      total: nonzeros=529, allocated nonzeros=529
+                      total number of mallocs used during MatSetValues calls =0
+                        using I-node routines: found 5 nodes, limit used is 5
+                Down solver (pre-smoother) on level 1 -------------------------------
+                  KSP Object: (fieldsplit_0_mg_levels_1_) 1 MPI processes
+                    type: chebyshev
+                      eigenvalue estimates used:  min = 0.0999315, max = 1.09925
+                      eigenvalues estimate via gmres min -1.43874, max 0.999315
+                      eigenvalues estimated using gmres with translations  [0. 0.1; 0. 1.1]
+                      KSP Object: (fieldsplit_0_mg_levels_1_esteig_) 1 MPI processes
+                        type: gmres
+                          restart=30, using Classical (unmodified) Gram-Schmidt Orthogonalization with no iterative refinement
+                          happy breakdown tolerance 1e-30
+                        maximum iterations=10, initial guess is zero
+                        tolerances:  relative=1e-12, absolute=1e-50, divergence=10000.
+                        left preconditioning
+                        using PRECONDITIONED norm type for convergence test
+                      estimating eigenvalues using noisy right hand side
+                    maximum iterations=2, nonzero initial guess
+                    tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+                    left preconditioning
+                    using NONE norm type for convergence test
+                  PC Object: (fieldsplit_0_mg_levels_1_) 1 MPI processes
+                    type: sor
+                      type = local_symmetric, iterations = 1, local iterations = 1, omega = 1.
+                    linear system matrix = precond matrix:
+                    Mat Object: 1 MPI processes
+                      type: seqaij
+                      rows=72, cols=72
+                      total: nonzeros=4080, allocated nonzeros=4080
+                      total number of mallocs used during MatSetValues calls =0
+                        not using I-node routines
+                Up solver (post-smoother) same as down solver (pre-smoother)
+                Down solver (pre-smoother) on level 2 -------------------------------
+                  KSP Object: (fieldsplit_0_mg_levels_2_) 1 MPI processes
+                    type: chebyshev
+                      eigenvalue estimates used:  min = 0.0999267, max = 1.09919
+                      eigenvalues estimate via gmres min -0.31091, max 0.999267
+                      eigenvalues estimated using gmres with translations  [0. 0.1; 0. 1.1]
+                      KSP Object: (fieldsplit_0_mg_levels_2_esteig_) 1 MPI processes
+                        type: gmres
+                          restart=30, using Classical (unmodified) Gram-Schmidt Orthogonalization with no iterative refinement
+                          happy breakdown tolerance 1e-30
+                        maximum iterations=10, initial guess is zero
+                        tolerances:  relative=1e-12, absolute=1e-50, divergence=10000.
+                        left preconditioning
+                        using PRECONDITIONED norm type for convergence test
+                      estimating eigenvalues using noisy right hand side
+                    maximum iterations=2, nonzero initial guess
+                    tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+                    left preconditioning
+                    using NONE norm type for convergence test
+                  PC Object: (fieldsplit_0_mg_levels_2_) 1 MPI processes
+                    type: sor
+                      type = local_symmetric, iterations = 1, local iterations = 1, omega = 1.
+                    linear system matrix = precond matrix:
+                    Mat Object: (fieldsplit_0_) 1 MPI processes
+                      type: seqaij
+                      rows=430, cols=430
+                      total: nonzeros=23612, allocated nonzeros=23612
+                      total number of mallocs used during MatSetValues calls =0
+                        using I-node routines: found 268 nodes, limit used is 5
+                Up solver (post-smoother) same as down solver (pre-smoother)
+                linear system matrix = precond matrix:
+                Mat Object: (fieldsplit_0_) 1 MPI processes
+                  type: seqaij
+                  rows=430, cols=430
+                  total: nonzeros=23612, allocated nonzeros=23612
+                  total number of mallocs used during MatSetValues calls =0
+                    using I-node routines: found 268 nodes, limit used is 5
+            A01
+              Mat Object: 1 MPI processes
+                type: seqaij
+                rows=430, cols=75
+                total: nonzeros=5586, allocated nonzeros=5586
+                total number of mallocs used during MatSetValues calls =0
+                  using I-node routines: found 268 nodes, limit used is 5
+        Mat Object: 1 MPI processes
+          type: seqaij
+          rows=75, cols=75
+          total: nonzeros=2655, allocated nonzeros=2655
+          total number of mallocs used during MatSetValues calls =0
+            using I-node routines: found 29 nodes, limit used is 5
+  linear system matrix = precond matrix:
+  Mat Object: 1 MPI processes
+    type: seqaij
+    rows=505, cols=505
+    total: nonzeros=36017, allocated nonzeros=36017
+    total number of mallocs used during MatSetValues calls =0
+      using I-node routines: found 276 nodes, limit used is 5
+None
+Write: square_manufactured_solution_2d_r13/solve_0
+Finished solve: 0.39993906021118164
+Start sigma projection
+Finished sigma projection: 0.006308317184448242
+Calculated minimum value: -0.004946056300361497
+Pressure rescaling with shift= -0.004946056300361497
+avg vel: 5.809399507885866e-05
+Write: square_manufactured_solution_2d_r13/avgvel_0
+Start line_integrals
+Finish line_integrals: 0.00021958351135253906
+Write fields..
+Write square_manufactured_solution_2d_r13/theta_0.xdmf
+Write square_manufactured_solution_2d_r13/theta_0.pdf
+Write square_manufactured_solution_2d_r13/s_0.xdmf
+Write square_manufactured_solution_2d_r13/s_0.pdf
+Write square_manufactured_solution_2d_r13/s_x_0.pdf
+Write square_manufactured_solution_2d_r13/s_y_0.pdf
+Write square_manufactured_solution_2d_r13/p_0.xdmf
+Write square_manufactured_solution_2d_r13/p_0.pdf
+Write square_manufactured_solution_2d_r13/u_0.xdmf
+Write square_manufactured_solution_2d_r13/u_0.pdf
+Write square_manufactured_solution_2d_r13/u_x_0.pdf
+Write square_manufactured_solution_2d_r13/u_y_0.pdf
+Write square_manufactured_solution_2d_r13/sigma_0.xdmf
+Write square_manufactured_solution_2d_r13/sigma_xx_0.pdf
+Write square_manufactured_solution_2d_r13/sigma_xy_0.pdf
+Write square_manufactured_solution_2d_r13/sigma_yx_0.pdf
+Write square_manufactured_solution_2d_r13/sigma_yy_0.pdf
+Write square_manufactured_solution_2d_r13/f_heat_0.xdmf
+Write square_manufactured_solution_2d_r13/f_mass_0.xdmf
+Write square_manufactured_solution_2d_r13/f_body_0.xdmf
+Write square_manufactured_solution_2d_r13/f_s_0.xdmf
+Write square_manufactured_solution_2d_r13/f_sigma_0.xdmf

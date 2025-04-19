@@ -1,0 +1,19 @@
+Folder Name,Solved Time 1,Solved Time 2,Solved Time 3,Solved Time 4,Iteration 1,Iteration 2,Iteration 3,Iteration 4
+additive\_asm\_jacobi,0.177,0.889,-,-,245,642,-,-
+additive\_asm\_none,0.154,0.746,-,-,245,642,-,-
+additive\_bjacobi\_jacobi,0.151,0.767,-,-,245,642,-,-
+additive\_bjacobi\_none,0.139,0.686,-,-,245,642,-,-
+additive\_cholesky\_jacobi,0.150,0.817,13.242,-,146,250,829,-
+additive\_cholesky\_none,0.137,0.785,13.367,-,146,250,829,-
+additive\_eisenstat\_jacobi,0.116,0.572,-,-,202,531,-,-
+additive\_eisenstat\_none,0.090,0.572,-,-,202,531,-,-
+additive\_gamg\_jacobi,0.249,0.792,6.354,-,143,285,640,-
+additive\_gamg\_none,0.215,0.760,6.007,-,143,285,640,-
+additive\_hypre\_jacobi,0.277,0.820,8.173,-,187,256,680,-
+additive\_hypre\_none,0.228,0.857,8.200,-,187,256,680,-
+additive\_icc\_jacobi,0.131,0.644,-,-,247,515,-,-
+additive\_icc\_none,0.129,0.658,-,-,247,515,-,-
+additive\_ilu\_jacobi,0.133,0.657,-,-,245,642,-,-
+additive\_ilu\_none,0.122,0.698,-,-,245,642,-,-
+additive\_sor\_jacobi,0.089,0.604,-,-,202,531,-,-
+additive\_sor\_none,0.112,0.477,-,-,202,531,-,-
