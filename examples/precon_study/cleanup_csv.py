@@ -7,11 +7,13 @@ df = pd.read_csv("log_data_gmres_fgmres.csv", delimiter=",")
 # ------------------------------
 # 1. Spalte "Solved Times" in separate Spalten aufteilen
 # ------------------------------
+
+
 def process_solved_times(x):
     """
     - Entfernt eventuelle Anführungszeichen.
     - Teilt den String anhand von ", " in einzelne Werte.
-    - Wandelt jeden Wert in einen Float um, rundet ihn auf 3 Nachkommastellen und formatiert ihn als String.
+    - Wandelt jeden Wert in einen Float um, rundet ihn auf 3 Nachkommastellen.
     - Falls weniger als 4 Werte vorhanden sind, wird mit "0.000" aufgefüllt.
     - Liefert eine Liste mit genau 4 Einträgen zurück.
     """
@@ -27,12 +29,12 @@ def process_solved_times(x):
 
 df["Folder Name"] = df["Folder Name"].apply(lambda x: x.replace("_", r"\_"))
 
-# Wende die Funktion an, sodass in der Spalte "Solved Times" Listen gespeichert werden
+# "Solved Times" Listen
 df["Solved Times"] = df["Solved Times"].apply(process_solved_times)
 
-# Erzeuge für jeden Solved Time-Wert eine eigene Spalte (Solved Time 1, Solved Time 2, etc.)
+# Erzeuge für jeden Solved Time-Wert eine eigene Spalte
 for i in range(4):
-    df[f"Solved Time {i+1}"] = df["Solved Times"].apply(lambda x: x[i])
+    df[f"Solved Time {i + 1}"] = df["Solved Times"].apply(lambda x: x[i])
 
 # Entferne die ursprüngliche Spalte "Solved Times"
 df.drop(columns=["Solved Times"], inplace=True)
@@ -40,14 +42,15 @@ df.drop(columns=["Solved Times"], inplace=True)
 # ------------------------------
 # 2. Spalte "Iterations" in separate Spalten aufteilen
 # ------------------------------
-# Hier wird davon ausgegangen, dass in der Spalte "Iterations" Werte als String stehen.
 iterations_split = df["Iterations"].apply(lambda x: x.strip('"').split(", "))
 # Ermittle, wie viele Iterationswerte in einer Zeile maximal vorkommen
 max_iter = iterations_split.apply(len).max()
 
 # Für jede Iteration eine eigene Spalte erzeugen
 for i in range(max_iter):
-    df[f"Iteration {i+1}"] = iterations_split.apply(lambda x: x[i] if i < len(x) else "-")
+    df[f"Iteration {i + 1}"] = iterations_split.apply(
+        lambda x: x[i] if i < len(x) else "-"
+    )
 
 # Entferne die ursprüngliche Spalte "Iterations"
 df.drop(columns=["Iterations"], inplace=True)
@@ -58,8 +61,16 @@ df.drop(columns=["Iterations"], inplace=True)
 df_schur = df[df["Folder Name"].str.contains("schur", case=False, regex=False)]
 
 # Alle übrigen Zeilen in ein separates DataFrame
-df_additive = df[df["Folder Name"].str.contains("additive", case=False, regex=False)]
-df_multiplicative = df[df["Folder Name"].str.contains("multiplicative", case=False, regex=False)]
+df_additive = df[df["Folder Name"].str.contains(
+    "additive",
+    case=False,
+    regex=False
+)]
+df_multiplicative = df[df["Folder Name"].str.contains(
+    "multiplicative",
+    case=False,
+    regex=False
+)]
 df_gmres = df[df["Folder Name"].str.contains("gmres", case=False, regex=False)]
 # Speichern der beiden neuen CSV-Dateien
 df_schur.to_csv("log_schur.csv", index=False)
