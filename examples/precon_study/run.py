@@ -173,10 +173,10 @@ def update_and_run_simulations():
                 }
                 updates.update(constant_options)
 
-        print(f"Updating YAML with the following options: {json.dumps(
-            updates,
-            indent=2
-        )}")
+        print(
+            f"Updating YAML with the following options: "
+            f"{json.dumps(updates, indent=2)}"
+        )
 
         output_file_name = f"config_update_{idx + 1}.yml"
         yaml_output_file_path = os.path.join(
