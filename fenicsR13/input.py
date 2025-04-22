@@ -155,7 +155,7 @@ class Input:
         # ==============
         # - write_pdfs: Write all solution fields as PDF plot
         # - write_vecs: Write all solution fields as vectors
-        # - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
+        # - flows: List of BC IDs for <mass|heat> flow J=int_bc dot(<u|s>,n)dl
         # - line_integrals: List of line integral dicts:
         #   - name: Name for output
         #   - expr: Expression to evaluate
@@ -165,7 +165,7 @@ class Input:
         postprocessing:
         write_pdfs: True
         write_vecs: True
-        massflow: []
+        flows: []
         line_integrals:
           - name: "avg(abs(uy(x,y=0.5)))"
             expr: abs(uy)/8
@@ -349,7 +349,7 @@ class Input:
                         "type": "boolean",
                         "required": True
                     },
-                    "massflow": {
+                    "flows": {
                         "type": "list",
                         "required": True,
                         "schema": {"type": "integer"}

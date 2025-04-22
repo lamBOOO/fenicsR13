@@ -117,6 +117,7 @@ regs:
 #     - u_z_w: Value for z-velocity at wall (for polar_coord_syst=false&&nsd=3)
 #     - p_w: Value for pressure at wall
 #     - epsilon_w: Inflow-model parameter <=> Weight of pressure prescription
+polar_coord_syst: true
 bcs:
   3000: # outer
     chi_tilde: 1.0
@@ -159,7 +160,7 @@ convergence_study:
 # ==============
 # - write_pdfs: Write all solution fields as PDF plot
 # - write_vecs: Write all solution fields as vectors
-# - massflow: List of BC IDs to compute massflow J=int_bc dot(u,n) ds
+# - flows: List of BC IDs for <mass|heat> flow J=int_bc dot(<u|s>,n)dl
 # - line_integrals: List of line integral dicts:
 #   - name: Name for output
 #   - expr: Expression to evaluate
@@ -169,7 +170,7 @@ convergence_study:
 postprocessing:
   write_pdfs: False
   write_vecs: False
-  massflow: []
+  flows: []
   line_integrals:
     - name: "avg(abs(uy(x,y=0.5)))"
       expr: abs(uy)/8

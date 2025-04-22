@@ -1,7 +1,7 @@
 from paraview.simple import *
 
 for kn in [0.05, 0.1, 0.2, 0.4]:
-    for i in range(0,4):
+    for i in range(0,8):
         filename = '../thermal-flow-between-cylinders' + str(kn) + '/u_' + str(i) + '.xdmf'
         uxdmf = paraview.simple.Xdmf3ReaderS(
             registrationName='u.xdmf', FileName=[filename])

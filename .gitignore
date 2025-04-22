@@ -52,6 +52,10 @@ examples/**/*.pdf
 *solve_*
 *avgvel_*
 
+# Ignore other outputs
+massflow_*
+heatflow_*
+
 # Ignore pip folder
 *egg-info/*
 

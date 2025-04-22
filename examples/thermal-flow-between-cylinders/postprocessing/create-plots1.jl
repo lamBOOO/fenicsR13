@@ -4,7 +4,7 @@ using DataFrames
 
 # Function to load data for a given Kn value
 function load_data(Kn)
-    return [CSV.File("u_$(Kn)_$i.csv") |> DataFrame for i in 0:3]
+    return [CSV.File("u_$(Kn)_$i.csv") |> DataFrame for i in 4:7]
 end
 
 # Load the data for Kn = 0.05, 0.1, 0.2, 0.4
@@ -32,7 +32,7 @@ for (Kn_value, pos) in zip(kn_list, positions)
     ax = Axis(f[pos...], title = "Kn = $(Kn_value)")
     data_list = data_kn_values[Kn_value]
 
-    # Plot datasets for i = 0:3
+    # Plot datasets for i = 4:7
     for (i, d) in enumerate(data_list)
         lines!(
             ax,
@@ -43,7 +43,7 @@ for (Kn_value, pos) in zip(kn_list, positions)
             linestyle = line_styles[i],
             linewidth = 2
         )
-        if i == length(data_dict)
+        if i == length(data_list)
             Legend(f[i, 2], ax)
         end
     end
