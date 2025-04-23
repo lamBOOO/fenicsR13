@@ -1,0 +1,3 @@
+Folder Name,Solved Time 1,Solved Time 2,Solved Time 3,Solved Time 4,Iteration 1,Iteration 2,Iteration 3,Iteration 4
+fgmres\_schur\_lower\_hypre\_jacobi,0.235,0.470,3.214,-,97,211,482,-
+gmres\_schur\_lower\_hypre\_jacobi,0.187,0.327,1.803,22.964,85,134,237,776
