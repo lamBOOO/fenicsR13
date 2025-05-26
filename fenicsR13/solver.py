@@ -162,6 +162,7 @@ class Solver:
         }
         self.form_lhs = None
         self.form_rhs = None
+        self.solver = None
         self.sol = {
             "theta": None,
             "s": None,
@@ -1129,16 +1130,20 @@ class Solver:
         # solver.parameters['relative_tolerance'] = 1E-2
 
         # Use PETSc solver with provided arguments
-        solver = df.PETScKrylovSolver()
+        self.solver = df.PETScKrylovSolver()
         opts = PETSc.Options()
         if "log_view" in self.petsc_options.keys():
             PETSc.Log().begin()
         for key in self.petsc_options:
             opts[key] = self.petsc_options[key]
         print(opts.view())
-        solver.set_from_options()
-        solver.set_operator(AA)
-        solver.solve(sol.vector(), LL)
+        self.solver.set_from_options()
+        self.solver.set_operator(AA)
+        self.solver.solve(sol.vector(), LL)
+
+        # Print matrix (serial only)
+        # A_mat = self.solver.ksp().getOperators()[0]
+        # print(A_mat.getValues(range(A_mat.getSizes()[0][0]), range(A_mat.getSizes()[1][0])))
 
         end_t = time_module.time()
         secs = end_t - start_t
@@ -1850,6 +1855,9 @@ class Solver:
         r"""
         Write the discrete system matrix and the RHS vector.
 
+        Also writes the ownership range of the matrix and the dofmap of the
+        function space to the output folder.
+
         Can be used to analyze e.g. condition number.
         Include writing of :math:`\mathbf{A}` and :math:`\mathbf{b}`
         of :math:`\mathbf{A} \mathbf{x} = \mathbf{b}`.
@@ -1916,12 +1924,38 @@ class Solver:
         <BLANKLINE>
         """
         file_ending = ".mat"
-        A_name = self.output_folder + "A_{}".format(self.time) + file_ending
-        b_name = self.output_folder + "b_{}".format(self.time) + file_ending
+
+        # Write left-hand side matrix
+        A_name = self.output_folder + "A_{}_{}".format(self.time, self.rank) + file_ending
         print("Write {}".format(A_name))
         np.savetxt(A_name, df.assemble(self.form_lhs).array())
+
+        # Write right-hand side vector
+        b_name = self.output_folder + "b_{}_{}".format(self.time, self.rank) + file_ending
         print("Write {}".format(b_name))
         np.savetxt(b_name, df.assemble(self.form_rhs))
+
+        # Write ownership
+        ownership_name = self.output_folder + "ownership_{}_{}".format(self.time, self.rank) + file_ending
+        print("Write {}".format(ownership_name))
+        np.savetxt(ownership_name, self.solver.ksp().getOperators()[0].getOwnershipRange())
+
+        # Write dofmap
+        if self.mode == "heat":
+            w = self.mxd_fspaces["heat"]
+        elif self.mode == "stress":
+            w = self.mxd_fspaces["stress"]
+        elif self.mode == "r13":
+            w = self.mxd_fspaces["r13"]
+        dofmap_vec = df.Function(w)
+        for i in range(5):
+            dofmap_name = self.output_folder + "dofmap_{}_{}".format(self.time, self.rank) + file_ending
+            w.sub(i).dofmap().set(dofmap_vec.split()[i].vector(), 1.0 * i)
+        print("Write {}".format(dofmap_name))
+        np.savetxt(dofmap_name, dofmap_vec.vector())
+
+        for var in self.elems:
+            print("[", self.rank, "] ", str(var), " DOFs: ", len(self.fspaces[var].dofmap().dofs()), " (blocksize: ", self.fspaces[var].dofmap().block_size(), ")", sep="")
 
     def __write_xdmf(self, name, field, write_pdf):
         """
