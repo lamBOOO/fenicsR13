@@ -1965,7 +1965,8 @@ class Solver:
         print("Write {}".format(ownership_name))
         np.savetxt(
             ownership_name,
-            self.solver.ksp().getOperators()[0].getOwnershipRange()
+            self.solver.ksp().getOperators()[0].getOwnershipRange(),
+            fmt='%-i'
         )
 
         # Write dofmap
@@ -1983,7 +1984,7 @@ class Solver:
             )
             w.sub(i).dofmap().set(dofmap_vec.split()[i].vector(), 1.0 * i)
         print("Write {}".format(dofmap_name))
-        np.savetxt(dofmap_name, dofmap_vec.vector())
+        np.savetxt(dofmap_name, dofmap_vec.vector(), fmt='%-i')
 
         for var in self.elems:
             print(
