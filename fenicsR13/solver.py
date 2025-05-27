@@ -124,6 +124,9 @@ class Solver:
         self.write_systemmatrix = self.params["convergence_study"][
             "write_systemmatrix"
         ]
+        self.write_mpi_information = self.params["convergence_study"][
+            "write_mpi_information"
+        ]
         self.rescale_p = self.params["convergence_study"]["rescale_pressure"]
         self.relative_error = self.params["convergence_study"][
             "relative_error"
@@ -1143,7 +1146,11 @@ class Solver:
 
         # Print matrix (serial only)
         # A_mat = self.solver.ksp().getOperators()[0]
-        # print(A_mat.getValues(range(A_mat.getSizes()[0][0]), range(A_mat.getSizes()[1][0])))
+        # print(
+        #     A_mat.getValues(
+        #         range(A_mat.getSizes()[0][0]), range(A_mat.getSizes()[1][0])
+        #     )
+        # )
 
         end_t = time_module.time()
         secs = end_t - start_t
@@ -1793,6 +1800,8 @@ class Solver:
             self.__write_parameters()
         if self.write_systemmatrix:
             self.__write_discrete_system()
+        if self.write_mpi_information:
+            self.__write_mpi_information()
 
     def __write_solutions(self):
         """Write all solutions fields."""
@@ -1910,14 +1919,14 @@ class Solver:
         >>> solver.form_rhs = L
         >>> solver.output_folder = "./"
         >>> solver._Solver__write_discrete_system()
-        Write ./A_0.mat
-        Write ./b_0.mat
-        >>> print(open("A_0.mat","r").read())
+        Write ./A_0_0.mat
+        Write ./b_0_0.mat
+        >>> print(open("A_0_0.mat","r").read())
         2.0000...00000e+00 -2.0000...00000e+00 0.000...000000e+00
         -2.0000...00000e+00 4.0000...00000e+00 -2.0000...00000e+00
         0.0000...00000e+00 -2.0000...00000e+00 2.000...000000e+00
         <BLANKLINE>
-        >>> print(open("b_0.mat","r").read())
+        >>> print(open("b_0_0.mat","r").read())
         2.500000000000000000e-01
         5.000000000000000000e-01
         2.500000000000000000e-01
@@ -1926,19 +1935,38 @@ class Solver:
         file_ending = ".mat"
 
         # Write left-hand side matrix
-        A_name = self.output_folder + "A_{}_{}".format(self.time, self.rank) + file_ending
+        A_name = (
+            self.output_folder + "A_{}_{}".format(self.time, self.rank)
+            + file_ending
+        )
         print("Write {}".format(A_name))
         np.savetxt(A_name, df.assemble(self.form_lhs).array())
 
         # Write right-hand side vector
-        b_name = self.output_folder + "b_{}_{}".format(self.time, self.rank) + file_ending
+        b_name = (
+            self.output_folder + "b_{}_{}".format(self.time, self.rank)
+            + file_ending
+        )
         print("Write {}".format(b_name))
         np.savetxt(b_name, df.assemble(self.form_rhs))
 
+    def __write_mpi_information(self):
+        r"""
+        Writes the ownership range of the matrix and the dofmap of the
+        function space to the output folder.
+        """
+        file_ending = ".mat"
+
         # Write ownership
-        ownership_name = self.output_folder + "ownership_{}_{}".format(self.time, self.rank) + file_ending
+        ownership_name = (
+            self.output_folder + "ownership_{}_{}".format(self.time, self.rank)
+            + file_ending
+        )
         print("Write {}".format(ownership_name))
-        np.savetxt(ownership_name, self.solver.ksp().getOperators()[0].getOwnershipRange())
+        np.savetxt(
+            ownership_name,
+            self.solver.ksp().getOperators()[0].getOwnershipRange()
+        )
 
         # Write dofmap
         if self.mode == "heat":
@@ -1949,13 +1977,20 @@ class Solver:
             w = self.mxd_fspaces["r13"]
         dofmap_vec = df.Function(w)
         for i in range(5):
-            dofmap_name = self.output_folder + "dofmap_{}_{}".format(self.time, self.rank) + file_ending
+            dofmap_name = (
+                self.output_folder + "dofmap_{}_{}".format(self.time, self.rank)
+                + file_ending
+            )
             w.sub(i).dofmap().set(dofmap_vec.split()[i].vector(), 1.0 * i)
         print("Write {}".format(dofmap_name))
         np.savetxt(dofmap_name, dofmap_vec.vector())
 
         for var in self.elems:
-            print("[", self.rank, "] ", str(var), " DOFs: ", len(self.fspaces[var].dofmap().dofs()), " (blocksize: ", self.fspaces[var].dofmap().block_size(), ")", sep="")
+            print(
+                "[", self.rank, "] ", str(var), " DOFs: ",
+                len(self.fspaces[var].dofmap().dofs()), " (blocksize: ",
+                self.fspaces[var].dofmap().block_size(), ")", sep=""
+            )
 
     def __write_xdmf(self, name, field, write_pdf):
         """

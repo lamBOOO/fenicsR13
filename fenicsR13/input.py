@@ -141,6 +141,7 @@ class Input:
         # - exact_solution: Path to exact solution in cpp-format to compare
         # - plot: Show errors in matplotlib window. PDF output is default
         # - write_systemmatrix: Writes out systemmatrix (LHS)
+        # - write_mpi_information: Write dofmap and ownership info per rank
         # - rescale_pressure: Rescale numerical pressure result for zero mean
         # - relative_errors: Use relative errors. If esol=0, use absolute.
         convergence_study:
@@ -148,6 +149,7 @@ class Input:
           exact_solution: esols/1_coeffs_sources_rot_noinflow.cpp
           plot: False
           write_systemmatrix: False
+          write_mpi_information: False
           rescale_pressure: True
           relative_error: True
 
@@ -429,6 +431,10 @@ class Input:
                         "required": True
                     },
                     "write_systemmatrix": {
+                        "type": "boolean",
+                        "required": True
+                    },
+                    "write_mpi_information": {
                         "type": "boolean",
                         "required": True
                     },

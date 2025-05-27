@@ -147,6 +147,7 @@ bcs:
 # - exact_solution: Path to exact solution in cpp-format to compare errors
 # - plot: Show errors in matplotlib window. PDF output is always per default.
 # - write_systemmatrix: Writes out systemmatrix (LHS) to use for analysis
+# - write_mpi_information: Write dofmap and ownership info per rank
 # - rescale_pressure: Shift numerical pressure (False,zeromean,zerominimum)
 # - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
 convergence_study:
@@ -154,6 +155,7 @@ convergence_study:
   exact_solution: esols/r13_kn0.005.cpp
   plot: False # to avoid error exit code due to $DISPLAY
   write_systemmatrix: False
+  write_mpi_information: False
   rescale_pressure: False
   relative_error: True
 
