@@ -5,7 +5,7 @@ EndIf
 
 // Settings
 res = 100;
-Mesh.CharacteristicLengthMax = 1.0 * 2^(-p);
+Mesh.CharacteristicLengthMax = 1.0 * Sqrt(2)^(-p);
 Mesh.MshFileVersion = 2.0;
 
 length=4;

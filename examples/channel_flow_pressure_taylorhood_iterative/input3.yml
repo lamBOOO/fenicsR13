@@ -1,19 +1,17 @@
 # General
 # =======
 # - output_folder: Used as output folder
-output_folder: results_channel_flow_pressure
+output_folder: out_3
 
 # Meshes
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  - channel0.h5
-  # - channel1.h5
-  # - channel2.h5
-  # - channel3.h5
-  # - channel4.h5
-  # - channel5.h5
-  # - channel6.h5
+  # - channel8.h5  # n=1
+  # - channel9.h5  # n=4
+  # - channel10.h5  # n=8
+  - channel11.h5  # n=16
+  # - channel12.h5  # n=32
 
 # Numerical Parameters
 # ====================
@@ -95,8 +93,9 @@ petsc_options:
   # pc_type: lu
   # pc_factor_mat_solver_type: mumps
   ksp_type: tfqmr
-  ksp_rtol: 1E-7
-  ksp_max_it: 1000
+  ksp_rtol: 1E+7
+  # ksp_norm_type: unpreconditioned
+  ksp_max_it: 3000
   ksp_view:
   ksp_monitor_true_residual:
   pc_type: fieldsplit
@@ -110,8 +109,8 @@ petsc_options:
   fieldsplit_0_pc_gamg_type: classical
   fieldsplit_1_ksp_type: preonly
   fieldsplit_1_pc_type: jacobi
-  ksp_view_mat: "ascii:A.mat"
-  ksp_view_rhs: "ascii:b.mat"
+  ksp_view_mat: "binary:out_3/A.binary"
+  ksp_view_rhs: "binary:out_3/b.binary"
   # ksp_view_mat: ":A.m:ascii_matlab"
   # ksp_view_mat: ":dump:binary_matlab"
 
@@ -187,13 +186,15 @@ bcs:
 # - exact_solution: Path to exact solution in cpp-format to compare errors
 # - plot: Show errors in matplotlib window. PDF output is always per default.
 # - write_systemmatrix: Writes out systemmatrix (LHS) to use for analysis
+# - write_mpi_information: Write dofmap and ownership info per rank
 # - rescale_pressure: Shift numerical pressure (False,zeromean,zerominimum)
 # - relative_errors: Use relative errors. If exact sol. is zero, use absolute.
 convergence_study:
   enable: False
   exact_solution: esols/01_coeffs.cpp
   plot: False # to avoid error exit code due to $DISPLAY
-  write_systemmatrix: True
+  write_systemmatrix: False
+  write_mpi_information: True
   rescale_pressure: False
   relative_error: True
 
