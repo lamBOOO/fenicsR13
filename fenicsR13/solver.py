@@ -1972,19 +1972,42 @@ class Solver:
         # Write dofmap
         if self.mode == "heat":
             w = self.mxd_fspaces["heat"]
+            num_fields = 2
         elif self.mode == "stress":
             w = self.mxd_fspaces["stress"]
+            num_fields = 3
         elif self.mode == "r13":
             w = self.mxd_fspaces["r13"]
-        dofmap_vec = df.Function(w)
-        for i in range(5):
+            num_fields = 5
+        dofmap_func = df.Function(w)
+        for i in range(num_fields):
             dofmap_name = (
                 self.output_folder + "dofmap_{}_{}".format(self.time, self.rank)
                 + file_ending
             )
-            w.sub(i).dofmap().set(dofmap_vec.split()[i].vector(), 1.0 * i)
+
+            # TODO: Remove that in the future
+            # dofmap_func.split()[i].vector()[:] += self.rank
+            # print(
+            #     self.rank, " ", dofmap_func.split()[i].vector()[:],
+            #     len(dofmap_func.split()[i].vector()[:])
+            # )
+
+            w.sub(i).dofmap().set(dofmap_func.split()[i].vector(), 1.0 * i)
         print("Write {}".format(dofmap_name))
-        np.savetxt(dofmap_name, dofmap_vec.vector(), fmt='%-i')
+        np.savetxt(dofmap_name, dofmap_func.vector(), fmt='%-i')
+
+        # TODO: Remove that in the future
+        # names = [
+        #     "theta", "s", "p", "u", "sigma"
+        # ]
+        # tmp = dofmap_func.split()
+        # print(tmp)
+        # for i, field in enumerate(tmp):
+        #     if field is not None:
+        #         print(field.vector())
+        #         print("DEBUG", names[i])
+        #         self.__write_xdmf(names[i] + "_dist", field, False)
 
         for var in self.elems:
             print(
