@@ -1,7 +1,7 @@
 # General
 # =======
 # - output_folder: Used as output folder
-output_folder: out_2
+output_folder: out_7
 
 # Meshes
 # ======
@@ -9,12 +9,12 @@ output_folder: out_2
 meshes:
   # - channel8.h5  # n=1
   # - channel9.h5  # n=4
-  - channel10.h5  # n=8
+  # - channel10.h5  # n=8
   # - channel11.h5  # n=16
   # - channel12.h5  # n=32
   # - channel13.h5  # n=64
   # - channel14.h5  # n=128
-  # - channel15.h5  # n=256
+  - channel15.h5  # n=256
 
 # Numerical Parameters
 # ====================
@@ -92,7 +92,6 @@ f_sigma: [[0,0],[0,0]]
 # - ksp_type: gmres  # Generalized Minimal Residual Method
 # - pc_type: icc  # incomplete Cholesky
 petsc_options:
-petsc_options:
   # ksp_type: preonly
   # pc_type: lu
   # pc_factor_mat_solver_type: mumps
@@ -114,8 +113,8 @@ petsc_options:
   fieldsplit_0_pc_gamg_type: classical
   fieldsplit_1_ksp_type: preonly
   fieldsplit_1_pc_type: jacobi
-  ksp_view_mat: "binary:out_2/A.binary"
-  ksp_view_rhs: "binary:out_2/b.binary"
+  ksp_view_mat: "binary:out_7/A.binary"
+  ksp_view_rhs: "binary:out_7/b.binary"
   # ksp_view_mat: ":A.m:ascii_matlab"
   # ksp_view_mat: ":dump:binary_matlab"
 
