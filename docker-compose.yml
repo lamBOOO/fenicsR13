@@ -35,6 +35,10 @@ services:
     stdin_open: true
     tty: true
     shm_size: "4000m" # MPI issue https://github.com/FEniCS/dolfinx/issues/994
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
 
 volumes:
   instant-cache:
