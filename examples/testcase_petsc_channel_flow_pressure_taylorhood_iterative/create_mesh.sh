@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for p in 8 9 10 11 12 13 14 15
+for p in 8 9 10 11 12 13 14 15 16 17
 do
   geoToH5 channel.geo channel"$p".h5 "-setnumber p $p"
 done
