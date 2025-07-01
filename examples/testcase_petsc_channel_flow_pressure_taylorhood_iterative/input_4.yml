@@ -1,20 +1,20 @@
 # General
 # =======
 # - output_folder: Used as output folder
-output_folder: out_7
+output_folder: out_4
 
 # Meshes
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  # - channel8.h5  # n=1
-  # - channel9.h5  # n=4
-  # - channel10.h5  # n=8
-  # - channel11.h5  # n=16
-  # - channel12.h5  # n=32
-  # - channel13.h5  # n=64
-  # - channel14.h5  # n=128
-  - channel15.h5  # n=256
+  # - channel_8.h5  # n=2
+  # - channel_9.h5  # n=4
+  # - channel_10.h5  # n=8
+  # - channel_11.h5  # n=16
+  - channel_12.h5  # n=32
+  # - channel_13.h5  # n=64
+  # - channel_14.h5  # n=128
+  # - channel_15.h5  # n=256
 
 # Numerical Parameters
 # ====================
@@ -113,8 +113,8 @@ petsc_options:
   fieldsplit_0_pc_gamg_type: classical
   fieldsplit_1_ksp_type: preonly
   fieldsplit_1_pc_type: jacobi
-  ksp_view_mat: "binary:out_7/A.binary"
-  ksp_view_rhs: "binary:out_7/b.binary"
+  ksp_view_mat: "binary:out_4/A.binary"
+  ksp_view_rhs: "binary:out_4/b.binary"
   # ksp_view_mat: ":A.m:ascii_matlab"
   # ksp_view_mat: ":dump:binary_matlab"
 
@@ -214,7 +214,7 @@ convergence_study:
 #   - end: End point
 #   - res: Sampling resolution of line
 postprocessing:
-  write_pdfs: True
+  write_pdfs: False
   write_vecs: False
   flows: []
   line_integrals: []
