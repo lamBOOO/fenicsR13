@@ -34,7 +34,7 @@ services:
           nocopy: true
     stdin_open: true
     tty: true
-    shm_size: "4000m" # MPI issue https://github.com/FEniCS/dolfinx/issues/994
+    shm_size: "10000m" # MPI issue https://github.com/FEniCS/dolfinx/issues/994
     ulimits:
       nofile:
         soft: 65536
