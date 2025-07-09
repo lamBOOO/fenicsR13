@@ -8,7 +8,6 @@ done
 # cleanup for sending
 rm out_*/*.h5
 rm out_*/*.xdmf
-rm out_*/*.pdf
 rm out_*/solve*
 rm out_*/assemble*
 rm out_*/avgvel*
