@@ -30,6 +30,7 @@ RUN \
     apt-get install -y \
     numdiff \
     htop \
+    time \
     imagemagick
 
 # Install any needed packages specified in requirements.txt
