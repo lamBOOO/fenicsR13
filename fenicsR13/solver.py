@@ -1817,7 +1817,7 @@ class Solver:
             self.__write_discrete_system()
         if self.write_mpi_information:
             self.__write_mpi_information()
-        
+
         # Copy input file to output folder for reproducibility
         self.write_input_file()
 
