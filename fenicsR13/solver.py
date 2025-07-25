@@ -62,9 +62,10 @@ class Solver:
 
     """
 
-    def __init__(self, params, mesh, time):
+    def __init__(self, params, mesh, time, input_file_path=None):
         """Initialize solver and setup variables from input parameters."""
         self.params = params  #: Doctest
+        self.input_file_path = input_file_path
         self.mesh = mesh.mesh
         self.regions = mesh.subdomains
         self.boundaries = mesh.boundaries
@@ -1776,6 +1777,20 @@ class Solver:
             print("Write: {}".format(path))
             file.write(str(content))
 
+    def write_input_file(self):
+        """Copy the input file to the output folder for reproducibility."""
+        if self.input_file_path and os.path.exists(self.input_file_path):
+            import shutil
+            # Ensure output directory exists
+            os.makedirs(self.output_folder, exist_ok=True)
+            # Get just the filename from the path
+            input_filename = os.path.basename(self.input_file_path)
+            # Create destination path
+            dest_path = os.path.join(self.output_folder, input_filename)
+            # Copy the file
+            shutil.copy2(self.input_file_path, dest_path)
+            print("Write: {}".format(dest_path))
+
     def write(self):
         """
         Write all solver data to separate folder.
@@ -1802,6 +1817,9 @@ class Solver:
             self.__write_discrete_system()
         if self.write_mpi_information:
             self.__write_mpi_information()
+        
+        # Copy input file to output folder for reproducibility
+        self.write_input_file()
 
     def __write_solutions(self):
         """Write all solutions fields."""

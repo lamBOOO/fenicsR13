@@ -115,7 +115,7 @@ def main():
 
             current_mesh = H5Mesh(mesh_name)
             print("hmax: " + str(current_mesh.hmax))
-            solver = Solver(params, current_mesh, p)
+            solver = Solver(params, current_mesh, p, inputfile)
             solver.assemble()
             solver.solve()
             solver.write()

@@ -1,0 +1,3 @@
+mode: heat
+other_data: test_value
+output_folder: test_output
