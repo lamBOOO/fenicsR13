@@ -61,3 +61,4 @@ heatflow_*
 
 # Ignore venv files
 venv
+test_output/
