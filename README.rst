@@ -17,16 +17,16 @@ fenicsR13
    :header-rows: 0
 
    * - Paper
-     - **Lambert Theisen**, **Manuel Torrilhon**. 2021. *fenicsR13: A Tensorial Mixed Finite Element Solver for theLinear R13 Equations Using the FEniCS Computing Platform*. ACM Trans. Math. Softw. 47, 2, Article 17 (April 2021), 29 pages, `10.1145/3442378 <https://dx.doi.org/10.1145/3442378>`_. `Preprint @ arXiv (Free PDF) <https://dl.acm.org/doi/10.1145/3442378?cid=99659694875>`_.
+     - **Lambert Theisen**, **Manuel Torrilhon**. 2021. *fenicsR13: A Tensorial Mixed Finite Element Solver for the Linear R13 Equations Using the FEniCS Computing Platform*. ACM Trans. Math. Softw. 47, 2, Article 17 (April 2021), 29 pages, `10.1145/3442378 <https://dx.doi.org/10.1145/3442378>`_. `Preprint @ arXiv (Free PDF) <https://dl.acm.org/doi/10.1145/3442378?cid=99659694875>`_.
 
 Main Features
 --------------------------------------------------------------------------------
 
 - Solving Steady 2D Linear R13 Equations in Normalized Form
-- Stabilization with: Continous Interior Penalty (CIP) or Galerkin Least Squares (GLS)
+- Stabilization with: Continuous Interior Penalty (CIP) or Galerkin Least Squares (GLS)
 - Option for convergence study with input for exact solution
 - Output in XDMF_/HDF5 and PDF
-- Arbitray finite element combinations (thanks to FEniCS_)
+- Arbitrary finite element combinations (thanks to FEniCS_)
 - Easy setup of parameter studies
 - Structured/Documented YAML_ input file format
 - Rarefied gas flow effects predictable: Knudsen paradox, Knudsen pump, ...
@@ -76,7 +76,7 @@ Make sure you installed Docker and it is running on your system. You can start t
     docker compose pull fenicsr13_release
     docker compose run --rm fenicsr13_release
 
-    ## 2) FOR DEVELOPERS (uncommend the last 3 lines of this block):
+    ## 2) FOR DEVELOPERS (uncomment the last 3 lines of this block):
     ## - Builds the "fenicsr13_debug"
     ## - Install an editable version of fenicsR13
     ## - The "pip"-command install an editable version of fenicsR13
@@ -122,7 +122,7 @@ To run a simulation execute the solver main program ``fenicsR13.py`` (which is l
 
 Output files will be written to a folder which is named after the ``output_folder`` keyword of the ``input.yml``. For immediate inspection the output folder contains simple visualizations in PDF files for each of the fields (temperature, pressure,...).
 
-The numerical results for each field is ouput into ``h5``-files, including mesh data and with corresponding ``xdmf``-file. The XDMF-files can be opened in Paraview to perform visualization, e.g., with ``Paraview > File > Open > u_0.xdmf > Apply filters``
+The numerical results for each field is output into ``h5``-files, including mesh data and with corresponding ``xdmf``-file. The XDMF-files can be opened in Paraview to perform visualization, e.g., with ``Paraview > File > Open > u_0.xdmf > Apply filters``
 
 .. _`gmsh`: http://gmsh.info/
 .. _`H5`: https://en.wikipedia.org/wiki/Hierarchical_Data_Format
@@ -257,9 +257,9 @@ Developer Tips
 - Matplotbib fails when having wrong backend on macOS
     - Fix: Add ``backend: TkAgg`` to ``~/.matplotlib/matplotlibrc`` file
 - Performance in Docker is way better than conda build, especially JIT compilation is faster
-- Get C++ inlcude paths: ``echo | gcc -E -Wp,-v -``
+- Get C++ include paths: ``echo | gcc -E -Wp,-v -``
 - Bessel functions in DOLFIN:
-    - C++17 functions cannpot be used. Boost functions also not per default. ``Expression("boost::math::cyl_bessel_i(0,atan2(x[1], x[0]))", degree=2)`` is allowed if one changes in file ``/usr/local/lib/python3.6/dist-packages/dolfin/jit/jit.py``
+    - C++17 functions cannot be used. Boost functions also not per default. ``Expression("boost::math::cyl_bessel_i(0,atan2(x[1], x[0]))", degree=2)`` is allowed if one changes in file ``/usr/local/lib/python3.6/dist-packages/dolfin/jit/jit.py``
 
         .. code-block:: python
 
@@ -343,14 +343,14 @@ macOS Native FEniCS Installation (not recommended)
 #. Install ``miniconda`` from `here <https://conda.io/projects/conda/en/latest/user-guide/install/macos.html>`_
     #. If using ``zsh``, add miniconda bins to PATH: ``export PATH="$HOME/ miniconda3/bin:$PATH"`` to ``~/.zshrc``
     #. Maybe, activation has to be done with executing ``<path to  miniconda>/bin/activate``
-    #. Optional: Create separate coda environment: ``conda creafenics-env``
+    #. Optional: Create separate conda environment: ``conda create fenics-env``
 #. Install FEniCS using conda: ``conda install -c conda-forge fenics``
-    #. Optional: Install ``matplobib``: ``conda install -c conda-forge  matplotlib``
+    #. Optional: Install ``matplotlib``: ``conda install -c conda-forge  matplotlib``
     #. Optional: Install ``meshio``: ``conda install -c mrossi meshio``
     #. Optional (for linting): ``conda install pylint``
     #. Install mshr with ``conda install -c conda-forge mshr``
-    #. Fix macOS bug in matplotbib: ``mkdir -p ~/.matplotlib; echo  "backend: TkAgg" > ~/.matplotlib/matplotlibrc``
-    #. XCode and command line developer tools msut be installed!
+    #. Fix macOS bug in matplotlib: ``mkdir -p ~/.matplotlib; echo  "backend: TkAgg" > ~/.matplotlib/matplotlibrc``
+    #. XCode and command line developer tools must be installed!
     #. Optional: Install Jupyter: ``conda install -c anaconda jupyter``
     #. Optional: Install documentation system: ``conda install -c anaconda  sphinx``
     #. Optional: ``conda install -c anaconda sympy``
@@ -365,7 +365,7 @@ Run a file with ``%run ../../fenicsr13/fenicsr13.py``
 
 **X11 Window Forwarding on OSX**
 
-See guide_ for the programs to install. Then source the ``open-macos-gui-tunnel.sh`` with ``. open-macos-gui-tunnel``. Afterwards, start the container and run the ``change-matplotbib-backend-tkagg.sh`` script to set the right ``matplotlib``'s output.
+See guide_ for the programs to install. Then source the ``open-macos-gui-tunnel.sh`` with ``. open-macos-gui-tunnel``. Afterwards, start the container and run the ``change-matplotlib-backend-tkagg.sh`` script to set the right ``matplotlib``'s output.
 
 .. _guide: http://joshuamccall.com/articles/docker.html
 
