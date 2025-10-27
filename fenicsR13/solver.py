@@ -1276,8 +1276,16 @@ class Solver:
             avgvel = df.assemble(
                 abs(df.inner(self.sol["u"], self.sol["u"])) * df.dx
             ) / vol
-            print("avg vel:", avgvel)
+            print("avgvel:", avgvel)
             self.write_content_to_file("avgvel", avgvel)
+
+            kinetic_energy_velocity = df.assemble(
+                0.5 * df.inner(self.sol["u"], self.sol["u"]) * df.dx
+            )
+            print("kinetic_energy_velocity:", kinetic_energy_velocity)
+            self.write_content_to_file(
+                "kinetic_energy_velocity", kinetic_energy_velocity
+            )
 
             u_vals = self.sol["u"].compute_vertex_values()
             max_norm_u = np.max(
