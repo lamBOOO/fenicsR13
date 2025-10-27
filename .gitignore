@@ -43,6 +43,14 @@
 tests/**/*.pdf
 examples/**/*.pdf
 
+# ifnore LaTeX files
+*.aux
+*.log
+*.out
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+
 # Ignore matrices
 *.mat
 
@@ -51,6 +59,7 @@ examples/**/*.pdf
 *assemble_*
 *solve_*
 *avgvel_*
+*max_norm_u_*
 
 # Ignore other outputs
 massflow_*
