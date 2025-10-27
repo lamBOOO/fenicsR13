@@ -2,14 +2,14 @@
 If(!Exists(p))
   p = 5;
 EndIf
+If(!Exists(sep_dist))
+  sep_dist = 0.5;
+EndIf
 
 // Settings
 res = 100;
 Mesh.CharacteristicLengthMax = 1.0 * 2^(-p);
 Mesh.MshFileVersion = 2.0;
-
-// Geometry
-sep_dist = 0.5;
 
 Point(1001) = {0, 0, 0, res};
 Point(1002) = {1, 0, 0, res};

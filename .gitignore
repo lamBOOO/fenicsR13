@@ -60,6 +60,7 @@ examples/**/*.pdf
 *solve_*
 *avgvel_*
 *max_norm_u_*
+*kinetic_energy_velocity_*
 
 # Ignore other outputs
 massflow_*

@@ -7,7 +7,14 @@ output_folder: results_rotating_cavity
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  - lid5.h5
+  - lid_0.1_4.h5
+  - lid_0.2_4.h5
+  - lid_0.3_4.h5
+  - lid_0.4_4.h5
+  - lid_0.5_4.h5
+  # - lid5.h5
+  # - lid6.h5
+  # - lid7.h5
 
 # Numerical Parameters
 # ====================
@@ -96,7 +103,7 @@ petsc_options:
 #     - kn: Knudsen number
 regs:
   4000:
-    kn: 0.1
+    kn: 1.0
 
 # Boundary Conditions
 # ===================
