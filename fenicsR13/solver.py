@@ -1279,6 +1279,13 @@ class Solver:
             print("avg vel:", avgvel)
             self.write_content_to_file("avgvel", avgvel)
 
+            u_vals = self.sol["u"].compute_vertex_values()
+            max_norm_u = np.max(
+                np.linalg.norm(u_vals.reshape(-1, self.nsd), axis=1)
+            )
+            print("max_norm_u:", max_norm_u)
+            self.write_content_to_file("max_norm_u", max_norm_u)
+
         def __line_integral_average(u, A, B, n):
             """
             Integrate u over segment [A, B] partitioned into n elements.
