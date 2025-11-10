@@ -22,6 +22,7 @@ prepare:docker:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
+    - docker pull quay.io/fenicsproject/stable:2019.1.0.r3 || true
     - docker tag quay.io/fenicsproject/stable:2019.1.0.r3 fenics_backup:2019.1.0.r3
     - docker push fenics_backup:2019.1.0.r3
     - docker pull $CI_REGISTRY_IMAGE:latest || true
