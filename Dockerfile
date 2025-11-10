@@ -1,6 +1,9 @@
 
 # Use FEniCS base image
-FROM quay.io/fenicsproject/stable:2019.1.0.r3
+FROM registry.git.rwth-aachen.de/lamboo/fenicsr13/fenics_backup:2019.1.0.r3
+# quay.io/fenicsproject/stable:2019.1.0.r3 doesn't work with newer Docker
+# This above is a backup created with an older Docker version that already used
+# the updated Manifest schema
 
 # Descriptions
 LABEL maintainer="Lambert Theisen <lambert.theisen@rwth-aachen.de>"
