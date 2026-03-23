@@ -70,13 +70,13 @@ Make sure you installed Docker and it is running on your system. You can start t
 
 .. code-block:: bash
 
-    ## 1) FOR USERS:
+    ## 1.A) FOR USERS:
     ## - Pulls and runs "fenicsr13_release" service
     ## - Uses preinstalled latest version of fenicsR13
     docker compose pull fenicsr13_release
     docker compose run --rm fenicsr13_release
 
-    ## 2) FOR DEVELOPERS (uncomment the last 3 lines of this block):
+    ## 1.B) FOR DEVELOPERS (uncomment the last 3 lines of this block):
     ## - Builds the "fenicsr13_debug"
     ## - Install an editable version of fenicsR13
     ## - The "pip"-command install an editable version of fenicsR13
@@ -85,6 +85,9 @@ Make sure you installed Docker and it is running on your system. You can start t
     # docker compose build fenicsr13_debug
     # docker compose run fenicsr13_debug
     # sudo pip install -e .
+
+    ## 2) [optional] On Windows, the line endings of the files in the repository might be in Windows format (CRLF) which can cause problems when executing scripts in the Linux-based Docker container. To fix this, you can run the following command in the root directory of the repository to convert all line endings to Unix format (LF):
+    sudo find . -type f -print0 | xargs -0 dos2unix
 
 When you run this for the first time, docker will pull (download and extract) the container image from our repository which is roughly 800MB and the download may require some patience. After the initial download the docker image will be stored (2-3 GB) on your system and any new run will start the container immediately.
 

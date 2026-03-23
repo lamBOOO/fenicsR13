@@ -34,7 +34,8 @@ RUN \
     numdiff \
     htop \
     time \
-    imagemagick
+    imagemagick \
+    dos2unix
 
 # Install any needed packages specified in requirements.txt
 # RUN pip install --trusted-host pypi.python.org -r requirements.txt
