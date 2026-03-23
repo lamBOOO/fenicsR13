@@ -965,6 +965,14 @@ class Solver:
         A[2] = c(s, psi)   + 0           + d(sigma, psi) - e(u, psi) + f(p, psi)
         A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)
         A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
+
+        # Augmented form (see below)
+        # A[4] += sum([(
+        #     df.dot(df.grad(p), df.grad(q))
+        # ) * df.dx(reg) for reg in regs.keys()]) + sum([(
+        #     df.dot(df.div(sigma), df.grad(q))
+        # ) * df.dx(reg) for reg in regs.keys()])
+
         # 2) Right-hand sides, linear functional L[..]:
         L[0] = + df.dot(f_s, r) * df.dx - sum([(
             bcs[bc]["theta_w"] * n(r)
@@ -988,6 +996,9 @@ class Solver:
                 - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
             ) * q
         ) * df.ds(bc) for bc in bcs.keys()])
+        
+        # Augmented form (see above)
+        # + df.dot(f_body, df.grad(q)) * df.dx
 
         # Combine all equations to compound weak form and add stabilization
         if self.mode == "heat":
