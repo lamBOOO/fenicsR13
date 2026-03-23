@@ -8,6 +8,8 @@ output_folder: results_lid_driven_cavity
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
   - lid5.h5
+  - lid6.h5
+  - lid7.h5
 
 # Numerical Parameters
 # ====================
@@ -34,7 +36,7 @@ elements:
     degree: 1
   s:
     shape: Lagrange
-    degree: 1
+    degree: 2
   p:
     shape: Lagrange
     degree: 1
@@ -43,10 +45,10 @@ elements:
     degree: 1
   sigma:
     shape: Lagrange
-    degree: 1
+    degree: 2
 stabilization:
   cip:
-    enable: True
+    enable: False
     delta_theta: 1.0
     delta_u: 1.0
     delta_p: 0.1
