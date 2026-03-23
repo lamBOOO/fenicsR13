@@ -996,7 +996,7 @@ class Solver:
                 - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
             ) * q
         ) * df.ds(bc) for bc in bcs.keys()])
-        
+
         # Augmented form (see above)
         # + df.dot(f_body, df.grad(q)) * df.dx
 
