@@ -349,3 +349,40 @@ class TestR13Convergence(object):
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
+
+    def test_r13_01_coeffs_nosources_rot_noinflow_p2p1p1p2p1(self):
+        r"""
+        Execute full linear R13 system test and check with reference errors.
+
+        Test case is similar to  [HU2026]_.
+
+        .. [HU2026] STABILITY AND CONVERGENCE OF MIXED FINITE ELEMENTS FOR LINEAR REGULARIZED 13-MOMENT EQUATIONS
+            SHUANG HU, HUITENG LI, AND ZHENNING CAI
+            arxiv: 2601.17904v1
+            (2026).
+
+        ==================== ===================================================
+        Parameter     Value
+        ==================== ===================================================
+        :math:`Kn`           :math:`1.0`
+        :math:`\dot{m}`      :math:`0`
+        :math:`r`            :math:`0`
+        :math:`\theta_w^1`   :math:`1.0`
+        :math:`v_t^1`        :math:`1.0`
+        :math:`v_n^1`        :math:`0`
+        :math:`p_w^1`        :math:`0`
+        :math:`\epsilon_w^1` :math:`0`
+        :math:`\theta_w^2`   :math:`2.0`
+        :math:`v_t^2`        :math:`1.0`
+        :math:`v_n^2`        :math:`0`
+        :math:`p_w^2`        :math:`0`
+        :math:`\epsilon_w^2` :math:`0`
+        Elements             :math:`P_2P_1P_1P_2P_1`
+        Stabilization        none
+        ==================== ===================================================
+        """
+        name = "r13_01_coeffs_nosources_rot_noinflow_p2p1p1p2p1"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
