@@ -958,6 +958,27 @@ class Solver:
         # Setup all equations
         A = [None] * 5
         L = [None] * 5
+
+        # testfunctions
+        # q, v, psi, r, kappa
+        # P, V, T,   H, THETA
+
+        c = 10 * [1]
+
+        def a2(u,p):
+            return sum([(
+                df.div(u) * p
+            ) * df.dx(reg) for reg in regs.keys()])
+        def a6(u,v):
+            return sum([(
+                df.inner(df.grad(u), df.grad(v))
+            ) * df.dx(reg) for reg in regs.keys()])
+
+        A[0] = 0 + a2(u, q) + 0 + 0 + 0
+        A[1] = -a2(v,p) + a6(u,v)
+
+
+
         # 1) Left-hand sides, bilinear form A[..]:
         # Changed inflow condition => minus before f(q, sigma)
         A[0] = a(s, r)     - b(theta, r) - c(r, sigma)   + 0         + 0
