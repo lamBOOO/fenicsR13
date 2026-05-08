@@ -991,10 +991,10 @@ class Solver:
             print("C{} = {}".format(i, eval("C{}".format(i))))
         # TODO
         gamma1 = 1
-        gamma2 = 0.1
+        gamma2 = 0.5
         gamma3 = 1
         gamma4 = 1
-        gamma5 = 0.1
+        gamma5 = 0.5
         gamma6 = 1
 
         def a2(u, p):
@@ -1020,9 +1020,12 @@ class Solver:
         def a9(sigma, u):
             return - C1  * sum([(
                 df.inner(
-                    to.gen3DTFdim2(sigma),
-                    # to.stf3d2(to.gen3d2(df.grad(u)))
-                    to.gen3DTFdim2(df.grad(u))  # TODO: Recheck
+                    # to.gen3DTFdim2(sigma),
+                    sigma,
+                    # to.stf3d2(to.gen3d2(df.grad(u)))  # TODO: Recheck
+                    # to.gen3DTFdim2(df.grad(u))
+                    # to.gen3d2(df.grad(u))
+                    df.grad(u)
                 )
             ) * df.dx(reg) for reg in regs.keys()])
         def a10(theta, kappa):
@@ -1042,7 +1045,7 @@ class Solver:
             ) * df.ds(bc) for bc in bcs.keys()])
         def a13(s, r):
             return sum([(
-                C10 / regs[reg]["kn"] * df.inner(s, r)
+                - C10 / regs[reg]["kn"] * df.inner(s, r)  # TODO: minus C10 diff to PDF
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 (C6*C6/gamma6) * n(s) * n(r)
                 + gamma3 * (t1(s) * t1(r) + t2(s) * t2(r))
@@ -1050,14 +1053,17 @@ class Solver:
         def a14(sigma, r):
             return sum([(
                 -C6 * df.inner(
-                    to.gen3DTFdim2(sigma),
-                    to.gen3DTFdim2(df.grad(r))  # TODO
+                    # to.gen3DTFdim2(sigma),
+                    sigma,
+                    # to.gen3DTFdim2(df.grad(r))  # TODO: Recheck
                     # to.stf3d2(to.gen3d2(df.grad(r)))
+                    # to.gen3d2(df.grad(r))
+                    df.grad(r)
                 )
             ) * df.dx(reg) for reg in regs.keys()])
         def a15(sigma, tau):
             return sum([(
-                C7/regs[reg]["kn"] * df.inner(
+                - C7/regs[reg]["kn"] * df.inner(  # TODO: minus C7 diff to PDF
                     to.gen3DTFdim2(sigma),
                     to.gen3DTFdim2(tau)
                 )
