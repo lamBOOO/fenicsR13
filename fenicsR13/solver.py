@@ -959,33 +959,126 @@ class Solver:
         A = [None] * 5
         L = [None] * 5
 
+        # p, u, sigma, s, theta (Lambert)
+        # p, v, tau, h, theta (Luke)
         # testfunctions
-        # q, v, psi, r, kappa
-        # P, V, T,   H, THETA
+        # q, v, psi, r, kappa (Lambert)
+        # P, V, T,   H, THETA (Luke)
 
-        c = 10 * [1]
+        # Luke presentation
+        chi_tau = 0.3339  # in [0,1]
+        chi_h = 0.4441  # in [0,2/3]
+        # Burnett coeff for Maxwell molecules
+        omega_2 = 2
+        omega_3 = 3
+        theta_2 = 45/8
+        Pr = 2/3
 
-        def a2(u,p):
+        C1 = chi_tau * np.sqrt(omega_2)
+        C2 = (2-chi_tau * omega_2)  # > 0
+        C3 = chi_h * np.sqrt(theta_2)
+        C4 = 5/(2*Pr) - chi_h * theta_2
+        C5 = 1  # = C1
+        C6 = omega_3/np.sqrt(omega_2 * theta_2)  # = C9
+        C7 = - chi_tau
+        C8 = 1  # = C3
+        C9 = 1
+        C10 = - chi_h
+
+        # print all constants for documentation purposes
+        print("Constants:")
+        for i in range(1, 11):
+            print("C{} = {}".format(i, eval("C{}".format(i))))
+        # TODO
+        gamma1 = 1
+        gamma2 = 0.1
+        gamma3 = 1
+        gamma4 = 1
+        gamma5 = 0.1
+        gamma6 = 1
+
+        def a2(u, p):
             return sum([(
                 df.div(u) * p
             ) * df.dx(reg) for reg in regs.keys()])
-        def a6(u,v):
+        def a6(u, v):
+            return C2  * sum([(
+                # Volume terms in Omega
+                regs[reg]["kn"] * df.inner(
+                    to.stf3d2(to.gen3d2(df.grad(u))),
+                    to.stf3d2(to.gen3d2(df.grad(v)))
+                )
+            ) * df.dx(reg) for reg in regs.keys()]) + sum([(
+                # Boundary terms on Gamma
+                n(v) * n(u) / (bcs[bc]["epsilon_w"] + 0.00001)  # TODO
+                - gamma1 * (t1(v) * t1(u) + t2(v) * t2(u))
+            ) * df.ds(bc) for bc in bcs.keys()])
+        def a8(u, s):
             return sum([(
-                df.inner(df.grad(u), df.grad(v))
+                - gamma2 * (t1(u) * t1(s) + t2(u) * t2(s))
+            ) * df.ds(bc) for bc in bcs.keys()])
+        def a9(sigma, u):
+            return - C1  * sum([(
+                df.inner(
+                    to.gen3DTFdim2(sigma),
+                    # to.stf3d2(to.gen3d2(df.grad(u)))
+                    to.gen3DTFdim2(df.grad(u))  # TODO: Recheck
+                )
             ) * df.dx(reg) for reg in regs.keys()])
-
-        A[0] = 0 + a2(u, q) + 0 + 0 + 0
-        A[1] = -a2(v,p) + a6(u,v)
+        def a10(theta, kappa):
+            return sum([(
+                C4 * regs[reg]["kn"] * df.inner(
+                    df.grad(theta),
+                    df.grad(kappa)
+                )
+            ) * df.dx(reg) for reg in regs.keys()]) + sum([(
+                (gamma4 - gamma5*gamma5/gamma6) * theta * kappa
+            ) * df.ds(bc) for bc in bcs.keys()])
+        def a11(theta, s):
+            return sum([(
+                - C3 * df.inner(s, df.grad(theta))
+            ) * df.dx(reg) for reg in regs.keys()]) + sum([(
+                (C6*gamma5/gamma6) * theta * n(s)
+            ) * df.ds(bc) for bc in bcs.keys()])
+        def a13(s, r):
+            return sum([(
+                C10 / regs[reg]["kn"] * df.inner(s, r)
+            ) * df.dx(reg) for reg in regs.keys()]) + sum([(
+                (C6*C6/gamma6) * n(s) * n(r)
+                + gamma3 * (t1(s) * t1(r) + t2(s) * t2(r))
+            ) * df.ds(bc) for bc in bcs.keys()])
+        def a14(sigma, r):
+            return sum([(
+                -C6 * df.inner(
+                    to.gen3DTFdim2(sigma),
+                    to.gen3DTFdim2(df.grad(r))  # TODO
+                    # to.stf3d2(to.gen3d2(df.grad(r)))
+                )
+            ) * df.dx(reg) for reg in regs.keys()])
+        def a15(sigma, tau):
+            return sum([(
+                C7/regs[reg]["kn"] * df.inner(
+                    to.gen3DTFdim2(sigma),
+                    to.gen3DTFdim2(tau)
+                )
+            ) * df.dx(reg) for reg in regs.keys()])
 
 
 
         # 1) Left-hand sides, bilinear form A[..]:
         # Changed inflow condition => minus before f(q, sigma)
-        A[0] = a(s, r)     - b(theta, r) - c(r, sigma)   + 0         + 0
-        A[1] = b(kappa, s) + 0           + 0             + 0         + 0
-        A[2] = c(s, psi)   + 0           + d(sigma, psi) - e(u, psi) + f(p, psi)
-        A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)
-        A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
+        # A[0] = a13(s, r)     - b(theta, r) + a14(sigma,r)   + 0         + 0
+        # A[1] = a11(kappa, s) + a10(theta,kappa)           + 0             + 0         + 0
+        # A[2] = c(s, psi)   + 0           + a15(sigma, psi) - e(u, psi) + f(p, psi)
+        # A[3] = a9(sigma, v)           -a8(v,s)           + 0   + a6(u,v)         + a2(v, p)
+        # A[4] = 0           + 0           + 0   - a2(u,q)   + 0
+
+        # New doesnt work
+        A[0] = 0       + a2(u,q)    + 0                + 0            + 0
+        A[1] = a2(v,p) + a6(u,v)    + 0                + a8(v,s)      + a9(sigma,v)
+        A[2] = 0       + 0          + a10(theta,kappa) + a11(kappa,s) + 0
+        A[3] = 0       - a8(u,r)    - a11(theta,r)     + a13(s,r)     + a14(sigma,r)
+        A[4] = 0       - a9(psi,u)  + 0                - a14(psi, s)  + a15(sigma,psi)
 
         # Augmented form (see below)
         # A[4] += sum([(
@@ -995,28 +1088,43 @@ class Solver:
         # ) * df.dx(reg) for reg in regs.keys()])
 
         # 2) Right-hand sides, linear functional L[..]:
-        L[0] = + df.dot(f_s, r) * df.dx - sum([(
-            bcs[bc]["theta_w"] * n(r)
+        # L[0] = + df.dot(f_s, r) * df.dx - sum([(
+        #     bcs[bc]["theta_w"] * n(r)
+        # ) * df.ds(bc) for bc in bcs.keys()])
+        # # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
+        # L[1] = (f_heat - cpl * f_mass) * kappa * df.dx
+        # L[2] = + df.inner(
+        #     to.gen3DTFdim2(f_sigma), to.gen3DTFdim2(psi)
+        # ) * df.dx - sum([(
+        #     + t1(v1[bc]) * nt1(psi)
+        #     + t2(v1[bc]) * nt2(psi)
+        #     + (
+        #         + n(v1[bc])
+        #         - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
+        #     ) * nn(psi)
+        # ) * df.ds(bc) for bc in bcs.keys()])
+        # L[3] = + df.dot(f_body, v) * df.dx
+        # L[4] = + (f_mass * q) * df.dx - sum([(
+        #     (
+        #         + n(v1[bc])
+        #         - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
+        #     ) * q
+        # ) * df.ds(bc) for bc in bcs.keys()])
+
+        # New E13:
+        L[0] = 0
+        L[1] = + df.inner(f_body, v) * df.dx + sum([(
+            - bcs[bc]["p_w"] * n(v)
+            + n(v) * n(v1[bc])/(bcs[bc]["epsilon_w"] + 0.00001)  # TODO
         ) * df.ds(bc) for bc in bcs.keys()])
-        # Use div(u)=f_mass to remain sym. (density-form doesnt need this):
-        L[1] = (f_heat - cpl * f_mass) * kappa * df.dx
-        L[2] = + df.inner(
-            to.gen3DTFdim2(f_sigma), to.gen3DTFdim2(psi)
-        ) * df.dx - sum([(
-            + t1(v1[bc]) * nt1(psi)
-            + t2(v1[bc]) * nt2(psi)
-            + (
-                + n(v1[bc])
-                - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
-            ) * nn(psi)
+        L[2] = sum([(
+            bcs[bc]["theta_w"] * kappa * (gamma4 - gamma5*gamma5/gamma6)
         ) * df.ds(bc) for bc in bcs.keys()])
-        L[3] = + df.dot(f_body, v) * df.dx
-        L[4] = + (f_mass * q) * df.dx - sum([(
-            (
-                + n(v1[bc])
-                - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
-            ) * q
+        L[3] = sum([(
+            - C6 * gamma5/gamma6 * bcs[bc]["theta_w"] * n(r)
+            + gamma2 * (t1(v1[bc]) * t1(r) + t2(v1[bc]) * t2(r))
         ) * df.ds(bc) for bc in bcs.keys()])
+        L[4] = 0
 
         # Augmented form (see above)
         # + df.dot(f_body, df.grad(q)) * df.dx
