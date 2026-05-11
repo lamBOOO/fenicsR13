@@ -232,7 +232,7 @@ class Input:
             "mode": {
                 "type": "string",
                 "required": True,
-                "allowed": ["heat", "stress", "r13"]
+                "allowed": ["heat", "stress", "r13", "r14"]
             },
             "regs": {
                 "type": "dict",
@@ -580,6 +580,21 @@ class Input:
                         }
                     },
                     "sigma": {
+                        "type": "dict",
+                        "required": True,
+                        "schema": {
+                            "shape": {
+                                "type": "string",
+                                "required": True
+                            },
+                            "degree": {
+                                "type": "integer",
+                                "required": True,
+                                "min": 0
+                            }
+                        }
+                    },
+                    "R": {
                         "type": "dict",
                         "required": True,
                         "schema": {

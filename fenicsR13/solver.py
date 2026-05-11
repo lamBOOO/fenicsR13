@@ -400,7 +400,7 @@ class Solver:
             msh, self.mxd_elems["r13"]
         )
         # 4) r14
-        r13_elems = r13_elems + [self.elems["R"]]
+        r14_elems = r13_elems + [self.elems["R"]]
         self.mxd_elems["r14"] = df.MixedElement(r14_elems)
         self.mxd_fspaces["r14"] = df.FunctionSpace(
             msh, self.mxd_elems["r14"]
@@ -681,8 +681,8 @@ class Solver:
             (theta, s, p, u, sigma) = df.TrialFunctions(w_r13)
             (kappa, r, q, v, psi) = df.TestFunctions(w_r13)
         elif self.mode == "r14":
-            (theta, s, R, p, u, sigma) = df.TrialFunctions(w_r14)
-            (kappa, r, Q, q, v, psi) = df.TestFunctions(w_r14)
+            (theta, s, p, u, sigma, R) = df.TrialFunctions(w_r14)
+            (kappa, r, q, v, psi, Q) = df.TestFunctions(w_r14)
         else:
             # Pure heat or pure stress: setup all functions..
             (theta, s) = df.TrialFunctions(w_heat)
@@ -901,7 +901,7 @@ class Solver:
         
         def j(s, Q):
             return sum([(
-                - (1/15) * s * df.grad(Q)
+                - (1/15) * df.inner(s, df.grad(Q))
             ) * df.dx(reg) for reg in regs.keys()])  + sum([(
                 (1/30) * n(s) * Q
             ) * df.ds(bc) for bc in bcs.keys()])
@@ -1243,8 +1243,8 @@ class Solver:
             ) = sol.split()
         elif self.mode == "r14":
             (
-                self.sol["theta"], self.sol["s"], self.sol["R"],
-                self.sol["p"], self.sol["u"], self.sol["sigma"]
+                self.sol["theta"], self.sol["s"],
+                self.sol["p"], self.sol["u"], self.sol["sigma"], self.sol["R"]
             ) = sol.split()
 
         # Special treatment for sigma
@@ -1673,7 +1673,7 @@ class Solver:
 
         """
 
-        if self.mode = "r14":
+        if self.mode == "r14":
             raise NotImplementedError("Error calculation for r14 not implemented yet.")
 
         field_e_i = df.interpolate(field_e_, v_field)
