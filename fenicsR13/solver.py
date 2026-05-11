@@ -135,6 +135,7 @@ class Solver:
         self.var_ranks = {
             "theta": 0,
             "s": 1,
+            "R": 0,
             "p": 0,
             "u": 1,
             "sigma": 2,
@@ -142,6 +143,7 @@ class Solver:
         self.elems = {
             "theta": None,
             "s": None,
+            "R": None,
             "p": None,
             "u": None,
             "sigma": None,
@@ -149,6 +151,7 @@ class Solver:
         self.fspaces = {
             "theta": None,
             "s": None,
+            "R": None,
             "p": None,
             "u": None,
             "sigma": None,
@@ -157,11 +160,13 @@ class Solver:
             "heat": None,
             "stress": None,
             "r13": None,
+            "r14": None,
         }
         self.mxd_fspaces = {
             "heat": None,
             "stress": None,
             "r13": None,
+            "r14": None,
         }
         self.form_lhs = None
         self.form_rhs = None
@@ -169,6 +174,7 @@ class Solver:
         self.sol = {
             "theta": None,
             "s": None,
+            "R": None,
             "p": None,
             "u": None,
             "sigma": None,
@@ -176,6 +182,7 @@ class Solver:
         self.esol = {
             "theta": None,
             "s": None,
+            "R": None,
             "p": None,
             "u": None,
             "sigma": None,
@@ -391,6 +398,12 @@ class Solver:
         self.mxd_elems["r13"] = df.MixedElement(r13_elems)
         self.mxd_fspaces["r13"] = df.FunctionSpace(
             msh, self.mxd_elems["r13"]
+        )
+        # 4) r14
+        r13_elems = r13_elems + [self.elems["R"]]
+        self.mxd_elems["r14"] = df.MixedElement(r14_elems)
+        self.mxd_fspaces["r14"] = df.FunctionSpace(
+            msh, self.mxd_elems["r14"]
         )
 
     def __check_regions(self):
@@ -646,7 +659,7 @@ class Solver:
         tau_momentum = df.Constant(self.tau_momentum)
         tau_stress = df.Constant(self.tau_stress)
 
-        # Define custom measeasures for boundary edges and inner edges
+        # Define custom measures for boundary edges and inner edges
         df.dx = df.Measure("dx", domain=mesh, subdomain_data=regions)
         df.ds = df.Measure("ds", domain=mesh, subdomain_data=boundaries)
         df.dS = df.Measure("dS", domain=mesh, subdomain_data=boundaries)
@@ -663,9 +676,13 @@ class Solver:
         w_heat = self.mxd_fspaces["heat"]
         w_stress = self.mxd_fspaces["stress"]
         w_r13 = self.mxd_fspaces["r13"]
+        w_r14 = self.mxd_fspaces["r14"]
         if self.mode == "r13":
             (theta, s, p, u, sigma) = df.TrialFunctions(w_r13)
             (kappa, r, q, v, psi) = df.TestFunctions(w_r13)
+        elif self.mode == "r14":
+            (theta, s, R, p, u, sigma) = df.TrialFunctions(w_r14)
+            (kappa, r, Q, q, v, psi) = df.TestFunctions(w_r14)
         else:
             # Pure heat or pure stress: setup all functions..
             (theta, s) = df.TrialFunctions(w_heat)
@@ -684,7 +701,7 @@ class Solver:
         f_s = self.f_s
 
         # Decouple heat/stress switch
-        if self.mode == "r13":
+        if self.mode == "r13" or self.mode == "r14":
             cpl = 1
         else:
             cpl = 0
@@ -745,6 +762,11 @@ class Solver:
         else:
             incl_delta = 1
 
+        if self.mode == "r14":
+            r14_a_change = 1
+        else:
+            r14_a_change = 0
+
         # Sub functionals:
         # 1) Diagonals:
 
@@ -759,6 +781,7 @@ class Solver:
                 )
                 - 24 / 75 * regs[reg]["kn"] * df.div(s) * df.div(r)
                 + 4 / 5 * incl_delta * regs[reg]["kn"] * df.div(s) * df.div(r)
+                - 20 / 25 * r14_a_change * regs[reg]["kn"] * df.div(s) * df.div(r)
                 + 4 / 15 * (1 / regs[reg]["kn"]) * df.inner(s, r)
             ) * df.dx(reg) for reg in regs.keys()]) + sum([(
                 + 1 / (2 * bcs[bc]["chi_tilde"]) * n(s) * n(r)
@@ -864,6 +887,25 @@ class Solver:
         #         p * n(v)
         #     ) * df.ds(bc) for bc in bcs.keys()])
 
+        def i(R, Q):
+            return sum([(
+                + (1 / (180 * regs[reg]["kn"])) * R * Q
+                
+                + ((7 * regs[reg]["kn"]) / 360) * df.inner(
+                    df.grad(R),
+                    df.grad(Q)
+                )
+            ) * df.dx(reg) for reg in regs.keys()])  + sum([(
+                + bcs[bc]["chi_tilde"] * (1/75) * R * Q
+            ) * df.ds(bc) for bc in bcs.keys()])
+        
+        def j(s, Q):
+            return sum([(
+                - (1/15) * s * df.grad(Q)
+            ) * df.dx(reg) for reg in regs.keys()])  + sum([(
+                (1/30) * n(s) * Q
+            ) * df.ds(bc) for bc in bcs.keys()])
+
         # 3.1) CIP Stabilization:
         def j_theta(theta, kappa):
             return (
@@ -956,15 +998,16 @@ class Solver:
                     ])
                 })
         # Setup all equations
-        A = [None] * 5
-        L = [None] * 5
+        A = [None] * 6
+        L = [None] * 6
         # 1) Left-hand sides, bilinear form A[..]:
         # Changed inflow condition => minus before f(q, sigma)
-        A[0] = a(s, r)     - b(theta, r) - c(r, sigma)   + 0         + 0
-        A[1] = b(kappa, s) + 0           + 0             + 0         + 0
-        A[2] = c(s, psi)   + 0           + d(sigma, psi) - e(u, psi) + f(p, psi)
-        A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)
-        A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)
+        A[0] = a(s, r)     - b(theta, r) - c(r, sigma)   + 0         + 0           - j(r, R)
+        A[1] = b(kappa, s) + 0           + 0             + 0         + 0           + 0
+        A[2] = c(s, psi)   + 0           + d(sigma, psi) - e(u, psi) + f(p, psi)   + 0
+        A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)     + 0
+        A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)     + 0
+        A[5] = j(s, Q)     + 0           + 0             + 0         + 0           +i(R, Q)
 
         # Augmented form (see below)
         # A[4] += sum([(
@@ -996,6 +1039,7 @@ class Solver:
                 - bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * bcs[bc]["p_w"]
             ) * q
         ) * df.ds(bc) for bc in bcs.keys()])
+        L[5] = 0
 
         # Augmented form (see above)
         # + df.dot(f_body, df.grad(q)) * df.dx
@@ -1031,6 +1075,23 @@ class Solver:
                     + gls_stress(p, q, u, v, sigma, psi)
                 )
             )
+        elif self.mode == "r14":
+            self.form_lhs = sum(A) + (
+                cip * (j_theta(theta, kappa) + j_u(u, v) + j_p(p, q))
+                + gls * df.lhs(
+                    gls_heat(theta, kappa, s, r)
+                    + gls_stress(p, q, u, v, sigma, psi)
+                )
+            )
+            self.form_rhs = sum(L) + (
+                gls * df.rhs(
+                    gls_heat(theta, kappa, s, r)
+                    + gls_stress(p, q, u, v, sigma, psi)
+                )
+            )
+        else:
+            raise Exception("Unknown mode: {}".format(self.mode))
+        
 
     def solve(self):
         """
@@ -1092,6 +1153,8 @@ class Solver:
             w = self.mxd_fspaces["stress"]
         elif self.mode == "r13":
             w = self.mxd_fspaces["r13"]
+        elif self.mode == "r14":
+            w = self.mxd_fspaces["r14"]
 
         print("Start assemble")
         sys.stdout.flush()
@@ -1178,8 +1241,14 @@ class Solver:
                 self.sol["theta"], self.sol["s"],
                 self.sol["p"], self.sol["u"], self.sol["sigma"]
             ) = sol.split()
+        elif self.mode == "r14":
+            (
+                self.sol["theta"], self.sol["s"], self.sol["R"],
+                self.sol["p"], self.sol["u"], self.sol["sigma"]
+            ) = sol.split()
+
         # Special treatment for sigma
-        if self.mode == "stress" or self.mode == "r13":
+        if self.mode == "stress" or self.mode == "r13" or self.mode == "r14":
             print("Start sigma projection")
             sys.stdout.flush()
             start_t = time_module.time()
@@ -1518,6 +1587,8 @@ class Solver:
             self.esol["sigma"] = df.CompiledExpression(
                 esol.Stress(), degree=2
             )
+        if self.mode == "r14":
+            raise NotImplementedError("Exact solution for r14 not implemented yet.")
 
     def __calc_sf_mean(self, scalar_function):
         """
@@ -1601,6 +1672,10 @@ class Solver:
         .. [6] `DOLFIN documentation <https://fenicsproject.org/docs/dolfin/>`_
 
         """
+
+        if self.mode = "r14":
+            raise NotImplementedError("Error calculation for r14 not implemented yet.")
+
         field_e_i = df.interpolate(field_e_, v_field)
         field_i = df.interpolate(field_, v_field)
         error = df.Function(v_field)
