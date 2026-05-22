@@ -991,11 +991,50 @@ class Solver:
             print("C{} = {}".format(i, eval("C{}".format(i))))
         # TODO
         gamma1 = 1
-        gamma2 = 0.5
+        gamma2 = 0.0001
         gamma3 = 1
         gamma4 = 1
-        gamma5 = 0.5
+        gamma5 = 0.0001
         gamma6 = 1
+        # From luke
+        # pi = np.pi
+        # gamma1 = -np.sqrt(2/pi)
+        # gamma2 = (
+        #     np.sqrt(2*(1 - chi_tau)) * np.sqrt(chi_h * chi_tau)
+        #     - 6 * chi_h * chi_tau
+        # ) / (
+        #     3 * np.sqrt(5*pi) * chi_h * chi_tau
+        # )
+        # gamma3 = (
+        #     np.sqrt(2) * (
+        #         chi_tau - 1
+        #         - 18 * chi_h * chi_tau
+        #         + 3 * np.sqrt(2) * (2 - 9*chi_h)
+        #         * np.sqrt(chi_h * chi_tau * (1 - chi_tau))
+        #     )
+        # ) / (
+        #     45 * np.sqrt(pi) * chi_h * chi_tau
+        # )
+        # gamma4 = -2 * np.sqrt(2/pi)
+        # gamma5 = (
+        #     np.sqrt(2) * np.sqrt(2 - 3*chi_h) * np.sqrt(chi_h * chi_tau)
+        #     - 8 * chi_h * chi_tau
+        #     # + ???   # screenshot has a dangling plus here
+        # ) / (
+        #     5 * np.sqrt(pi) * chi_h * chi_tau
+        # )
+
+        # gamma6 = (
+        #     np.sqrt(2) * (-2 + chi_h * (3 - 32*chi_tau))
+        #     + (16 - 75*chi_tau) * np.sqrt(2 - 3*chi_h) * np.sqrt(chi_h * chi_tau)
+        # ) / (
+        #     50 * np.sqrt(pi) * chi_h * chi_tau
+        # )
+        
+        # print all gammas for documentation purposes
+        print("Gammas:")
+        for i in range(1, 7):
+            print("gamma{} = {}".format(i, eval("gamma{}".format(i))))
 
         def a2(u, p):
             return sum([(
