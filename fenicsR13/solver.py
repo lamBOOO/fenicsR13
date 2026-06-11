@@ -1314,7 +1314,7 @@ class Solver:
             print("Finished sigma projection: {}".format(str(secs)))
             sys.stdout.flush()
 
-        if self.mode == "stress" or self.mode == "r13":
+        if self.mode == "stress" or self.mode == "r13" or self.mode == "r14":
             if self.rescale_p is False:
                 print("No pressure rescaling applied.")
             else:
@@ -1351,7 +1351,7 @@ class Solver:
             print("heat flow rate of BC", bc_id, ":", heat_flow_rate)
             self.write_content_to_file("heatflow_" + str(bc_id), heat_flow_rate)
 
-        if self.mode == "stress" or self.mode == "r13":
+        if self.mode == "stress" or self.mode == "r13" or self.mode == "r14":
             vol = df.assemble(df.Constant(1) * df.dx)
             avgvel = df.assemble(
                 abs(df.inner(self.sol["u"], self.sol["u"])) * df.dx
@@ -1555,7 +1555,7 @@ class Solver:
                 .def(py::init<>());
             }
         """
-        if self.mode == "heat" or self.mode == "r13":
+        if self.mode == "heat" or self.mode == "r13" or self.mode == "r14":
 
             with open(self.exact_solution, "r") as file:
                 exact_solution_cpp_code = file.read()
@@ -1569,7 +1569,7 @@ class Solver:
             self.esol["s"] = df.CompiledExpression(
                 esol.Heatflux(), degree=2
             )
-        if self.mode == "stress" or self.mode == "r13":
+        if self.mode == "stress" or self.mode == "r13" or self.mode == "r14":
 
             with open(self.exact_solution, "r") as file:
                 exact_solution_cpp_code = file.read()
@@ -1588,7 +1588,14 @@ class Solver:
                 esol.Stress(), degree=2
             )
         if self.mode == "r14":
-            raise NotImplementedError("Exact solution for r14 not implemented yet.")
+            with open(self.exact_solution, "r") as file:
+                exact_solution_cpp_code = file.read()
+
+            esol = df.compile_cpp_code(exact_solution_cpp_code)
+
+            self.esol["R"] = df.CompiledExpression(
+                esol.ScriptR(), degree=2
+            )
 
     def __calc_sf_mean(self, scalar_function):
         """
@@ -1621,7 +1628,7 @@ class Solver:
         return min_val
 
     def __calc_field_errors(self, field_, field_e_, v_field, name_):
-        r"""
+        """
         Calculate both :math:`L_2` and :math:`l_\infty` errors.
 
         Works for scalars, vectors and tensors.
@@ -1673,8 +1680,8 @@ class Solver:
 
         """
 
-        if self.mode == "r14":
-            raise NotImplementedError("Error calculation for r14 not implemented yet.")
+        # if self.mode == "r14":
+            # raise NotImplementedError("Error calculation for r14 not implemented yet.")
 
         field_e_i = df.interpolate(field_e_, v_field)
         field_i = df.interpolate(field_, v_field)
@@ -1808,7 +1815,7 @@ class Solver:
         deg = self.params["elements"]["sigma"]["degree"]
         self.__load_exact_solution()
 
-        if self.mode == "heat" or self.mode == "r13":
+        if self.mode == "heat" or self.mode == "r13" or self.mode == "r14":
             se = self.__calc_field_errors(
                 self.sol["theta"], self.esol["theta"],
                 self.fspaces["theta"], "theta"
@@ -1825,7 +1832,7 @@ class Solver:
             if self.nsd > 2:
                 ers["sz"] = ve[3]
 
-        if self.mode == "stress" or self.mode == "r13":
+        if self.mode == "stress" or self.mode == "r13" or self.mode == "r14":
             se = self.__calc_field_errors(
                 self.sol["p"], self.esol["p"],
                 self.fspaces["p"], "p"
@@ -1861,6 +1868,14 @@ class Solver:
                 ers["sigmaxz"] = te[3]
                 ers["sigmayy"] = te[5]
                 ers["sigmayz"] = te[6]
+        
+        if self.mode == "r14":
+            se = self.__calc_field_errors(
+                self.sol["R"], self.esol["R"],
+                self.fspaces["R"], "R"
+            )
+            ers = self.errors
+            ers["R"] = se[0]
 
         end_t = time_module.time()
         secs = end_t - start_t
@@ -2080,6 +2095,9 @@ class Solver:
         elif self.mode == "r13":
             w = self.mxd_fspaces["r13"]
             num_fields = 5
+        elif self.mode == "r14":
+            w = self.mxd_fspaces["r14"]
+            num_fields = 6
         dofmap_func = df.Function(w)
         for i in range(num_fields):
             dofmap_name = (
