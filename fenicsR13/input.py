@@ -339,6 +339,20 @@ class Input:
                 "type": "dict",
                 "required": True
             },
+            "solver_options": {
+                "type": "dict",
+                "required": False,
+                "schema": {
+                    "symmetrize": {
+                        "type": "boolean",
+                        "required": False
+                    },
+                    "riesz_preconditioner": {
+                        "type": "boolean",
+                        "required": False
+                    },
+                }
+            },
             "postprocessing": {
                 "type": "dict",
                 "required": True,

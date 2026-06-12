@@ -1,0 +1,130 @@
+# Riesz-map operator preconditioning testcase
+# ============================================
+# Same problem as r13_1_coeffs_nosources_norot_inflow_p1p2p1p1p2_nostab.yml,
+# but solved with:
+# - solver_options.symmetrize: parity sign-flip of the even test rows
+#   (kappa, psi, q) -> symmetric indefinite system -> MINRES applicable
+# - solver_options.riesz_preconditioner: block-diagonal Riesz-map
+#   preconditioner (H1 blocks for s/sigma, L2 mass blocks for theta/p/u)
+#   following Mardal/Winther operator preconditioning; mesh-independent
+#   iteration counts by Brezzi well-posedness (no Schur complement needed)
+output_folder: r13_riesz_minres
+
+meshes:
+  - ../../tests/2d_mesh/ring1.h5
+  - ../../tests/2d_mesh/ring2.h5
+  - ../../tests/2d_mesh/ring3.h5
+  - ../../tests/2d_mesh/ring4.h5
+
+elements:
+  theta:
+    shape: Lagrange
+    degree: 1
+  s:
+    shape: Lagrange
+    degree: 2
+  p:
+    shape: Lagrange
+    degree: 1
+  u:
+    shape: Lagrange
+    degree: 1
+  sigma:
+    shape: Lagrange
+    degree: 2
+stabilization:
+  cip:
+    enable: False
+    delta_theta: 1.0
+    delta_u: 1.0
+    delta_p: 0.01
+  gls:
+    enable: False
+    tau_energy: 0.001
+    tau_heatflux: 0.001
+    tau_mass: 0.01
+    tau_momentum: 0.01
+    tau_stress: 0.01
+
+nsd: 2
+mode: r13
+heat_source: 0
+mass_source: 0
+body_force: [0,0]
+f_s: [0,0]
+f_sigma: [[0,0],[0,0]]
+
+# Parity symmetrization + Riesz-map preconditioner
+solver_options:
+  symmetrize: True
+  riesz_preconditioner: True
+
+# MINRES on the symmetrized system with the (SPD) block-diagonal
+# Riesz-map preconditioner: additive fieldsplit, GAMG on the H1 blocks
+# (s, sigma), Jacobi on the mass blocks (theta, p, u)
+petsc_options:
+  ksp_type: minres
+  ksp_rtol: 1E-7
+  ksp_max_it: 10000
+  ksp_norm_type: preconditioned
+  ksp_monitor:
+  ksp_converged_reason:
+  pc_type: fieldsplit
+  pc_fieldsplit_type: additive
+  fieldsplit_theta_ksp_type: preonly
+  fieldsplit_theta_pc_type: jacobi
+  fieldsplit_s_ksp_type: preonly
+  fieldsplit_s_pc_type: gamg
+  fieldsplit_p_ksp_type: preonly
+  fieldsplit_p_pc_type: gamg
+  fieldsplit_u_ksp_type: preonly
+  fieldsplit_u_pc_type: jacobi
+  fieldsplit_sigma_ksp_type: preonly
+  fieldsplit_sigma_pc_type: gamg
+
+regs:
+  4000:
+    kn: 1.0
+
+polar_coord_syst: True
+bcs:
+  3000:
+    chi_tilde: 1.0
+    theta_w: 1
+    u_t_w: 0
+    u_n_w: 0
+    u_x_w: 1E300
+    u_y_w: 1E300
+    u_z_w: 1E300
+    p_w: 0
+    epsilon_w: 0.0
+  3100:
+    chi_tilde: 1.0
+    theta_w: 2
+    u_t_w: -1.00 * sin(phi)
+    u_n_w: +1.00 * cos(phi)
+    u_x_w: 1E300
+    u_y_w: 1E300
+    u_z_w: 1E300
+    p_w: -0.27 * cos(phi)
+    epsilon_w: pow(10,+3)
+
+convergence_study:
+  enable: False
+  exact_solution: esols/1_coeffs_nosources_norot_inflow_positive.cpp
+  plot: False
+  write_systemmatrix: False
+  write_mpi_information: False
+  rescale_pressure: False
+  relative_error: True
+
+postprocessing:
+  write_pdfs: False
+  write_vecs: False
+  flows: []
+  line_integrals: []
+
+parameter_study:
+  enable: False
+  parameter_key: []
+  parameter_values: []

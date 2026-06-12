@@ -91,6 +91,14 @@ class Solver:
 
         self.petsc_options = self.params["petsc_options"]
 
+        # Solver options (e.g. parity symmetrization, Riesz-map
+        # operator preconditioning)
+        self.solver_options = self.params.get("solver_options", {})
+        self.symmetrize = self.solver_options.get("symmetrize", False)
+        self.use_riesz_pc = self.solver_options.get(
+            "riesz_preconditioner", False
+        )
+
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
         self.write_vecs = self.params["postprocessing"]["write_vecs"]
         self.flows = self.params["postprocessing"]["flows"]
@@ -165,6 +173,7 @@ class Solver:
         }
         self.form_lhs = None
         self.form_rhs = None
+        self.form_pc = None
         self.solver = None
         self.sol = {
             "theta": None,
@@ -1000,10 +1009,28 @@ class Solver:
         # Augmented form (see above)
         # + df.dot(f_body, df.grad(q)) * df.dx
 
+        # Parity symmetrization (exploits the T-self-adjointness of the
+        # R13 operator): flipping the sign of the even-parity test rows
+        # (kappa, psi, q) turns the assembled system into a symmetric
+        # indefinite saddle point matrix, enabling MINRES.
+        # Note: GLS breaks the parity structure, CIP does not (the
+        # flipped jumps j_theta, j_p become symmetric-negative).
+        if self.symmetrize:
+            if self.use_gls:
+                raise Exception(
+                    "GLS stabilization breaks the parity structure and "
+                    "cannot be combined with solver_options.symmetrize"
+                )
+            sgn = -1
+            A[1], A[2], A[4] = -A[1], -A[2], -A[4]
+            L[1], L[2], L[4] = -L[1], -L[2], -L[4]
+        else:
+            sgn = 1
+
         # Combine all equations to compound weak form and add stabilization
         if self.mode == "heat":
             self.form_lhs = sum(A[0:2]) + (
-                cip * (j_theta(theta, kappa))
+                cip * sgn * (j_theta(theta, kappa))
                 + gls * df.lhs(gls_heat(theta, kappa, s, r))
             )
             self.form_rhs = sum(L[0:2]) + (
@@ -1011,7 +1038,7 @@ class Solver:
             )
         elif self.mode == "stress":
             self.form_lhs = sum(A[2:5]) + (
-                cip * (j_u(u, v) + j_p(p, q))
+                cip * (j_u(u, v) + sgn * j_p(p, q))
                 + gls * df.lhs(gls_stress(p, q, u, v, sigma, psi))
             )
             self.form_rhs = sum(L[2:5]) + (
@@ -1019,7 +1046,9 @@ class Solver:
             )
         elif self.mode == "r13":
             self.form_lhs = sum(A) + (
-                cip * (j_theta(theta, kappa) + j_u(u, v) + j_p(p, q))
+                cip * (
+                    sgn * j_theta(theta, kappa) + j_u(u, v) + sgn * j_p(p, q)
+                )
                 + gls * df.lhs(
                     gls_heat(theta, kappa, s, r)
                     + gls_stress(p, q, u, v, sigma, psi)
@@ -1031,6 +1060,52 @@ class Solver:
                     + gls_stress(p, q, u, v, sigma, psi)
                 )
             )
+
+        # Riesz-map operator preconditioner (Mardal/Winther): the Brezzi
+        # well-posedness of the system dictates a block-diagonal
+        # preconditioner built from the Riesz maps of the norms in which
+        # the system is well-posed. The coercive diagonal blocks a(.,.)
+        # and d(.,.) (including their Kn-weights and boundary terms) are
+        # the H^1-type Riesz maps for s and sigma; theta and u obtain
+        # L^2 mass matrices. The pressure block is H^1 (mass + grad):
+        # the implemented pressure coupling g(p,v) = (v, grad(p)) is not
+        # bounded in L^2(p) x L^2(u), and numerical experiments confirm
+        # that an L^2 mass block for p yields h-dependent iteration
+        # counts (~h^-1) while the H^1 block gives mesh independence.
+        # CIP jumps are part of the discrete norm and enter with
+        # positive sign. The result is SPD by construction, hence sound
+        # for MINRES with GAMG/Jacobi on the blocks.
+        if self.use_riesz_pc:
+            mass_theta = sum([
+                df.inner(theta, kappa) * df.dx(reg) for reg in regs.keys()
+            ])
+            riesz_p = sum([
+                (
+                    df.inner(p, q)
+                    + df.inner(df.grad(p), df.grad(q))
+                ) * df.dx(reg) for reg in regs.keys()
+            ])
+            mass_u = sum([
+                df.inner(u, v) * df.dx(reg) for reg in regs.keys()
+            ])
+            if self.mode == "heat":
+                self.form_pc = (
+                    a(s, r) + mass_theta
+                    + cip * j_theta(theta, kappa)
+                )
+            elif self.mode == "stress":
+                self.form_pc = (
+                    d(sigma, psi) + riesz_p + mass_u + h(p, q)
+                    + cip * (j_u(u, v) + j_p(p, q))
+                )
+            elif self.mode == "r13":
+                self.form_pc = (
+                    a(s, r) + d(sigma, psi)
+                    + mass_theta + riesz_p + mass_u + h(p, q)
+                    + cip * (
+                        j_theta(theta, kappa) + j_u(u, v) + j_p(p, q)
+                    )
+                )
 
     def solve(self):
         """
@@ -1098,6 +1173,7 @@ class Solver:
         start_t = time_module.time()
         AA = df.assemble(self.form_lhs)
         LL = df.assemble(self.form_rhs)
+        PP = df.assemble(self.form_pc) if self.form_pc is not None else None
         end_t = time_module.time()
         secs = end_t - start_t
         self.write_content_to_file("assemble", secs)
@@ -1152,7 +1228,95 @@ class Solver:
             opts[key] = self.petsc_options[key]
         print(opts.view())
         self.solver.set_from_options()
-        self.solver.set_operator(AA)
+
+        # Check that the parity sign-flip indeed yielded a symmetric matrix
+        if self.symmetrize:
+            A_mat = df.as_backend_type(AA).mat()
+            A_tr = PETSc.Mat()
+            A_mat.transpose(A_tr)
+            A_tr.axpy(
+                -1.0, A_mat,
+                structure=PETSc.Mat.Structure.DIFFERENT_NONZERO_PATTERN
+            )
+            sym_defect = A_tr.norm(PETSc.NormType.FROBENIUS)
+            A_tr.destroy()
+            print("Symmetry check: ||K - K^T||_F = {}".format(sym_defect))
+
+        if PP is not None:
+            self.solver.set_operators(AA, PP)
+        else:
+            self.solver.set_operator(AA)
+
+        # For fieldsplit preconditioning of the (AIJ-)assembled mixed
+        # system, PETSc needs the dof index sets of the fields. Splits
+        # are named by field, e.g. fieldsplit_sigma_pc_type: gamg
+        if self.use_riesz_pc and \
+                self.petsc_options.get("pc_type") == "fieldsplit":
+            if self.mode == "heat":
+                field_names = ["theta", "s"]
+            elif self.mode == "stress":
+                field_names = ["p", "u", "sigma"]
+            elif self.mode == "r13":
+                field_names = ["theta", "s", "p", "u", "sigma"]
+            isets = {
+                name: PETSc.IS().createGeneral(
+                    w.sub(idx).dofmap().dofs(), comm=self.comm
+                )
+                for idx, name in enumerate(field_names)
+            }
+            # AMG on the vector-valued Riesz blocks needs proper
+            # near-nullspaces for mesh-independent V-cycle quality
+            # (GAMG's default, a single scalar constant, is wrong for
+            # multi-component fields): rigid body modes for the
+            # elasticity-like s-block (sym(grad) + div*div terms),
+            # per-component constants for the sigma-block. PCFieldSplit
+            # picks up a near-nullspace composed onto the field IS.
+            # The modes are interpolated into the mixed space and
+            # extracted with VecGetSubVector on the field IS, which
+            # reproduces exactly the (parallel) layout of the fieldsplit
+            # submatrices; Gram-Schmidt via PETSc dots is global, so
+            # this works in serial and MPI-parallel runs. (2D only.)
+            near_nullspaces = {
+                "s": [("1.0", "0.0"), ("0.0", "1.0"), ("-x[1]", "x[0]")],
+                "sigma": [
+                    (("1.0", "0.0"), ("0.0", "0.0")),
+                    (("0.0", "1.0"), ("1.0", "0.0")),
+                    (("0.0", "0.0"), ("0.0", "1.0")),
+                ],
+            }
+            if self.nsd == 2:
+                for fld, exprs in near_nullspaces.items():
+                    if fld not in isets:
+                        continue
+                    idx_fld = field_names.index(fld)
+                    V_fld = w.sub(idx_fld).collapse(True)[0]
+                    basis = []
+                    for expr in exprs:
+                        f_mode = df.interpolate(
+                            df.Expression(expr, degree=1), V_fld
+                        )
+                        f_mix = df.Function(w)
+                        df.assign(f_mix.sub(idx_fld), f_mode)
+                        p_vec = df.as_backend_type(f_mix.vector()).vec()
+                        sub_vec = p_vec.getSubVector(isets[fld])
+                        mode_vec = sub_vec.copy()
+                        p_vec.restoreSubVector(isets[fld], sub_vec)
+                        # Gram-Schmidt (PETSc dots/norms are global)
+                        for prev_vec in basis:
+                            mode_vec.axpy(
+                                -mode_vec.dot(prev_vec), prev_vec
+                            )
+                        mode_vec.normalize()
+                        basis.append(mode_vec)
+                    nullsp = PETSc.NullSpace().create(
+                        constant=False, vectors=basis, comm=self.comm
+                    )
+                    isets[fld].compose("nearnullspace", nullsp)
+            pc = self.solver.ksp().getPC()
+            pc.setFieldSplitIS(*[
+                (name, isets[name]) for name in field_names
+            ])
+
         self.solver.solve(sol.vector(), LL)
 
         # Print matrix (serial only)
