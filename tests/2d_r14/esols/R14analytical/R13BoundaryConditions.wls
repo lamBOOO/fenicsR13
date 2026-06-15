@@ -8,7 +8,7 @@
 
 (* R13 boundary conditions *)
 BCeqn0 = { 
-   (-epsp)*(vn - vnW) + epsv*(rho + temperature + facBC*Sigmann + pW), 
+   (-epsv)*(vn - vnW) + epsp*(rho + temperature + facBC*Sigmann - pW), 
    -Sigmant + chi2*((vt - vtW) + qt/5 + mnnt), 
    -qn + chi2*(2*(temperature - temperatureW) + Sigmann/2 + (2*Rnn)/5 ), 
    -mnnn + chi2*((-(2/5))*(temperature - temperatureW) + (7*Sigmann)/5 - (2*Rnn)/25 ), 

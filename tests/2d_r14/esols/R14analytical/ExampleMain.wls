@@ -19,15 +19,15 @@ ClearAll["Global`*"];
 
 Print["Setup for a specific solution."];
 
-R0 = 1; 
+R0 = 0.5; 
 R1 = 2; 
-\[Tau] = 0.5; 
+\[Tau] = 1.0; 
 facBC = 1; 
 chi2value = 1; 
-v0 = 2.; 
-vR = -1.; 
-p0 = 0.; 
-eps = 10^(-5); 
+v0 = 1.; 
+vR = 0.; 
+p0 = -0.27; 
+eps = 10^(-3); 
 temperature0 = 1.; 
 temperature1 = 2.; 
 
@@ -42,9 +42,9 @@ vnBC[r_, theta_] = Piecewise[{
 pBC[r_, theta_] = Piecewise[{
                             {0, r == R0}, {p0*Cos[theta], r == R1}}]; 
 epspBC[r_, theta_] = Piecewise[{
-                            {1, r == R0}, {1, r == R1}}]; 
-epsvBC[r_, theta_] = Piecewise[{
                             {eps, r == R0}, {1, r == R1}}]; 
+epsvBC[r_, theta_] = Piecewise[{
+                            {1, r == R0}, {eps, r == R1}}]; 
 
 nn[R0] = -1; 
 nn[R1] = 1; 
@@ -99,3 +99,8 @@ Print["Done: "<>output];
 
 
 
+Plot3D[temperatureC[x, y], {x, -2.1, 2.1}, {y, -2.1, 2.1},
+\[NonBreakingSpace]PlotPoints -> 30,
+\[NonBreakingSpace]ColorFunction -> Function[{x, y, z}, ColorData["SouthwestColors"][z]],
+\[NonBreakingSpace]RegionFunction -> Function[{x, y, z}, R0 < Sqrt[x^2 + y^2] < R1],
+\[NonBreakingSpace]PlotRange -> All,PlotLabel->theory <> " temperature"]
