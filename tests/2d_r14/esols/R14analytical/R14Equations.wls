@@ -22,5 +22,5 @@ eqns0 = {
       + (1/Kn)*Sigma[r, theta] + Div3[m[r, theta]],
    (5/2)*Grad0[temperature[r, theta]] + Div2[Sigma[r, theta]] + (1/2)*Div2[R[r, theta]] 
       + (1/6)*Grad0[scriptR[r, theta]] + (2/(3*Kn))*s[r, theta],
-    Div1[s[r, theta]] + Div1[Omega[r, theta]] + (1/Kn)*scriptR[r, theta]  
+    8*Div1[s[r, theta]] + Div1[Omega[r, theta]] + (2/3*Kn)*scriptR[r, theta]  
    };
