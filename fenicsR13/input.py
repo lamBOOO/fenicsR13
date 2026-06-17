@@ -351,6 +351,11 @@ class Input:
                         "type": "boolean",
                         "required": False
                     },
+                    "riesz_preconditioner_type": {
+                        "type": "string",
+                        "allowed": ["theory", "diagonal"],
+                        "required": False
+                    },
                 }
             },
             "postprocessing": {

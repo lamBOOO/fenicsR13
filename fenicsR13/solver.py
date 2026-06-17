@@ -98,6 +98,9 @@ class Solver:
         self.use_riesz_pc = self.solver_options.get(
             "riesz_preconditioner", False
         )
+        self.riesz_pc_type = self.solver_options.get(
+            "riesz_preconditioner_type", "diagonal"
+        )
 
         self.write_pdfs = self.params["postprocessing"]["write_pdfs"]
         self.write_vecs = self.params["postprocessing"]["write_vecs"]
@@ -828,6 +831,12 @@ class Solver:
                 bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"] * p * q
             ) * df.ds(bc) for bc in bcs.keys()])
 
+        def h_total_pressure(si, p, ps, q):
+            return sum([(
+                bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"]
+                * (p + nn(si)) * (q + nn(ps))
+            ) * df.ds(bc) for bc in bcs.keys()])
+
         # 2) Offdiagonals:
         def b(th, r):
             return sum([(
@@ -1062,19 +1071,14 @@ class Solver:
             )
 
         # Riesz-map operator preconditioner (Mardal/Winther): the Brezzi
-        # well-posedness of the system dictates a block-diagonal
-        # preconditioner built from the Riesz maps of the norms in which
-        # the system is well-posed. The coercive diagonal blocks a(.,.)
-        # and d(.,.) (including their Kn-weights and boundary terms) are
-        # the H^1-type Riesz maps for s and sigma; theta and u obtain
-        # L^2 mass matrices. The pressure block is H^1 (mass + grad):
-        # the implemented pressure coupling g(p,v) = (v, grad(p)) is not
-        # bounded in L^2(p) x L^2(u), and numerical experiments confirm
-        # that an L^2 mass block for p yields h-dependent iteration
-        # counts (~h^-1) while the H^1 block gives mesh independence.
-        # CIP jumps are part of the discrete norm and enter with
-        # positive sign. The result is SPD by construction, hence sound
-        # for MINRES with GAMG/Jacobi on the blocks.
+        # well-posedness of the continuous system suggests a block-diagonal
+        # preconditioner built from the Riesz maps of the analysis norms.
+        # The "theory" variant uses canonical H1 maps for s, sigma, and p,
+        # L2 mass matrices for theta and u, and keeps the total-pressure
+        # boundary coupling between p and sigma_nn. CIP jumps are part of
+        # the discrete norm and enter with positive sign. The result is SPD
+        # by construction, hence sound for MINRES; an exact algebraic Schur
+        # factorization is still the reference ideal for the discrete system.
         if self.use_riesz_pc:
             mass_theta = sum([
                 df.inner(theta, kappa) * df.dx(reg) for reg in regs.keys()
@@ -1088,24 +1092,58 @@ class Solver:
             mass_u = sum([
                 df.inner(u, v) * df.dx(reg) for reg in regs.keys()
             ])
+            riesz_s = sum([
+                (
+                    df.inner(s, r)
+                    + df.inner(df.grad(s), df.grad(r))
+                ) * df.dx(reg) for reg in regs.keys()
+            ])
+            riesz_sigma = sum([
+                (
+                    df.inner(
+                        to.gen3DTFdim2(sigma), to.gen3DTFdim2(psi)
+                    )
+                    + df.inner(
+                        df.grad(to.gen3DTFdim2(sigma)),
+                        df.grad(to.gen3DTFdim2(psi))
+                    )
+                ) * df.dx(reg) for reg in regs.keys()
+            ])
             if self.mode == "heat":
                 self.form_pc = (
                     a(s, r) + mass_theta
                     + cip * j_theta(theta, kappa)
                 )
             elif self.mode == "stress":
-                self.form_pc = (
-                    d(sigma, psi) + riesz_p + mass_u + h(p, q)
-                    + cip * (j_u(u, v) + j_p(p, q))
-                )
-            elif self.mode == "r13":
-                self.form_pc = (
-                    a(s, r) + d(sigma, psi)
-                    + mass_theta + riesz_p + mass_u + h(p, q)
-                    + cip * (
-                        j_theta(theta, kappa) + j_u(u, v) + j_p(p, q)
+                if self.riesz_pc_type == "theory":
+                    self.form_pc = (
+                        riesz_sigma + riesz_p + mass_u
+                        + h_total_pressure(sigma, p, psi, q)
+                        + cip * (j_u(u, v) + j_p(p, q))
                     )
-                )
+                else:
+                    self.form_pc = (
+                        d(sigma, psi) + riesz_p + mass_u + h(p, q)
+                        + cip * (j_u(u, v) + j_p(p, q))
+                    )
+            elif self.mode == "r13":
+                if self.riesz_pc_type == "theory":
+                    self.form_pc = (
+                        riesz_s + riesz_sigma
+                        + mass_theta + riesz_p + mass_u
+                        + h_total_pressure(sigma, p, psi, q)
+                        + cip * (
+                            j_theta(theta, kappa) + j_u(u, v) + j_p(p, q)
+                        )
+                    )
+                else:
+                    self.form_pc = (
+                        a(s, r) + d(sigma, psi)
+                        + mass_theta + riesz_p + mass_u + h(p, q)
+                        + cip * (
+                            j_theta(theta, kappa) + j_u(u, v) + j_p(p, q)
+                        )
+                    )
 
     def solve(self):
         """
@@ -1253,16 +1291,37 @@ class Solver:
         if self.use_riesz_pc and \
                 self.petsc_options.get("pc_type") == "fieldsplit":
             if self.mode == "heat":
-                field_names = ["theta", "s"]
+                field_splits = [("theta", [0]), ("s", [1])]
             elif self.mode == "stress":
-                field_names = ["p", "u", "sigma"]
+                if self.riesz_pc_type == "theory":
+                    field_splits = [("p_sigma", [0, 2]), ("u", [1])]
+                else:
+                    field_splits = [("p", [0]), ("u", [1]), ("sigma", [2])]
             elif self.mode == "r13":
-                field_names = ["theta", "s", "p", "u", "sigma"]
+                if self.riesz_pc_type == "theory":
+                    field_splits = [
+                        ("theta", [0]),
+                        ("s", [1]),
+                        ("p_sigma", [2, 4]),
+                        ("u", [3]),
+                    ]
+                else:
+                    field_splits = [
+                        ("theta", [0]),
+                        ("s", [1]),
+                        ("p", [2]),
+                        ("u", [3]),
+                        ("sigma", [4]),
+                    ]
             isets = {
                 name: PETSc.IS().createGeneral(
-                    w.sub(idx).dofmap().dofs(), comm=self.comm
+                    np.unique(np.concatenate([
+                        np.asarray(w.sub(idx).dofmap().dofs(), dtype=np.int32)
+                        for idx in indices
+                    ])),
+                    comm=self.comm
                 )
-                for idx, name in enumerate(field_names)
+                for name, indices in field_splits
             }
             # AMG on the vector-valued Riesz blocks needs proper
             # near-nullspaces for mesh-independent V-cycle quality
@@ -1286,9 +1345,21 @@ class Solver:
             }
             if self.nsd == 2:
                 for fld, exprs in near_nullspaces.items():
-                    if fld not in isets:
+                    split_name = fld
+                    if (
+                        self.riesz_pc_type == "theory"
+                        and fld == "sigma"
+                        and "p_sigma" in isets
+                    ):
+                        # The theory split solves (p, sigma) together so the
+                        # total-pressure boundary terms are retained.
+                        # The mixed block is normally used with LU; skip the
+                        # old sigma-only near-nullspace in that case.
                         continue
-                    idx_fld = field_names.index(fld)
+                    if split_name not in isets:
+                        continue
+                    split_indices = dict(field_splits)[split_name]
+                    idx_fld = split_indices[0]
                     V_fld = w.sub(idx_fld).collapse(True)[0]
                     basis = []
                     for expr in exprs:
@@ -1298,9 +1369,9 @@ class Solver:
                         f_mix = df.Function(w)
                         df.assign(f_mix.sub(idx_fld), f_mode)
                         p_vec = df.as_backend_type(f_mix.vector()).vec()
-                        sub_vec = p_vec.getSubVector(isets[fld])
+                        sub_vec = p_vec.getSubVector(isets[split_name])
                         mode_vec = sub_vec.copy()
-                        p_vec.restoreSubVector(isets[fld], sub_vec)
+                        p_vec.restoreSubVector(isets[split_name], sub_vec)
                         # Gram-Schmidt (PETSc dots/norms are global)
                         for prev_vec in basis:
                             mode_vec.axpy(
@@ -1311,10 +1382,10 @@ class Solver:
                     nullsp = PETSc.NullSpace().create(
                         constant=False, vectors=basis, comm=self.comm
                     )
-                    isets[fld].compose("nearnullspace", nullsp)
+                    isets[split_name].compose("nearnullspace", nullsp)
             pc = self.solver.ksp().getPC()
             pc.setFieldSplitIS(*[
-                (name, isets[name]) for name in field_names
+                (name, isets[name]) for name, _ in field_splits
             ])
 
         self.solver.solve(sol.vector(), LL)

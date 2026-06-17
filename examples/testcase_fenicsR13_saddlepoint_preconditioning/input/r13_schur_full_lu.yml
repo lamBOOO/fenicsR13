@@ -1,0 +1,123 @@
+# Algebraically ideal saddle-point preconditioner testcase
+# =======================================================
+# This asks PETSc for the full Schur preconditioner of the assembled,
+# parity-symmetrized system. With PETSc's saddle-point split detection and
+# LU/MUMPS on both detected subblocks, this is an exact block factorization
+# diagnostic: the outer Krylov iteration count should be independent of mesh
+# refinement.
+output_folder: r13_schur_full_lu
+
+meshes:
+  - ../../tests/2d_mesh/ring1.h5
+  - ../../tests/2d_mesh/ring2.h5
+  - ../../tests/2d_mesh/ring3.h5
+  # ring4 also converges in one outer iteration, but the exact Schur
+  # factorization is intentionally expensive.
+  # - ../../tests/2d_mesh/ring4.h5
+
+elements:
+  theta:
+    shape: Lagrange
+    degree: 1
+  s:
+    shape: Lagrange
+    degree: 2
+  p:
+    shape: Lagrange
+    degree: 1
+  u:
+    shape: Lagrange
+    degree: 1
+  sigma:
+    shape: Lagrange
+    degree: 2
+stabilization:
+  cip:
+    enable: False
+    delta_theta: 1.0
+    delta_u: 1.0
+    delta_p: 0.01
+  gls:
+    enable: False
+    tau_energy: 0.001
+    tau_heatflux: 0.001
+    tau_mass: 0.01
+    tau_momentum: 0.01
+    tau_stress: 0.01
+
+nsd: 2
+mode: r13
+heat_source: 0
+mass_source: 0
+body_force: [0,0]
+f_s: [0,0]
+f_sigma: [[0,0],[0,0]]
+
+solver_options:
+  symmetrize: True
+
+petsc_options:
+  ksp_type: gmres
+  ksp_rtol: 1E-7
+  ksp_max_it: 10000
+  ksp_norm_type: preconditioned
+  ksp_monitor:
+  ksp_converged_reason:
+  pc_type: fieldsplit
+  pc_fieldsplit_detect_saddle_point:
+  pc_fieldsplit_type: schur
+  pc_fieldsplit_schur_fact_type: full
+  pc_fieldsplit_schur_precondition: full
+  fieldsplit_0_ksp_type: preonly
+  fieldsplit_0_pc_type: lu
+  fieldsplit_0_pc_factor_mat_solver_type: mumps
+  fieldsplit_1_ksp_type: preonly
+  fieldsplit_1_pc_type: lu
+  fieldsplit_1_pc_factor_mat_solver_type: mumps
+
+regs:
+  4000:
+    kn: 1.0
+
+polar_coord_syst: True
+bcs:
+  3000:
+    chi_tilde: 1.0
+    theta_w: 1
+    u_t_w: 0
+    u_n_w: 0
+    u_x_w: 1E300
+    u_y_w: 1E300
+    u_z_w: 1E300
+    p_w: 0
+    epsilon_w: 0.0
+  3100:
+    chi_tilde: 1.0
+    theta_w: 2
+    u_t_w: -1.00 * sin(phi)
+    u_n_w: +1.00 * cos(phi)
+    u_x_w: 1E300
+    u_y_w: 1E300
+    u_z_w: 1E300
+    p_w: -0.27 * cos(phi)
+    epsilon_w: pow(10,+3)
+
+convergence_study:
+  enable: False
+  exact_solution: esols/1_coeffs_nosources_norot_inflow_positive.cpp
+  plot: False
+  write_systemmatrix: False
+  write_mpi_information: False
+  rescale_pressure: False
+  relative_error: True
+
+postprocessing:
+  write_pdfs: False
+  write_vecs: False
+  flows: []
+  line_integrals: []
+
+parameter_study:
+  enable: False
+  parameter_key: []
+  parameter_values: []

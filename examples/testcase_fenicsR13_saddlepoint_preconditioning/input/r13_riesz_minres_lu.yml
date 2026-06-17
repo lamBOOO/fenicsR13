@@ -1,13 +1,14 @@
-# Riesz-map operator preconditioning testcase
-# ============================================
+# Corrected Riesz-map operator preconditioning testcase
+# ====================================================
 # Same problem as r13_1_coeffs_nosources_norot_inflow_p1p2p1p1p2_nostab.yml,
 # but solved with:
 # - solver_options.symmetrize: parity sign-flip of the even test rows
 #   (kappa, psi, q) -> symmetric indefinite system -> MINRES applicable
-# - solver_options.riesz_preconditioner: block-diagonal Riesz-map
-#   preconditioner (H1 blocks for s/sigma, L2 mass blocks for theta/p/u)
-#   following Mardal/Winther operator preconditioning; mesh-independent
-#   iteration counts by Brezzi well-posedness (no Schur complement needed)
+# - solver_options.riesz_preconditioner_type: theory: canonical H1 blocks for
+#   s/sigma/p, L2 mass blocks for theta/u, and the total-pressure boundary
+#   block coupling p with sigma_nn. This is the corrected continuous-theory
+#   Riesz preconditioner; the exact algebraic Schur reference is
+#   input/r13_schur_full_lu.yml.
 output_folder: r13_riesz_minres
 
 meshes:
@@ -16,6 +17,7 @@ meshes:
   - ../../tests/2d_mesh/ring3.h5
   - ../../tests/2d_mesh/ring4.h5
   # - ../../tests/2d_mesh/ring5.h5
+  # - ../../tests/2d_mesh/ring6.h5
 
 elements:
   theta:
@@ -59,10 +61,12 @@ f_sigma: [[0,0],[0,0]]
 solver_options:
   symmetrize: True
   riesz_preconditioner: True
+  riesz_preconditioner_type: theory
 
 # MINRES on the symmetrized system with the (SPD) block-diagonal
-# Riesz-map preconditioner: additive fieldsplit, GAMG on the H1 blocks
-# (s, sigma), Jacobi on the mass blocks (theta, p, u)
+# theory Riesz-map preconditioner: additive fieldsplit with exact subblock
+# solves. The pressure and stress are grouped so the total-pressure boundary
+# block (p + sigma_nn) is inverted rather than dropped by scalar field splits.
 petsc_options:
   ksp_type: minres
   ksp_rtol: 1E-7
@@ -73,18 +77,17 @@ petsc_options:
   pc_type: fieldsplit
   pc_fieldsplit_type: additive
   fieldsplit_theta_ksp_type: preonly
-  fieldsplit_theta_pc_type: jacobi
+  fieldsplit_theta_pc_type: lu
+  fieldsplit_theta_pc_factor_mat_solver_type: mumps
   fieldsplit_s_ksp_type: preonly
   fieldsplit_s_pc_type: lu
   fieldsplit_s_pc_factor_mat_solver_type: mumps
-  fieldsplit_p_ksp_type: preonly
-  fieldsplit_p_pc_type: lu
-  fieldsplit_p_pc_factor_mat_solver_type: mumps
+  fieldsplit_p_sigma_ksp_type: preonly
+  fieldsplit_p_sigma_pc_type: lu
+  fieldsplit_p_sigma_pc_factor_mat_solver_type: mumps
   fieldsplit_u_ksp_type: preonly
-  fieldsplit_u_pc_type: jacobi
-  fieldsplit_sigma_ksp_type: preonly
-  fieldsplit_sigma_pc_type: lu
-  fieldsplit_sigma_pc_factor_mat_solver_type: mumps
+  fieldsplit_u_pc_type: lu
+  fieldsplit_u_pc_factor_mat_solver_type: mumps
 
 regs:
   4000:
