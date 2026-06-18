@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-for p in $(seq 0 1 5)
+for p in $(seq 0 1 6)
 do
   outname=simple_mesh_"$p".h5
   echo $outname

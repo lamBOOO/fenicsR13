@@ -2,7 +2,7 @@
 # =======
 # - output_folder: Used as output folder
 # output_folder:
-output_folder: study9
+output_folder: simple_mesh
 
 # Meshes
 # ======
@@ -51,10 +51,11 @@ elements:
     degree: 1
   u:
     shape: Lagrange
-    degree: 1
+    degree: 2
   sigma:
     shape: Lagrange
     degree: 2
+    bubble_enriched: True
 stabilization:
   cip:
     enable: False
