@@ -353,7 +353,7 @@ class Input:
                     },
                     "riesz_preconditioner_type": {
                         "type": "string",
-                        "allowed": ["theory", "diagonal"],
+                        "allowed": ["theory", "theory_split", "diagonal"],
                         "required": False
                     },
                 }

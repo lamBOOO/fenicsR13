@@ -837,6 +837,12 @@ class Solver:
                 * (p + nn(si)) * (q + nn(ps))
             ) * df.ds(bc) for bc in bcs.keys()])
 
+        def h_total_pressure_diagonal(si, p, ps, q):
+            return sum([(
+                bcs[bc]["epsilon_w"] * bcs[bc]["chi_tilde"]
+                * (p * q + nn(si) * nn(ps))
+            ) * df.ds(bc) for bc in bcs.keys()])
+
         # 2) Offdiagonals:
         def b(th, r):
             return sum([(
@@ -1077,8 +1083,7 @@ class Solver:
         # L2 mass matrices for theta and u, and keeps the total-pressure
         # boundary coupling between p and sigma_nn. CIP jumps are part of
         # the discrete norm and enter with positive sign. The result is SPD
-        # by construction, hence sound for MINRES; an exact algebraic Schur
-        # factorization is still the reference ideal for the discrete system.
+        # by construction, hence sound for MINRES without a Schur complement.
         if self.use_riesz_pc:
             mass_theta = sum([
                 df.inner(theta, kappa) * df.dx(reg) for reg in regs.keys()
@@ -1121,6 +1126,12 @@ class Solver:
                         + h_total_pressure(sigma, p, psi, q)
                         + cip * (j_u(u, v) + j_p(p, q))
                     )
+                elif self.riesz_pc_type == "theory_split":
+                    self.form_pc = (
+                        riesz_sigma + riesz_p + mass_u
+                        + h_total_pressure_diagonal(sigma, p, psi, q)
+                        + cip * (j_u(u, v) + j_p(p, q))
+                    )
                 else:
                     self.form_pc = (
                         d(sigma, psi) + riesz_p + mass_u + h(p, q)
@@ -1132,6 +1143,15 @@ class Solver:
                         riesz_s + riesz_sigma
                         + mass_theta + riesz_p + mass_u
                         + h_total_pressure(sigma, p, psi, q)
+                        + cip * (
+                            j_theta(theta, kappa) + j_u(u, v) + j_p(p, q)
+                        )
+                    )
+                elif self.riesz_pc_type == "theory_split":
+                    self.form_pc = (
+                        riesz_s + riesz_sigma
+                        + mass_theta + riesz_p + mass_u
+                        + h_total_pressure_diagonal(sigma, p, psi, q)
                         + cip * (
                             j_theta(theta, kappa) + j_u(u, v) + j_p(p, q)
                         )
@@ -1323,62 +1343,67 @@ class Solver:
                 )
                 for name, indices in field_splits
             }
-            # AMG on the vector-valued Riesz blocks needs proper
-            # near-nullspaces for mesh-independent V-cycle quality
-            # (GAMG's default, a single scalar constant, is wrong for
-            # multi-component fields): rigid body modes for the
-            # elasticity-like s-block (sym(grad) + div*div terms),
-            # per-component constants for the sigma-block. PCFieldSplit
-            # picks up a near-nullspace composed onto the field IS.
-            # The modes are interpolated into the mixed space and
-            # extracted with VecGetSubVector on the field IS, which
-            # reproduces exactly the (parallel) layout of the fieldsplit
-            # submatrices; Gram-Schmidt via PETSc dots is global, so
+            # AMG on the H1/Riesz blocks needs proper near-nullspaces for
+            # mesh-independent V-cycle quality. GAMG's default single
+            # scalar constant is wrong for multi-component fields and for
+            # the grouped (p, sigma) block. PCFieldSplit picks up a
+            # near-nullspace composed onto the field IS. The modes are
+            # interpolated into the mixed space and extracted with
+            # VecGetSubVector on the field IS, which reproduces exactly the
+            # submatrix layout; Gram-Schmidt via PETSc dots is global, so
             # this works in serial and MPI-parallel runs. (2D only.)
-            near_nullspaces = {
-                "s": [("1.0", "0.0"), ("0.0", "1.0"), ("-x[1]", "x[0]")],
-                "sigma": [
-                    (("1.0", "0.0"), ("0.0", "0.0")),
-                    (("0.0", "1.0"), ("1.0", "0.0")),
-                    (("0.0", "0.0"), ("0.0", "1.0")),
-                ],
-            }
+            s_modes = [
+                ("1.0", "0.0"),
+                ("0.0", "1.0"),
+                ("-x[1]", "x[0]"),
+            ]
+            sigma_modes = [
+                (("1.0", "0.0"), ("0.0", "0.0")),
+                (("0.0", "1.0"), ("1.0", "0.0")),
+                (("0.0", "0.0"), ("0.0", "1.0")),
+            ]
+            near_nullspaces = {}
+            field_splits_by_name = dict(field_splits)
+            if "s" in field_splits_by_name:
+                near_nullspaces["s"] = [(field_splits_by_name["s"][0], s_modes)]
+            if "p" in field_splits_by_name:
+                near_nullspaces["p"] = [(field_splits_by_name["p"][0], ["1.0"])]
+            if "sigma" in field_splits_by_name:
+                near_nullspaces["sigma"] = [
+                    (field_splits_by_name["sigma"][0], sigma_modes)
+                ]
+            if "p_sigma" in field_splits_by_name:
+                p_idx, sigma_idx = field_splits_by_name["p_sigma"]
+                near_nullspaces["p_sigma"] = [
+                    (p_idx, ["1.0"]),
+                    (sigma_idx, sigma_modes),
+                ]
             if self.nsd == 2:
-                for fld, exprs in near_nullspaces.items():
-                    split_name = fld
-                    if (
-                        self.riesz_pc_type == "theory"
-                        and fld == "sigma"
-                        and "p_sigma" in isets
-                    ):
-                        # The theory split solves (p, sigma) together so the
-                        # total-pressure boundary terms are retained.
-                        # The mixed block is normally used with LU; skip the
-                        # old sigma-only near-nullspace in that case.
-                        continue
+                for split_name, subspace_modes in near_nullspaces.items():
                     if split_name not in isets:
                         continue
-                    split_indices = dict(field_splits)[split_name]
-                    idx_fld = split_indices[0]
-                    V_fld = w.sub(idx_fld).collapse(True)[0]
                     basis = []
-                    for expr in exprs:
-                        f_mode = df.interpolate(
-                            df.Expression(expr, degree=1), V_fld
-                        )
-                        f_mix = df.Function(w)
-                        df.assign(f_mix.sub(idx_fld), f_mode)
-                        p_vec = df.as_backend_type(f_mix.vector()).vec()
-                        sub_vec = p_vec.getSubVector(isets[split_name])
-                        mode_vec = sub_vec.copy()
-                        p_vec.restoreSubVector(isets[split_name], sub_vec)
-                        # Gram-Schmidt (PETSc dots/norms are global)
-                        for prev_vec in basis:
-                            mode_vec.axpy(
-                                -mode_vec.dot(prev_vec), prev_vec
+                    for idx_fld, exprs in subspace_modes:
+                        V_fld = w.sub(idx_fld).collapse(True)[0]
+                        for expr in exprs:
+                            f_mode = df.interpolate(
+                                df.Expression(expr, degree=1), V_fld
                             )
-                        mode_vec.normalize()
-                        basis.append(mode_vec)
+                            f_mix = df.Function(w)
+                            df.assign(f_mix.sub(idx_fld), f_mode)
+                            p_vec = df.as_backend_type(f_mix.vector()).vec()
+                            sub_vec = p_vec.getSubVector(isets[split_name])
+                            mode_vec = sub_vec.copy()
+                            p_vec.restoreSubVector(
+                                isets[split_name], sub_vec
+                            )
+                            # Gram-Schmidt (PETSc dots/norms are global)
+                            for prev_vec in basis:
+                                mode_vec.axpy(
+                                    -mode_vec.dot(prev_vec), prev_vec
+                                )
+                            mode_vec.normalize()
+                            basis.append(mode_vec)
                     nullsp = PETSc.NullSpace().create(
                         constant=False, vectors=basis, comm=self.comm
                     )

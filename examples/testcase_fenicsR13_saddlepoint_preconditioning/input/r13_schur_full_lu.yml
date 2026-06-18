@@ -1,10 +1,10 @@
-# Algebraically ideal saddle-point preconditioner testcase
-# =======================================================
+# Exact Schur diagnostic testcase
+# ==============================
 # This asks PETSc for the full Schur preconditioner of the assembled,
 # parity-symmetrized system. With PETSc's saddle-point split detection and
-# LU/MUMPS on both detected subblocks, this is an exact block factorization
-# diagnostic: the outer Krylov iteration count should be independent of mesh
-# refinement.
+# LU/MUMPS on both detected subblocks, this is an exact block-factorization
+# sanity check. It is not the scalable operator preconditioner; see
+# input/r13_riesz_minres_lu.yml for the Riesz-map setup.
 output_folder: r13_schur_full_lu
 
 meshes:

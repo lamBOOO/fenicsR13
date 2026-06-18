@@ -1,23 +1,16 @@
-# Corrected Riesz-map operator preconditioning testcase
-# ====================================================
-# Same problem as r13_1_coeffs_nosources_norot_inflow_p1p2p1p1p2_nostab.yml,
-# but solved with:
-# - solver_options.symmetrize: parity sign-flip of the even test rows
-#   (kappa, psi, q) -> symmetric indefinite system -> MINRES applicable
-# - solver_options.riesz_preconditioner_type: theory: canonical H1 blocks for
-#   s/sigma/p, L2 mass blocks for theta/u, and the total-pressure boundary
-#   block coupling p with sigma_nn. This is the corrected continuous-theory
-#   Riesz preconditioner. input/r13_schur_full_lu.yml is only an exact Schur
-#   diagnostic.
-output_folder: r13_riesz_minres
+# Split corrected Riesz-map operator preconditioning testcase
+# =========================================================
+# Same as r13_riesz_minres_lu.yml, but uses a spectrally equivalent product
+# Riesz map: p and sigma are solved as separate fields. The total-pressure
+# boundary term is diagonalized as p*q + sigma_nn*psi_nn, so the block split
+# does not simply discard the boundary control.
+output_folder: r13_riesz_minres_split
 
 meshes:
   - ../../tests/2d_mesh/ring1.h5
   - ../../tests/2d_mesh/ring2.h5
   - ../../tests/2d_mesh/ring3.h5
   - ../../tests/2d_mesh/ring4.h5
-  # - ../../tests/2d_mesh/ring5.h5
-  # - ../../tests/2d_mesh/ring6.h5
 
 elements:
   theta:
@@ -57,23 +50,18 @@ body_force: [0,0]
 f_s: [0,0]
 f_sigma: [[0,0],[0,0]]
 
-# Parity symmetrization + Riesz-map preconditioner
 solver_options:
   symmetrize: True
   riesz_preconditioner: True
-  riesz_preconditioner_type: theory
+  riesz_preconditioner_type: theory_split
 
-# MINRES on the symmetrized system with the (SPD) block-diagonal
-# theory Riesz-map preconditioner: additive fieldsplit with exact subblock
-# solves. The pressure and stress are grouped so the total-pressure boundary
-# block (p + sigma_nn) is inverted rather than dropped by scalar field splits.
 petsc_options:
   ksp_type: minres
   ksp_rtol: 1E-7
   ksp_max_it: 10000
   ksp_norm_type: preconditioned
-  ksp_monitor:
   ksp_converged_reason:
+  ksp_monitor:
   pc_type: fieldsplit
   pc_fieldsplit_type: additive
   fieldsplit_theta_ksp_type: preonly
@@ -82,12 +70,15 @@ petsc_options:
   fieldsplit_s_ksp_type: preonly
   fieldsplit_s_pc_type: lu
   fieldsplit_s_pc_factor_mat_solver_type: mumps
-  fieldsplit_p_sigma_ksp_type: preonly
-  fieldsplit_p_sigma_pc_type: lu
-  fieldsplit_p_sigma_pc_factor_mat_solver_type: mumps
+  fieldsplit_p_ksp_type: preonly
+  fieldsplit_p_pc_type: lu
+  fieldsplit_p_pc_factor_mat_solver_type: mumps
   fieldsplit_u_ksp_type: preonly
   fieldsplit_u_pc_type: lu
   fieldsplit_u_pc_factor_mat_solver_type: mumps
+  fieldsplit_sigma_ksp_type: preonly
+  fieldsplit_sigma_pc_type: lu
+  fieldsplit_sigma_pc_factor_mat_solver_type: mumps
 
 regs:
   4000:
