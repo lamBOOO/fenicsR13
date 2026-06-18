@@ -46,6 +46,8 @@ class Input:
         #   - fields: List of FEM parameters (shape, degree)
         #     - shape: Element shape, e.g. Lagrange
         #     - degree: Element degree, e.g. 2
+        #     - bubble_enriched: Optional enrichment with cell bubbles
+        #     - bubble_degree: Optional bubble degree, default degree + nsd
         # - stabilization: Must contain cip and gls
         #   - cip: Collection of Continous Interior Penalty (CIP) parameters
         #     - enable: Enable CIP stabilization
@@ -531,6 +533,15 @@ class Input:
                                 "type": "integer",
                                 "required": True,
                                 "min": 0
+                            },
+                            "bubble_enriched": {
+                                "type": "boolean",
+                                "required": False
+                            },
+                            "bubble_degree": {
+                                "type": "integer",
+                                "required": False,
+                                "min": 1
                             }
                         }
                     },
@@ -546,6 +557,15 @@ class Input:
                                 "type": "integer",
                                 "required": True,
                                 "min": 0
+                            },
+                            "bubble_enriched": {
+                                "type": "boolean",
+                                "required": False
+                            },
+                            "bubble_degree": {
+                                "type": "integer",
+                                "required": False,
+                                "min": 1
                             }
                         }
                     },
@@ -561,6 +581,15 @@ class Input:
                                 "type": "integer",
                                 "required": True,
                                 "min": 0
+                            },
+                            "bubble_enriched": {
+                                "type": "boolean",
+                                "required": False
+                            },
+                            "bubble_degree": {
+                                "type": "integer",
+                                "required": False,
+                                "min": 1
                             }
                         }
                     },
@@ -576,6 +605,15 @@ class Input:
                                 "type": "integer",
                                 "required": True,
                                 "min": 0
+                            },
+                            "bubble_enriched": {
+                                "type": "boolean",
+                                "required": False
+                            },
+                            "bubble_degree": {
+                                "type": "integer",
+                                "required": False,
+                                "min": 1
                             }
                         }
                     },
@@ -591,6 +629,15 @@ class Input:
                                 "type": "integer",
                                 "required": True,
                                 "min": 0
+                            },
+                            "bubble_enriched": {
+                                "type": "boolean",
+                                "required": False
+                            },
+                            "bubble_degree": {
+                                "type": "integer",
+                                "required": False,
+                                "min": 1
                             }
                         }
                     },

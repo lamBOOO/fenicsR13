@@ -319,6 +319,82 @@ class Solver:
         else:
             return df.Expression(cpp_strings, degree=2)
 
+    def __bubble_enriched(self, var):
+        """Return whether the input requests cell-bubble enrichment."""
+        return self.params["elements"][var].get("bubble_enriched", False)
+
+    def __bubble_degree(self, var):
+        """
+        Return the bubble polynomial degree for an element.
+
+        The paper's local space is b_K E(P_m), where b_K has degree d+1
+        and E(P_m) has degree m-1. The resulting bubble degree is m+d.
+        """
+        return self.params["elements"][var].get(
+            "bubble_degree", self.params["elements"][var]["degree"] + self.nsd
+        )
+
+    def __element_output_degree(self, var):
+        """Return a Lagrange degree that contains the element polynomials."""
+        degree = self.params["elements"][var]["degree"]
+        if self.__bubble_enriched(var):
+            return max(degree, self.__bubble_degree(var))
+        return degree
+
+    def __create_element(self, var, family=None, degree=None, symmetry=None):
+        """
+        Create the scalar/vector/tensor element for one field.
+
+        If requested, enrich the field with cell bubble functions. For the
+        R13 paper's two-dimensional lowest-order tensor element this realizes
+        the local space P_2 plus b_K P_1 through a degree-4 Bubble element.
+        """
+        if family is None:
+            family = self.params["elements"][var]["shape"]
+        if degree is None:
+            degree = self.params["elements"][var]["degree"]
+
+        scalar_element = df.FiniteElement(family, self.cell, degree)
+        if self.__bubble_enriched(var):
+            scalar_element = scalar_element + df.FiniteElement(
+                "Bubble", self.cell, self.__bubble_degree(var)
+            )
+        if self.var_ranks[var] == 0:
+            element = scalar_element
+        elif self.var_ranks[var] == 1:
+            element = df.VectorElement(scalar_element)
+        elif self.var_ranks[var] == 2:
+            element = df.TensorElement(scalar_element, symmetry=symmetry)
+        else:
+            raise RuntimeError("Unsupported rank for variable {}".format(var))
+        return element
+
+    def __sigma_symmetry(self):
+        """Return the compact tensor symmetry map used for sigma."""
+        if self.nsd == 2:
+            return {(1, 0): (0, 1)}
+        return {
+            (1, 0): (0, 1),
+            (2, 0): (0, 2),
+            (2, 1): (1, 2),
+            (2, 2): (0, 0)
+            # (needed for sigma treatment below)
+            # sigma.split()[i] map:
+            # [
+            #     [0, 1, 2]
+            #     [1, 3, 4]
+            #     [2, 4, ?not_important?]
+            # ]
+        }
+
+    def __create_sigma_output_element(self):
+        """Create a full tensor element that preserves enriched sigma fields."""
+        return df.TensorElement(
+            self.params["elements"]["sigma"]["shape"],
+            self.cell,
+            self.__element_output_degree("sigma")
+        )
+
     def __setup_function_spaces(self):
         """
         Set up function spaces for trial and test functions for assembling.
@@ -340,37 +416,10 @@ class Solver:
         ========= =================
         """
         # Setup elements for all fields
-        cell = self.cell
         msh = self.mesh
         for var in self.elems:
-            e = self.params["elements"][var]["shape"]
-            deg = self.params["elements"][var]["degree"]
-            if self.var_ranks[var] == 0:
-                self.elems[var] = df.FiniteElement(e, cell, deg)
-            elif self.var_ranks[var] == 1:
-                self.elems[var] = df.VectorElement(e, cell, deg)
-            elif self.var_ranks[var] == 2:
-                if self.nsd == 2:
-                    self.elems[var] = df.TensorElement(
-                        e, cell, deg, symmetry={(1, 0): (0, 1)}
-                    )
-                else:  # nsd==3 in this case
-                    self.elems[var] = df.TensorElement(
-                        e, cell, deg,
-                        symmetry={  # the ordering influences sigma.split()
-                            (1, 0): (0, 1),
-                            (2, 0): (0, 2),
-                            (2, 1): (1, 2),
-                            (2, 2): (0, 0)
-                            # (needed for sigma treatment below)
-                            # sigma.split()[i] map:
-                            # [
-                            #     [0, 1, 2]
-                            #     [1, 3, 4]
-                            #     [2, 4, ?not_important?]
-                            # ]
-                        }
-                    )
+            symmetry = self.__sigma_symmetry() if var == "sigma" else None
+            self.elems[var] = self.__create_element(var, symmetry=symmetry)
             self.fspaces[var] = df.FunctionSpace(msh, self.elems[var])
 
         # Bundle elements per mode into `mxd_elems` dict
@@ -1194,9 +1243,8 @@ class Solver:
             # -> See workaroud below...
 
             # This is a workaround: Make sigma a proper STF tensor
-            sp = df.TensorFunctionSpace(
-                self.mesh, self.params["elements"]["sigma"]["shape"],
-                self.params["elements"]["sigma"]["degree"]
+            sp = df.FunctionSpace(
+                self.mesh, self.__create_sigma_output_element()
             )
             if self.nsd == 2:
                 sigmaxx, sigmaxy, sigmayy = self.sol["sigma"].split()
@@ -1361,11 +1409,11 @@ class Solver:
 
             # Interpolate in "best" Lagrange space
             maxdeg = max([
-                self.params["elements"]["theta"]["degree"],
-                self.params["elements"]["s"]["degree"],
-                self.params["elements"]["p"]["degree"],
-                self.params["elements"]["u"]["degree"],
-                self.params["elements"]["sigma"]["degree"]
+                self.__element_output_degree("theta"),
+                self.__element_output_degree("s"),
+                self.__element_output_degree("p"),
+                self.__element_output_degree("u"),
+                self.__element_output_degree("sigma")
             ])
             expr = df.interpolate(
                 self.__createSolMacroScaExpr(li["expr"]),
@@ -1727,10 +1775,7 @@ class Solver:
         sys.stdout.flush()
         start_t = time_module.time()
 
-        cell = self.cell
         msh = self.mesh
-        e = self.params["elements"]["sigma"]["shape"]
-        deg = self.params["elements"]["sigma"]["degree"]
         self.__load_exact_solution()
 
         if self.mode == "heat" or self.mode == "r13":
@@ -1761,8 +1806,8 @@ class Solver:
             )
             te = self.__calc_field_errors(
                 self.sol["sigma"], self.esol["sigma"],
-                df.FunctionSpace(msh, df.TensorElement(
-                    e, cell, deg)), "sigma"
+                df.FunctionSpace(msh, self.__create_sigma_output_element()),
+                "sigma"
             )
             ers = self.errors
             if self.nsd == 2:

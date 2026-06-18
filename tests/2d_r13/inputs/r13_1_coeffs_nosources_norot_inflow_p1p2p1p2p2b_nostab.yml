@@ -1,0 +1,124 @@
+# General
+# =======
+output_folder: r13_1_coeffs_nosources_norot_inflow_p1p2p1p2p2b_nostab
+
+# Meshes
+# ======
+meshes:
+  - ../2d_mesh/ring0.h5
+  - ../2d_mesh/ring1.h5
+  - ../2d_mesh/ring2.h5
+  - ../2d_mesh/ring3.h5
+  - ../2d_mesh/ring4.h5
+  - ../2d_mesh/ring5.h5
+  - ../2d_mesh/ring6.h5
+
+# Numerical Parameters
+# ====================
+# Field order in fenicsR13 is theta, s, p, u, sigma.
+# This corresponds to the paper's 2D P_2^b-P_2-P_1-P_2-P_1
+# ordering for sigma, u, p, s, theta.
+elements:
+  theta:
+    shape: Lagrange
+    degree: 1
+  s:
+    shape: Lagrange
+    degree: 2
+  p:
+    shape: Lagrange
+    degree: 1
+  u:
+    shape: Lagrange
+    degree: 2
+  sigma:
+    shape: Lagrange
+    degree: 2
+    bubble_enriched: True
+stabilization:
+  cip:
+    enable: False
+    delta_theta: 1.0
+    delta_u: 1.0
+    delta_p: 0.01
+  gls:
+    enable: False
+    tau_energy: 0.001
+    tau_heatflux: 0.001
+    tau_mass: 0.01
+    tau_momentum: 0.01
+    tau_stress: 0.01
+
+# Formulation Parameters
+# ======================
+nsd: 2
+mode: r13
+heat_source: 0
+mass_source: 0
+body_force: [0, 0]
+f_s: [0, 0]
+f_sigma: [[0, 0], [0, 0]]
+
+# PETSc Options
+# =============
+petsc_options:
+  ksp_type: preonly
+  pc_type: lu
+  pc_factor_mat_solver_type: mumps
+
+# Region Parameters
+# =================
+regs:
+  4000:
+    kn: 1.0
+
+# Boundary Conditions
+# ===================
+polar_coord_syst: True
+bcs:
+  3000:
+    chi_tilde: 1.0
+    theta_w: 1
+    u_t_w: 0
+    u_n_w: 0
+    u_x_w: 1E300
+    u_y_w: 1E300
+    u_z_w: 1E300
+    p_w: 0
+    epsilon_w: pow(10,-3)
+  3100:
+    chi_tilde: 1.0
+    theta_w: 2
+    u_t_w: -1.00 * sin(phi)
+    u_n_w: +1.00 * cos(phi)
+    u_x_w: 1E300
+    u_y_w: 1E300
+    u_z_w: 1E300
+    p_w: -0.27 * cos(phi)
+    epsilon_w: pow(10,+3)
+
+# Convergence Study
+# =================
+convergence_study:
+  enable: True
+  exact_solution: esols/1_coeffs_nosources_norot_inflow_positive.cpp
+  plot: False
+  write_systemmatrix: False
+  write_mpi_information: False
+  rescale_pressure: False
+  relative_error: True
+
+# Postprocessing
+# ==============
+postprocessing:
+  write_pdfs: False
+  write_vecs: False
+  flows: []
+  line_integrals: []
+
+# Parameter Study
+# ===============
+parameter_study:
+  enable: False
+  parameter_key: []
+  parameter_values: []
