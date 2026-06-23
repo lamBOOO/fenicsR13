@@ -1264,11 +1264,7 @@ class Solver:
                 self.sol["p"] = p_i
 
         # Calculate mass and heat flows through the requested boundaries.
-        # The velocity u is only solved for in stress/r13 mode and the heat
-        # flux s only in heat/r13 mode, so each flow is evaluated only when
-        # its field is available, mirroring the mode guard used for the bulk
-        # quantities below. Without these guards df.inner() receives a None
-        # field in pure heat or pure stress mode and the run crashes.
+        # TODO: allow generic user-defined surface integral expressions
         for bc_id in self.flows:
             if bc_id not in self.boundaries.array():
                 raise Exception(
