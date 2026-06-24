@@ -156,7 +156,7 @@ class TestR13Convergence(object):
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
-        
+
     def test_r13_1_coeffs_nosources_norot_inflow_p1p2p1p2p2b_nostab(self):
         r"""
         Execute full linear R13 system test and check with reference errors.
@@ -165,8 +165,8 @@ class TestR13Convergence(object):
 
         Bubble elements from [TOR2017]_.
 
-        .. [TOR2017] Shuang Hu, Huiteng Li, Zhenning Cai. Stability and 
-        Convergence of Mixed Finite Elements for Linear Regularized 13-Moment 
+        .. [TOR2017] Shuang Hu, Huiteng Li, Zhenning Cai. Stability and
+        Convergence of Mixed Finite Elements for Linear Regularized 13-Moment
         Equations. https://arxiv.org/abs/2601.17904v1
 
         ==================== ===================================================
@@ -425,7 +425,7 @@ class TestR13Convergence(object):
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
-        
+
     def test_r13_01_coeffs_nosources_rot_noinflow_p1p2p1p2p2b_nostab(self):
         r"""
         Execute full linear R13 system test and check with reference errors.
