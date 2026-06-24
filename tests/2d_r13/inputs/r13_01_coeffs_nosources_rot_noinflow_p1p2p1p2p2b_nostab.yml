@@ -1,7 +1,7 @@
 # General
 # =======
 # - output_folder: Used as output folder
-output_folder: r13_01_coeffs_nosources_rot_noinflow_p2p1p1p2p1
+output_folder: r13_01_coeffs_nosources_rot_noinflow_p1p2p1p2p2b_nostab
 
 # Meshes
 # ======
@@ -47,10 +47,11 @@ elements:
     degree: 1
   u:
     shape: Lagrange
-    degree: 1
+    degree: 2
   sigma:
     shape: Lagrange
     degree: 2
+    bubble_enriched: True
 stabilization:
   cip:
     enable: False

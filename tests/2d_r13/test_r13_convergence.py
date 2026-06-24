@@ -156,6 +156,44 @@ class TestR13Convergence(object):
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
+        
+    def test_r13_1_coeffs_nosources_norot_inflow_p1p2p1p2p2b_nostab(self):
+        r"""
+        Execute full linear R13 system test and check with reference errors.
+        Use bubble enriched P2 elements for sigma paired with two normal
+        copies of Taylor-Hood elements (P1P2P1P2P2B) w.o. stabilization.
+
+        Bubble elements from [TOR2017]_.
+
+        .. [TOR2017] Shuang Hu, Huiteng Li, Zhenning Cai. Stability and 
+        Convergence of Mixed Finite Elements for Linear Regularized 13-Moment 
+        Equations. https://arxiv.org/abs/2601.17904v1
+
+        ==================== ===================================================
+        Parameter     Value
+        ==================== ===================================================
+        :math:`Kn`           :math:`1.0`
+        :math:`\dot{m}`      :math:`0`
+        :math:`r`            :math:`0`
+        :math:`\theta_w^1`   :math:`1.0`
+        :math:`v_t^1`        :math:`0`
+        :math:`v_n^1`        :math:`0`
+        :math:`p_w^1`        :math:`0`
+        :math:`\epsilon_w^1` :math:`10^{-3}`
+        :math:`\theta_w^2`   :math:`2.0`
+        :math:`v_t^2`        :math:`-1.00 \sin(\phi)`
+        :math:`v_n^2`        :math:`+1.00 \cos(\phi)`
+        :math:`p_w^2`        :math:`-0.27 \cos(\phi)`
+        :math:`\epsilon_w^2` :math:`10^{3}`
+        Elements             :math:`P_1P_2P_1P_2P_2^b`
+        Stabilization        Off
+        ==================== ===================================================
+        """
+        name = "r13_1_coeffs_nosources_norot_inflow_p1p2p1p2p2b_nostab"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
 
     def test_r13_1_coeffs_nosources_norot_inflow_p2p2p2p2p2_gls(self):
         r"""
@@ -350,7 +388,7 @@ class TestR13Convergence(object):
         referrors = "referrors/" + name + "/errors.csv"
         self.compare_errors(errors, referrors)
 
-    def test_r13_01_coeffs_nosources_rot_noinflow_p2p1p1p2p1(self):
+    def test_r13_01_coeffs_nosources_rot_noinflow_p1p2p1p1p2_nostab(self):
         r"""
         Execute full linear R13 system test and check with reference errors.
 
@@ -382,7 +420,45 @@ class TestR13Convergence(object):
         Stabilization        none
         ==================== ===================================================
         """
-        name = "r13_01_coeffs_nosources_rot_noinflow_p2p1p1p2p1"
+        name = "r13_01_coeffs_nosources_rot_noinflow_p1p2p1p1p2_nostab"
+        self.run_solver("inputs/" + name + ".yml")
+        errors = name + "/" + "errors.csv"
+        referrors = "referrors/" + name + "/errors.csv"
+        self.compare_errors(errors, referrors)
+        
+    def test_r13_01_coeffs_nosources_rot_noinflow_p1p2p1p2p2b_nostab(self):
+        r"""
+        Execute full linear R13 system test and check with reference errors.
+
+        Test case is similar to  [HU2026]_.
+
+        .. [HU2026] STABILITY AND CONVERGENCE OF MIXED FINITE ELEMENTS FOR
+            LINEAR REGULARIZED 13-MOMENT EQUATIONS.
+            SHUANG HU, HUITENG LI, AND ZHENNING CAI
+            arxiv: 2601.17904v1
+            (2026).
+
+        ==================== ===================================================
+        Parameter     Value
+        ==================== ===================================================
+        :math:`Kn`           :math:`1.0`
+        :math:`\dot{m}`      :math:`0`
+        :math:`r`            :math:`0`
+        :math:`\theta_w^1`   :math:`1.0`
+        :math:`v_t^1`        :math:`1.0`
+        :math:`v_n^1`        :math:`0`
+        :math:`p_w^1`        :math:`0`
+        :math:`\epsilon_w^1` :math:`0`
+        :math:`\theta_w^2`   :math:`2.0`
+        :math:`v_t^2`        :math:`1.0`
+        :math:`v_n^2`        :math:`0`
+        :math:`p_w^2`        :math:`0`
+        :math:`\epsilon_w^2` :math:`0`
+        Elements             :math:`P_1P_2P_1P_2P_2^b`
+        Stabilization        none
+        ==================== ===================================================
+        """
+        name = "r13_01_coeffs_nosources_rot_noinflow_p1p2p1p2p2b_nostab"
         self.run_solver("inputs/" + name + ".yml")
         errors = name + "/" + "errors.csv"
         referrors = "referrors/" + name + "/errors.csv"
