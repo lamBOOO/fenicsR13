@@ -2097,17 +2097,11 @@ class Solver:
             if dimension > 0:
                 # skip scalars
                 components = len(field.split())
+                axes = ["x", "y", "z"][:self.nsd]
                 indexMap = {
-                    1: {
-                        1: "x",
-                        2: "y"
-                    },
-                    2: {
-                        1: "xx",
-                        2: "xy",
-                        3: "yx",
-                        4: "yy",
-                    }
+                    1: {k + 1: v for k, v in enumerate(axes)},
+                    2: {k + 1: v for k, v in enumerate(
+                        a + b for a in axes for b in axes)},
                 }
                 for i in range(components):
                     fieldname = name + "_" + str(indexMap[dimension][i + 1])
@@ -2144,17 +2138,11 @@ class Solver:
         else:
             # vector or tensor
             components = len(field.split())
+            axes = ["x", "y", "z"][:self.nsd]
             indexMap = {
-                1: {
-                    1: "x",
-                    2: "y"
-                },
-                2: {
-                    1: "xx",
-                    2: "xy",
-                    3: "yx",
-                    4: "yy",
-                }
+                1: {k + 1: v for k, v in enumerate(axes)},
+                2: {k + 1: v for k, v in enumerate(
+                    a + b for a in axes for b in axes)},
             }
             for i in range(components):
                 fieldname = name + "_" + str(indexMap[dimension][i + 1])
