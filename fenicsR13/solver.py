@@ -1263,24 +1263,30 @@ class Solver:
                 p_i.assign(p_i - shift_function)
                 self.sol["p"] = p_i
 
-        # Calculate mass flows
+        # Calculate mass and heat flows through the requested boundaries.
+        # TODO: allow generic user-defined surface integral expressions
         for bc_id in self.flows:
             if bc_id not in self.boundaries.array():
                 raise Exception(
                     "Flow calculation: {} is no boundary.".format(bc_id)
                 )
             n = df.FacetNormal(self.mesh)
-            mass_flow_rate = df.assemble(
-                df.inner(self.sol["u"], n) * df.ds(bc_id)
-            )
-            print("mass flow rate of BC", bc_id, ":", mass_flow_rate)
-            self.write_content_to_file("massflow_" + str(bc_id), mass_flow_rate)
-            # TODO: Implement generically
-            heat_flow_rate = df.assemble(
-                df.inner(self.sol["s"], n) * df.ds(bc_id)
-            )
-            print("heat flow rate of BC", bc_id, ":", heat_flow_rate)
-            self.write_content_to_file("heatflow_" + str(bc_id), heat_flow_rate)
+            if self.mode == "stress" or self.mode == "r13":
+                mass_flow_rate = df.assemble(
+                    df.inner(self.sol["u"], n) * df.ds(bc_id)
+                )
+                print("mass flow rate of BC", bc_id, ":", mass_flow_rate)
+                self.write_content_to_file(
+                    "massflow_" + str(bc_id), mass_flow_rate
+                )
+            if self.mode == "heat" or self.mode == "r13":
+                heat_flow_rate = df.assemble(
+                    df.inner(self.sol["s"], n) * df.ds(bc_id)
+                )
+                print("heat flow rate of BC", bc_id, ":", heat_flow_rate)
+                self.write_content_to_file(
+                    "heatflow_" + str(bc_id), heat_flow_rate
+                )
 
         if self.mode == "stress" or self.mode == "r13":
             vol = df.assemble(df.Constant(1) * df.dx)
