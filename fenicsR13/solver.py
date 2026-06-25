@@ -347,7 +347,9 @@ class Solver:
 
         If requested, enrich the field with cell bubble functions. For the
         R13 paper's two-dimensional lowest-order tensor element this realizes
-        the local space P_2 plus b_K P_1 through a degree-4 Bubble element.
+        the local space P_2 plus b_K P_1 through a degree-4 Bubble element. In
+        3D the same scalar enrichment is applied to the five stored STF sigma
+        components, e.g. P_3 plus b_K P_2 through a degree-6 Bubble element.
         """
         if family is None:
             family = self.params["elements"][var]["shape"]
@@ -359,7 +361,9 @@ class Solver:
             scalar_element = scalar_element + df.FiniteElement(
                 "Bubble", self.cell, self.__bubble_degree(var)
             )
-        if self.var_ranks[var] == 0:
+        if var == "sigma":
+            element = self.__create_sigma_element(scalar_element, symmetry)
+        elif self.var_ranks[var] == 0:
             element = scalar_element
         elif self.var_ranks[var] == 1:
             element = df.VectorElement(scalar_element)
@@ -369,10 +373,25 @@ class Solver:
             raise RuntimeError("Unsupported rank for variable {}".format(var))
         return element
 
+    def __create_sigma_element(self, scalar_element, symmetry):
+        """
+        Create the compact sigma element used by the R13 formulation.
+
+        In 3D sigma is stored with five independent symmetric trace-free
+        components. The sixth diagonal entry is reconstructed later as
+        sigma_zz = -sigma_xx - sigma_yy by ``gen3DTFdim3``.
+        """
+        if symmetry is None:
+            symmetry = self.__sigma_symmetry()
+        return df.TensorElement(scalar_element, symmetry=symmetry)
+
     def __sigma_symmetry(self):
         """Return the compact tensor symmetry map used for sigma."""
         if self.nsd == 2:
             return {(1, 0): (0, 1)}
+        # The (2, 2) entry is not a physical equality constraint. It removes
+        # the sixth symmetric component from the discrete unknown; gen3DTFdim3
+        # later reconstructs sigma_zz = -sigma_xx - sigma_yy in all forms.
         return {
             (1, 0): (0, 1),
             (2, 0): (0, 2),
@@ -1258,7 +1277,7 @@ class Solver:
                             ["sigmaxx", "sigmaxy"],
                             ["sigmaxy", "sigmayy"],
                         ],
-                        degree=2,
+                        degree=self.__element_output_degree("sigma"),
                         sigmaxx=sigmaxx,
                         sigmaxy=sigmaxy,
                         sigmayy=sigmayy
@@ -1280,7 +1299,7 @@ class Solver:
                             ["sigmaxy", "sigmayy", "sigmayz"],
                             ["sigmaxz", "sigmayz", "-sigmaxx-sigmayy"]
                         ],
-                        degree=2,
+                        degree=self.__element_output_degree("sigma"),
                         sigmaxx=sigmaxx,
                         sigmaxy=sigmaxy,
                         sigmaxz=sigmaxz,
