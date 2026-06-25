@@ -46,8 +46,7 @@ class Input:
         #   - fields: List of FEM parameters (shape, degree)
         #     - shape: Element shape, e.g. Lagrange
         #     - degree: Element degree, e.g. 2
-        #     - bubble_enriched: Optional enrichment with cell bubbles
-        #     - bubble_degree: Optional bubble degree, default degree + nsd
+        #     - bubble_enriched: Optional sigma enrichment with cell bubbles
         # - stabilization: Must contain cip and gls
         #   - cip: Collection of Continous Interior Penalty (CIP) parameters
         #     - enable: Enable CIP stabilization
@@ -220,6 +219,32 @@ class Input:
             raise
 
         val = Validator()
+        element_schema = {
+            "shape": {
+                "type": "string",
+                "required": True
+            },
+            "degree": {
+                "type": "integer",
+                "required": True,
+                "min": 0
+            }
+        }
+        sigma_element_schema = {
+            "shape": {
+                "type": "string",
+                "required": True
+            },
+            "degree": {
+                "type": "integer",
+                "required": True,
+                "min": 0
+            },
+            "bubble_enriched": {
+                "type": "boolean",
+                "required": False
+            }
+        }
         input_schema = {
             "meshes": {
                 "type": "list",
@@ -524,122 +549,27 @@ class Input:
                     "theta": {
                         "type": "dict",
                         "required": True,
-                        "schema": {
-                            "shape": {
-                                "type": "string",
-                                "required": True
-                            },
-                            "degree": {
-                                "type": "integer",
-                                "required": True,
-                                "min": 0
-                            },
-                            "bubble_enriched": {
-                                "type": "boolean",
-                                "required": False
-                            },
-                            "bubble_degree": {
-                                "type": "integer",
-                                "required": False,
-                                "min": 1
-                            }
-                        }
+                        "schema": element_schema
                     },
                     "s": {
                         "type": "dict",
                         "required": True,
-                        "schema": {
-                            "shape": {
-                                "type": "string",
-                                "required": True
-                            },
-                            "degree": {
-                                "type": "integer",
-                                "required": True,
-                                "min": 0
-                            },
-                            "bubble_enriched": {
-                                "type": "boolean",
-                                "required": False
-                            },
-                            "bubble_degree": {
-                                "type": "integer",
-                                "required": False,
-                                "min": 1
-                            }
-                        }
+                        "schema": element_schema
                     },
                     "p": {
                         "type": "dict",
                         "required": True,
-                        "schema": {
-                            "shape": {
-                                "type": "string",
-                                "required": True
-                            },
-                            "degree": {
-                                "type": "integer",
-                                "required": True,
-                                "min": 0
-                            },
-                            "bubble_enriched": {
-                                "type": "boolean",
-                                "required": False
-                            },
-                            "bubble_degree": {
-                                "type": "integer",
-                                "required": False,
-                                "min": 1
-                            }
-                        }
+                        "schema": element_schema
                     },
                     "u": {
                         "type": "dict",
                         "required": True,
-                        "schema": {
-                            "shape": {
-                                "type": "string",
-                                "required": True
-                            },
-                            "degree": {
-                                "type": "integer",
-                                "required": True,
-                                "min": 0
-                            },
-                            "bubble_enriched": {
-                                "type": "boolean",
-                                "required": False
-                            },
-                            "bubble_degree": {
-                                "type": "integer",
-                                "required": False,
-                                "min": 1
-                            }
-                        }
+                        "schema": element_schema
                     },
                     "sigma": {
                         "type": "dict",
                         "required": True,
-                        "schema": {
-                            "shape": {
-                                "type": "string",
-                                "required": True
-                            },
-                            "degree": {
-                                "type": "integer",
-                                "required": True,
-                                "min": 0
-                            },
-                            "bubble_enriched": {
-                                "type": "boolean",
-                                "required": False
-                            },
-                            "bubble_degree": {
-                                "type": "integer",
-                                "required": False,
-                                "min": 1
-                            }
-                        }
+                        "schema": sigma_element_schema
                     },
                 }
             }

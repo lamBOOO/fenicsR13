@@ -319,26 +319,31 @@ class Solver:
         else:
             return df.Expression(cpp_strings, degree=2)
 
-    def __bubble_enriched(self, var):
-        """Return whether the input requests cell-bubble enrichment."""
-        return self.params["elements"][var].get("bubble_enriched", False)
-
-    def __bubble_degree(self, var):
-        """
-        Return the bubble polynomial degree for an element.
-
-        The paper's local space is b_K E(P_m), where b_K has degree d+1
-        and E(P_m) has degree m-1. The resulting bubble degree is m+d.
-        """
-        return self.params["elements"][var].get(
-            "bubble_degree", self.params["elements"][var]["degree"] + self.nsd
+    def __has_bubble(self, var):
+        """Return whether sigma uses the optional cell-bubble enrichment."""
+        return (
+            var == "sigma"
+            and self.params["elements"][var].get("bubble_enriched", False)
         )
+
+    def __sigma_bubble_order(self, var):
+        """
+        Return the total polynomial degree for the sigma bubble element.
+
+        The paper's local enrichment is b_K E(P_m), where b_K has degree
+        d + 1 and E(P_m) has degree m - 1. The resulting total Bubble degree is
+        m + d, i.e. ``degree + nsd`` in the input notation.
+        Ref: Shuang Hu, Huiteng Li, Zhenning Cai. Stability and
+        Convergence of Mixed Finite Elements for Linear Regularized 13-Moment
+        Equations. https://arxiv.org/abs/2601.17904v1
+        """
+        return self.params["elements"][var]["degree"] + self.nsd
 
     def __element_output_degree(self, var):
         """Return a Lagrange degree that contains the element polynomials."""
         degree = self.params["elements"][var]["degree"]
-        if self.__bubble_enriched(var):
-            return max(degree, self.__bubble_degree(var))
+        if self.__has_bubble(var):
+            return max(degree, self.__sigma_bubble_order(var))
         return degree
 
     def __create_element(self, var, family=None, degree=None, symmetry=None):
@@ -357,9 +362,9 @@ class Solver:
             degree = self.params["elements"][var]["degree"]
 
         scalar_element = df.FiniteElement(family, self.cell, degree)
-        if self.__bubble_enriched(var):
+        if self.__has_bubble(var):
             scalar_element = scalar_element + df.FiniteElement(
-                "Bubble", self.cell, self.__bubble_degree(var)
+                "Bubble", self.cell, self.__sigma_bubble_order(var)
             )
         if var == "sigma":
             element = self.__create_sigma_element(scalar_element, symmetry)
