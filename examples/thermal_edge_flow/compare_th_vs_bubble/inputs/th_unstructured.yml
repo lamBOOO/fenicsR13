@@ -2,23 +2,19 @@
 # =======
 # - output_folder: Used as output folder
 # output_folder:
-output_folder: structured_simple_mesh
+output_folder: th_unstructured
 
 # Meshes
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  # - study9_0.h5
-  # - study9_1.h5
-  # - study9_2.h5
-  # - study9_3.h5
-  - structured_simple_mesh_0.h5
-  - structured_simple_mesh_1.h5
-  - structured_simple_mesh_2.h5
-  - structured_simple_mesh_3.h5
-  - structured_simple_mesh_4.h5
-  - structured_simple_mesh_5.h5
-  - structured_simple_mesh_6.h5
+  - meshes/unstructured_0.h5
+  - meshes/unstructured_1.h5
+  - meshes/unstructured_2.h5
+  - meshes/unstructured_3.h5
+  # - meshes/unstructured_4.h5
+  # - meshes/unstructured_5.h5
+  # - meshes/unstructured_6.h5
 
 # Numerical Parameters
 # ====================
@@ -51,11 +47,11 @@ elements:
     degree: 1
   u:
     shape: Lagrange
-    degree: 2
+    degree: 1
   sigma:
     shape: Lagrange
     degree: 2
-    bubble_enriched: True
+    bubble_enriched: False
 stabilization:
   cip:
     enable: False

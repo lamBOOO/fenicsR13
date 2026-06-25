@@ -2,23 +2,19 @@
 # =======
 # - output_folder: Used as output folder
 # output_folder:
-output_folder: structured_simple_mesh_symmetric
+output_folder: th_structured_left
 
 # Meshes
 # ======
 # - meshes: List of input meshes in h5 format to run simulations on
 meshes:
-  # - study9_0.h5
-  # - study9_1.h5
-  # - study9_2.h5
-  # - study9_3.h5
-  - structured_simple_mesh_symmetric_0.h5
-  - structured_simple_mesh_symmetric_1.h5
-  - structured_simple_mesh_symmetric_2.h5
-  - structured_simple_mesh_symmetric_3.h5
-  - structured_simple_mesh_symmetric_4.h5
-  - structured_simple_mesh_symmetric_5.h5
-  - structured_simple_mesh_symmetric_6.h5
+  - meshes/structured_left_0.h5
+  - meshes/structured_left_1.h5
+  - meshes/structured_left_2.h5
+  - meshes/structured_left_3.h5
+  # - meshes/structured_left_4.h5
+  # - meshes/structured_left_5.h5
+  # - meshes/structured_left_6.h5
 
 # Numerical Parameters
 # ====================
@@ -51,11 +47,11 @@ elements:
     degree: 1
   u:
     shape: Lagrange
-    degree: 2
+    degree: 1
   sigma:
     shape: Lagrange
     degree: 2
-    bubble_enriched: True
+    bubble_enriched: False
 stabilization:
   cip:
     enable: False
