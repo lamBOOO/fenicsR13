@@ -123,7 +123,7 @@ bcs:
   3000:
     chi_tilde: 1.0
     theta_w: 1
-    u_t_w: 0
+    u_t_w: -1.0
     u_n_w: 0
     u_x_w: 1E300
     u_y_w: 1E300

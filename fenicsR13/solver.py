@@ -966,8 +966,8 @@ class Solver:
         # P, V, T,   H, THETA (Luke)
 
         # Luke presentation
-        chi_tau = 0.3339  # in [0,1]
-        chi_h = 0.4441  # in [0,2/3]
+        chi_tau = 0.33392  # in [0,1]
+        chi_h = 0.444065  # in [0,2/3]
         # Burnett coeff for Maxwell molecules
         omega_2 = 2
         omega_3 = 3
@@ -990,12 +990,12 @@ class Solver:
         for i in range(1, 11):
             print("C{} = {}".format(i, eval("C{}".format(i))))
         # TODO
-        gamma1 = 1
-        gamma2 = 0.0001
-        gamma3 = 1
-        gamma4 = 1
-        gamma5 = 0.0001
-        gamma6 = 1
+        gamma1 = 0.797885
+        gamma2 = 0.252538
+        gamma3 = 0.717125
+        gamma4 = 1.59577
+        gamma5 = 0.564054
+        gamma6 = 0.799082
         # From luke
         # pi = np.pi
         # gamma1 = -np.sqrt(2/pi)
@@ -1030,7 +1030,7 @@ class Solver:
         # ) / (
         #     50 * np.sqrt(pi) * chi_h * chi_tau
         # )
-        
+
         # print all gammas for documentation purposes
         print("Gammas:")
         for i in range(1, 7):
