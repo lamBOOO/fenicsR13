@@ -594,9 +594,13 @@ class Input:
                             }
                         }
                     },
+                    # Only the r14 mode has an R field. Keeping it required
+                    # here rejects every pre-r14 input file (and the doctests
+                    # below); the mode-dependent check is done after
+                    # validation instead.
                     "R": {
                         "type": "dict",
-                        "required": True,
+                        "required": False,
                         "schema": {
                             "shape": {
                                 "type": "string",
@@ -615,6 +619,16 @@ class Input:
 
         if not val.validate(self.dict, input_schema):
             print("! Parsing Error: \n" + str(val.errors) + "\n")
+            raise Exception("Parsing error")
+
+        # The R element is only meaningful for the r14 system. It is optional
+        # in the schema so that pre-r14 input files stay valid; here it is
+        # required exactly where it is used.
+        if self.dict["mode"] == "r14" and "R" not in self.dict["elements"]:
+            print(
+                "! Parsing Error: \n"
+                "{'elements': [{'R': ['required field for mode r14']}]}\n"
+            )
             raise Exception("Parsing error")
 
         # Check if f_sigma is symmetric
