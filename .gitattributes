@@ -1,1 +1,12 @@
 *.h5 filter=lfs diff=lfs merge=lfs -text
+
+# Keep shell scripts LF in the working tree as well. On a Windows checkout
+# with core.autocrlf=true they come out CRLF, and the Docker image then
+# cannot execute them: the kernel looks for the interpreter "/bin/bash\r"
+# and reports
+#
+#     ./create_mesh.sh: /bin/bash^M: bad interpreter: No such file or directory
+#
+# which pytest shows as FileNotFoundError on the script itself, so the
+# examples tests look broken for a reason that has nothing to do with them.
+*.sh text eol=lf

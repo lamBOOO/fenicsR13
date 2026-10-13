@@ -132,30 +132,21 @@ class Solver:
             "relative_error"
         ]
         self.output_folder = self.params["output_folder"] + "/"
+        # R is a field of the r14 system only. For every other mode it must not
+        # appear in the variable bookkeeping at all, otherwise the element and
+        # function-space setup looks for an "R" entry that pre-r14 input files
+        # do not have (KeyError), or builds a mixed element from a None entry.
         self.var_ranks = {
             "theta": 0,
             "s": 1,
-            "R": 0,
             "p": 0,
             "u": 1,
             "sigma": 2,
         }
-        self.elems = {
-            "theta": None,
-            "s": None,
-            "R": None,
-            "p": None,
-            "u": None,
-            "sigma": None,
-        }
-        self.fspaces = {
-            "theta": None,
-            "s": None,
-            "R": None,
-            "p": None,
-            "u": None,
-            "sigma": None,
-        }
+        if self.mode == "r14":
+            self.var_ranks["R"] = 0
+        self.elems = {var: None for var in self.var_ranks}
+        self.fspaces = {var: None for var in self.var_ranks}
         self.mxd_elems = {
             "heat": None,
             "stress": None,
@@ -399,12 +390,13 @@ class Solver:
         self.mxd_fspaces["r13"] = df.FunctionSpace(
             msh, self.mxd_elems["r13"]
         )
-        # 4) r14
-        r14_elems = r13_elems + [self.elems["R"]]
-        self.mxd_elems["r14"] = df.MixedElement(r14_elems)
-        self.mxd_fspaces["r14"] = df.FunctionSpace(
-            msh, self.mxd_elems["r14"]
-        )
+        # 4) r14 (only buildable when the R element exists, i.e. in r14 mode)
+        if "R" in self.elems:
+            r14_elems = r13_elems + [self.elems["R"]]
+            self.mxd_elems["r14"] = df.MixedElement(r14_elems)
+            self.mxd_fspaces["r14"] = df.FunctionSpace(
+                msh, self.mxd_elems["r14"]
+            )
 
     def __check_regions(self):
         """
@@ -1002,12 +994,19 @@ class Solver:
         L = [None] * 6
         # 1) Left-hand sides, bilinear form A[..]:
         # Changed inflow condition => minus before f(q, sigma)
-        A[0] = a(s, r)     - b(theta, r) - c(r, sigma)   + 0         + 0           - j(r, R)
+        # R and Q only exist in r14 mode (see TrialFunctions above), so the
+        # rows coupling to them must be guarded. Without the guard, every
+        # non-r14 mode raises UnboundLocalError here.
+        if self.mode == "r14":
+            A[0] = a(s, r) - b(theta, r) - c(r, sigma) + 0 + 0 - j(r, R)
+            A[5] = j(s, Q) + 0 + 0 + 0 + 0 + i(R, Q)
+        else:
+            A[0] = a(s, r) - b(theta, r) - c(r, sigma) + 0 + 0 + 0
+            A[5] = 0
         A[1] = b(kappa, s) + 0           + 0             + 0         + 0           + 0
         A[2] = c(s, psi)   + 0           + d(sigma, psi) - e(u, psi) + f(p, psi)   + 0
         A[3] = 0           + 0           + e(v, sigma)   + 0         + g(p, v)     + 0
         A[4] = 0           + 0           + f(q, sigma)   - g(q, u)   + h(p, q)     + 0
-        A[5] = j(s, Q)     + 0           + 0             + 0         + 0           +i(R, Q)
 
         # Augmented form (see below)
         # A[4] += sum([(
